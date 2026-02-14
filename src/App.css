@@ -1,116 +1,515 @@
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
+@import "tailwindcss";
+@plugin "daisyui";
+@plugin "@tailwindcss/typography";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
-.logo.solid:hover {
-  filter: drop-shadow(0 0 2em #2f5d90);
-}
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  --font-main: 'Outfit', 'Noto Color Emoji', Inter, 'Roboto', sans-serif;
+  font-family: var(--font-main), "Noto Color Emoji", Avenir, Helvetica, Arial, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease, font-family 0.3s ease;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+  color: var(--color-on-surface);
+  background: var(--color-background);
+  min-height: 100vh;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
 }
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
+/* Standardized Material Symbols Rounded component */
+@utility icon {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
+  
+  /* M3 Defaults */
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
+@utility icon-fill {
+  font-variation-settings: 'FILL' 1;
 }
 
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
+.icon-filled,
+.icon:active,
+button:active .icon {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-.row {
-  display: flex;
-  justify-content: center;
+.icon {
+  transition: font-variation-settings 0.2s ease;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+.icon-bold {
+  font-variation-settings: 'wght' 700;
 }
 
-a:hover {
-  color: #535bf2;
+@utility glass {
+  background: var(--color-surface-container-lowest);
+  transition: all 0.2s ease-out;
 }
 
-h1 {
-  text-align: center;
+@utility glass-interactive {
+  @hover {
+    border-color: var(--color-outline);
+    background: var(--color-surface-container-low);
+  }
 }
 
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+.app-logo {
+  height: 80px;
 }
 
-button {
+:root {
+  --theme-logo-filter: invert(13%) sepia(21%) font-family(0%) saturate(1682%) hue-rotate(279deg) brightness(91%) contrast(101%);
+}
+
+[data-theme="dark"] {
+  --theme-logo-filter: invert(99%) sepia(3%) saturate(301%) hue-rotate(185deg) brightness(115%) contrast(100%);
+}
+
+.date-display {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-on-surface-variant);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.clock-display {
+  font-size: 5.5rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: 1rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tagline {
+  font-size: 1.1rem;
+  color: var(--color-secondary);
+  margin-top: 1.5rem;
+  font-weight: 300;
+}
+
+/* --- Spectrum Colors --- */
+:root {
+  --color-spectrum-red: #ff5252;
+  --color-spectrum-yellow: #ffd740;
+  --color-spectrum-green: #69f0ae;
+  --color-spectrum-cyan: #18ffff;
+  --color-spectrum-blue: #448aff;
+  --color-spectrum-magenta: #ff4081;
+  --color-white: #ffffff;
+  --color-black: #000000;
+}
+
+/* --- Custom Scrollbar --- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-outline-variant);
+  border-radius: 20px;
+}
+
+/* --- Rainbow Utilities --- */
+@utility bg-conic-rainbow {
+  background: conic-gradient(from 0deg,
+    var(--color-spectrum-red),
+    var(--color-spectrum-yellow),
+    var(--color-spectrum-green),
+    var(--color-spectrum-cyan),
+    var(--color-spectrum-blue),
+    var(--color-spectrum-magenta),
+    var(--color-spectrum-red)
+  );
+}
+
+@utility hue-slider-bg {
+  background: linear-gradient(to right,
+    var(--color-spectrum-red) 0%,
+    var(--color-spectrum-yellow) 17%,
+    var(--color-spectrum-green) 33%,
+    var(--color-spectrum-cyan) 50%,
+    var(--color-spectrum-blue) 67%,
+    var(--color-spectrum-magenta) 83%,
+    var(--color-spectrum-red) 100%
+  );
+}
+
+/* --- Material 3 Switch --- */
+.md-switch {
   cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
   outline: none;
 }
 
-#greet-input {
-  margin-right: 5px;
+.md-switch .track {
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
+.md-switch .handle-container {
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
 
-  a:hover {
-    color: #24c8db;
-  }
+.md-switch .handle {
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+/* --- TipTap / ProseMirror Styles --- */
+.ProseMirror {
+  outline: none;
+  min-height: 500px;
+}
 
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--color-on-surface-variant);
+  pointer-events: none;
+  height: 0;
+  opacity: 0.5;
+}
+
+/* Task List Styles */
+ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+  margin-left: 0.5rem;
+}
+
+ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.2rem;
+}
+
+ul[data-type="taskList"] li > label {
+  flex: 0 0 auto;
+  margin-right: 0.75rem;
+  user-select: none;
+  display: flex;
+  /* Removed padding/centering to rely on margin-top calculation */
+}
+
+ul[data-type="taskList"] li > label input {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-on-surface-variant);
+  border-radius: 4px;
+  display: grid;
+  place-content: center;
+  transition: all 0.2s ease;
+  
+  /* Vertical Alignment Adjustment:
+     Pushed down slightly more to visually align with text cap-height/baseline
+  */
+  margin: 4px 0 0 0;
+  cursor: pointer;
+}
+
+ul[data-type="taskList"] li > label input::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.75rem;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em var(--color-on-primary);
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+ul[data-type="taskList"] li > label input:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+ul[data-type="taskList"] li > label input:checked::before {
+  transform: scale(1);
+}
+
+ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  text-decoration: line-through;
+  opacity: 0.6;
+  color: var(--color-on-surface-variant);
+}
+
+ul[data-type="taskList"] li > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+ul[data-type="taskList"] li > div > p {
+  margin: 0; /* Critical for alignment */
+}
+
+/* Table Styles */
+.ProseMirror table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.ProseMirror td, .ProseMirror th {
+  min-width: 1em;
+  border-right: 1px solid var(--color-outline-variant);
+  border-bottom: 1px solid var(--color-outline-variant);
+  padding: 8px 12px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ProseMirror th {
+  font-weight: bold;
+  text-align: left;
+  background-color: var(--color-surface-container-high);
+}
+
+.ProseMirror tr:last-child td {
+  border-bottom: none;
+}
+
+.ProseMirror tr td:last-child,
+.ProseMirror tr th:last-child {
+  border-right: none;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+/* Table Cell Selection */
+.ProseMirror .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: var(--color-primary);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+/* Column Resize Handle */
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: var(--color-primary);
+  pointer-events: none;
+}
+
+/* Horizontal Rule */
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--color-outline-variant);
+  margin: 2rem 0;
+}
+
+/* Links */
+.ProseMirror a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --- Theme Enforcements for Editor --- */
+.ProseMirror {
+  color: var(--color-on-surface);
+}
+
+.ProseMirror p, 
+.ProseMirror h1, 
+.ProseMirror h2, 
+.ProseMirror h3, 
+.ProseMirror h4, 
+.ProseMirror ul, 
+.ProseMirror ol,
+.ProseMirror li,
+.ProseMirror span {
+  color: var(--color-on-surface);
+}
+
+/* Exceptions for specific elements */
+.ProseMirror a {
+  color: var(--color-primary) !important;
+}
+
+.ProseMirror code {
+  color: var(--color-on-surface-variant) !important;
+}
+
+.ProseMirror blockquote {
+  color: var(--color-on-surface-variant) !important;
+}
+
+/* Explicit Styles for Italic and Headings */
+.ProseMirror em, .ProseMirror i {
+  font-style: italic !important;
+  color: inherit !important;
+}
+
+.ProseMirror strong, .ProseMirror b {
+  font-weight: 700;
+  color: var(--color-on-surface) !important;
+}
+
+.ProseMirror a strong, .ProseMirror a b {
+  color: inherit !important;
+}
+
+.ProseMirror h1 {
+  font-size: 1.75em; /* ~31.5px, smaller than Title (36px) */
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.ProseMirror h2 {
+  font-size: 1.4em; /* ~25px */
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.ProseMirror h3 {
+  font-size: 1.2em; /* ~21.6px */
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.ProseMirror p {
+  margin-top: 0;
+  margin-bottom: 0.8em;
+  line-height: 1.6;
+  font-size: 1.125rem; /* text-lg equivalent */
+}
+
+/* Ensure consistent base size */
+.ProseMirror ul, 
+.ProseMirror ol {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  margin-bottom: 0.8em;
+}
+
+/* Resizable Image Styles */
+.resizable-image-wrapper {
+  display: inline-block;
+  position: relative;
+  line-height: 0;
+  margin: 0.5rem 0;
+  max-width: 100%;
+}
+
+.resizable-image-wrapper img {
+  display: block;
+  max-width: 100%;
+  border-radius: 12px;
+  transition: outline 0.1s;
+}
+
+/* Selected State - Ring & Controls */
+.ProseMirror-selectednode .resizable-image-wrapper img,
+.resizable-image-wrapper.ProseMirror-selectednode img {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 0;
+}
+
+/* Resize Handle */
+.resize-handle {
+  display: none;
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  border-radius: 50%; /* Circle handle */
+  cursor: nwse-resize;
+  z-index: 10;
+}
+
+/* Delete Button */
+.image-delete-btn {
+  display: none;
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  border: 2px solid var(--color-surface);
+  /* No shadow as requested */
+}
+
+.image-delete-btn span {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--color-on-primary);
+}
+
+/* Show controls on selection */
+.ProseMirror-selectednode .resize-handle,
+.ProseMirror-selectednode .image-delete-btn,
+.resizable-image-wrapper.ProseMirror-selectednode .resize-handle,
+.resizable-image-wrapper.ProseMirror-selectednode .image-delete-btn {
+  display: flex;
+}
+
+/* --- Placeholder Styles --- */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--color-on-surface-variant);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  opacity: 0.5;
 }

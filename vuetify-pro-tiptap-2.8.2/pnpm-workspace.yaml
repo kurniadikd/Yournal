@@ -1,0 +1,10 @@
+packages:
+  - examples
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
+  - json-editor-vue
+  - simple-git-hooks
+  - unrs-resolver
+  - vue-demi

@@ -1,49 +1,126 @@
-import { createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import "./App.css";
+import { themeStore } from "./theme";
+import Header from "./components/Header";
+import Pengaturan from "./components/Aplikasi/Pengaturan";
+import Personalisasi from "./components/Aplikasi/Personalisasi";
+import PaletWarna from "./components/Aplikasi/PaletWarna";
+import { formatDate, formatTime } from "./utils/date";
+import FAB from "./components/ui/m3e/FAB";
+import Editor from "./components/Aplikasi/Editor.tsx";
+import DaftarCatatan from "./components/Aplikasi/DaftarCatatan";
+import Kalender from "./components/Aplikasi/Kalender";
+import { getNotes, saveNote, Note } from "./services/db";
 
 function App() {
-  const [greetMsg, setGreetMsg] = createSignal("");
-  const [name, setName] = createSignal("");
+  const [time, setTime] = createSignal(new Date());
+  const [isEditorOpen, setIsEditorOpen] = createSignal(false);
+  const [notes, setNotes] = createSignal<Note[]>([]);
+  const [selectedNote, setSelectedNote] = createSignal<Note | null>(null);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name: name() }));
-  }
+  const fetchNotes = async () => {
+    try {
+      const data = await getNotes();
+      setNotes(data);
+    } catch (err) {
+      console.error("Failed to load notes:", err);
+    }
+  };
+
+  onMount(() => {
+    themeStore.init();
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    fetchNotes(); // Load notes on start
+    onCleanup(() => clearInterval(timer));
+  });
+
+  const handleSaveNote = async (data: { title: string; content: string; mood: string; date: Date; location?: string; weather?: string }) => {
+    const currentNote = selectedNote();
+    
+    const noteToSave: Note = {
+      id: currentNote ? currentNote.id : crypto.randomUUID(),
+      title: data.title || "Tanpa Judul",
+      content: data.content,
+      mood: data.mood,
+      date: data.date.toISOString().split('T')[0],
+      time: data.date.toTimeString().split(' ')[0],
+      location: data.location,
+      weather: data.weather,
+      created_at: currentNote ? currentNote.created_at : new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    await saveNote(noteToSave);
+    await fetchNotes(); // Refresh list
+    setIsEditorOpen(false);
+    setSelectedNote(null);
+  };
+
+  const handleOpenNote = (note: Note) => {
+    setSelectedNote(note);
+    setIsEditorOpen(true);
+  };
+
+  const handleCreateNew = () => {
+    setSelectedNote(null);
+    setIsEditorOpen(true);
+  };
 
   return (
-    <main class="container">
-      <h1>Welcome to Tauri + Solid</h1>
-
-      <div class="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="logo solid" alt="Solid logo" />
-        </a>
+    <main class="min-h-screen flex flex-col relative overflow-hidden bg-[var(--color-surface)]">
+      <Header />
+      
+      {/* Relocated Clock (Top-Left, NOT in header) */}
+      <div class="fixed top-18 md:top-20 left-4 md:left-8 z-30 pointer-events-none">
+        <div class="flex flex-col">
+          <span class="text-xl font-bold text-[var(--color-primary)] mb-1">
+            {formatDate(time())}
+          </span>
+          <span class="text-3xl md:text-5xl font-light text-[var(--color-on-surface)] leading-none tracking-tighter">
+            {formatTime(time())}
+          </span>
+        </div>
       </div>
-      <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
 
-      <form
-        class="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
+      {/* Calendar (Top-Right) */}
+      <div class="hidden md:block fixed top-20 right-8 z-30">
+        <Kalender notes={notes()} />
+      </div>
+
+
+
+      <div class="flex-1 flex flex-col items-center p-4 pt-40 md:pt-0 overflow-y-auto w-full max-w-3xl mx-auto md:fixed md:bottom-6 md:left-6 md:w-[400px] md:h-[calc(100vh-200px)] md:items-start md:justify-end md:z-30">
+        <DaftarCatatan 
+          notes={notes()} 
+          onOpenNote={handleOpenNote} 
         />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg()}</p>
+      </div>
+
+      {/* Floating Action Button */}
+      <div class="fixed bottom-6 right-6 z-40">
+        <FAB 
+          icon="add" 
+          onClick={handleCreateNew} 
+          size="large"
+          class="shadow-xl shadow-black/20"
+        />
+      </div>
+
+      <Editor 
+        show={isEditorOpen()} 
+        onClose={() => setIsEditorOpen(false)} 
+        onSave={handleSaveNote}
+        initialTitle={selectedNote()?.title}
+        initialContent={selectedNote()?.content}
+        initialMood={selectedNote()?.mood}
+        initialDate={selectedNote() ? new Date(`${selectedNote()?.date}T${selectedNote()?.time}`) : undefined}
+        initialLocation={selectedNote()?.location}
+        initialWeather={selectedNote()?.weather}
+      />
+
+      <Pengaturan />
+      <Personalisasi />
+      <PaletWarna />
     </main>
   );
 }

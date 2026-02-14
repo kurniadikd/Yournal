@@ -1,0 +1,103 @@
+diff --git a/leksika_frontend/src/components/Aplikasi/Admin/ManajemenNarasi.vue b/leksika_frontend/src/components/Aplikasi/Admin/ManajemenNarasi.vue
+index 2fe9eb7..944d13a 100644
+--- a/leksika_frontend/src/components/Aplikasi/Admin/ManajemenNarasi.vue
++++ b/leksika_frontend/src/components/Aplikasi/Admin/ManajemenNarasi.vue
+@@ -2794,7 +2794,7 @@ mark {
+                             class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[var(--color-surface-container-low)] transition-colors"
+                             :title="isPreviewMode ? $t('admin.exit_preview') : $t('admin.preview_student_mode')">
+                             <span class="material-symbols-outlined">{{ isPreviewMode ? 'preview_off' : 'preview'
+-                            }}</span>
++                                }}</span>
+                         </button>
+                     </div>
+                     <div v-else>
+@@ -3176,14 +3176,12 @@ mark {
+                                             <!-- Level Badge -->
+                                             <span v-if="narrativeData.metadata?.level"
+                                                 class="h-7 px-3 rounded-full text-xs font-bold flex items-center gap-1 cursor-default transition-all bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] whitespace-nowrap">
+-                                                <span class="material-symbols-outlined text-sm">bar_chart</span>
+                                                 {{ narrativeData.metadata.level }}
+                                             </span>
+ 
+                                             <!-- Genre Badge -->
+                                             <span v-if="narrativeData.metadata?.genre"
+                                                 class="h-7 px-3 rounded-full text-xs font-bold flex items-center gap-1 cursor-default transition-all bg-[var(--color-tertiary-container)] text-[var(--color-on-tertiary-container)] whitespace-nowrap">
+-                                                <span class="material-symbols-outlined text-sm">category</span>
+                                                 {{ narrativeData.metadata.genre }}
+                                             </span>
+                                         </div>
+@@ -3396,7 +3394,7 @@ mark {
+                                 <!-- Status Selection Badge -->
+                                 <div class="flex items-center gap-2">
+                                     <span class="text-[var(--color-on-surface-variant)]">{{ $t('admin.status')
+-                                    }}:</span>
++                                        }}:</span>
+                                     <Listbox :modelValue="narrativeData.status" @update:modelValue="handleStatusChange">
+                                         <div class="relative">
+                                             <ListboxButton
+@@ -3441,13 +3439,13 @@ mark {
+                                 <!-- Level Dropdown Badge -->
+                                 <div class="flex items-center gap-2">
+                                     <span class="text-[var(--color-on-surface-variant)]">{{ $t('admin.level_label')
+-                                        }}:</span>
++                                    }}:</span>
+                                     <Menu as="div" class="relative">
+                                         <MenuButton
+                                             class="h-7 px-3 rounded-full font-bold text-xs flex items-center gap-1 cursor-pointer transition-all bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] hover:brightness-95 active:scale-95">
+                                             <span class="leading-none">{{ narrativeData.metadata.level ||
+                                                 $t('admin.choose')
+-                                            }}</span>
++                                                }}</span>
+                                             <span
+                                                 class="material-symbols-outlined !text-sm opacity-70 !leading-none">expand_more</span>
+                                         </MenuButton>
+@@ -3512,9 +3510,9 @@ mark {
+ 
+                                 <div class="flex items-center gap-1.5 ml-auto opacity-70">
+                                     <span class="text-[var(--color-on-surface-variant)]">{{ $t('admin.created_at')
+-                                    }}:</span>
++                                        }}:</span>
+                                     <span class="font-medium text-[var(--color-on-surface)]">{{ formattedCreatedAt
+-                                    }}</span>
++                                        }}</span>
+                                 </div>
+                             </div>
+ 
+@@ -3694,7 +3692,8 @@ mark {
+ 
+                                                                     <div v-else-if="!img.description || (!img.description[activeLang] && !img.description[selectedAnchorLang])"
+                                                                         class="text-xs text-[var(--color-outline)] italic">
+-                                                                        {{ $t('no_description') || 'No description available' }}
++                                                                        {{ $t('no_description') || 'No description
++                                                                        available' }}
+                                                                     </div>
+ 
+                                                                     <!-- Source Attribution -->
+@@ -3796,7 +3795,8 @@ mark {
+ 
+                                                                     <div v-else-if="!img.description || (!img.description[activeLang] && !img.description[selectedAnchorLang])"
+                                                                         class="text-xs text-[var(--color-outline)] italic">
+-                                                                        {{ $t('no_description') || 'No description available' }}
++                                                                        {{ $t('no_description') || 'No description
++                                                                        available' }}
+                                                                     </div>
+ 
+                                                                     <!-- Source Attribution -->
+@@ -3998,7 +3998,7 @@ mark {
+                                                     <ListboxButton
+                                                         class="relative w-full px-4 py-3 bg-[var(--color-surface-container)] rounded-2xl text-sm font-medium text-[var(--color-on-surface)] cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                                         <span class="block truncate">{{ aiConfig.narrative_type
+-                                                        }}</span>
++                                                            }}</span>
+                                                         <span
+                                                             class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                                             <span
+@@ -4212,7 +4212,7 @@ mark {
+                                                         <div class="grid grid-cols-[80px_1fr] gap-1 items-center">
+                                                             <span class="text-[var(--color-on-surface-variant)]">{{
+                                                                 $t('admin.arc')
+-                                                            }}:</span>
++                                                                }}:</span>
+                                                             <input v-model="directorPlan.ending_arc" type="text"
+                                                                 class="w-full bg-transparent border-0 border-b border-[var(--color-outline-variant)] focus:border-[var(--color-primary)] focus:ring-0 p-0 text-sm font-medium text-[var(--color-on-surface)] placeholder-[var(--color-outline)]"
+                                                                 :placeholder="$t('admin.ending_arc_placeholder')" />

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1280" height="1280" viewBox="0 0 1280 1280">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-3);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="706.63" y1="1156" x2="592.37" y2="343" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff0090"/>
+      <stop offset="0.479" stop-color="#ff00ae"/>
+      <stop offset="1" stop-color="#ff00e4"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="853.81" y1="1093" x2="447.19" y2="221" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fff3f3"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-3" x1="787.5" y1="905" x2="787.5" y2="172" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff0090"/>
+      <stop offset="1" stop-color="#ff00ea"/>
+    </linearGradient>
+  </defs>
+  <rect id="Rounded_Rectangle_2" data-name="Rounded Rectangle 2" class="cls-1" x="233" y="343" width="833" height="813" rx="90" ry="90"/>
+  <path id="Rounded_Rectangle_3" data-name="Rounded Rectangle 3" class="cls-2" d="M513,221H960a45,45,0,0,1,45,45v782a45,45,0,0,1-45,45H341a45,45,0,0,1-45-45V438A217,217,0,0,1,513,221Z"/>
+  <rect id="Rounded_Rectangle_4" data-name="Rounded Rectangle 4" class="cls-3" x="509" y="172" width="557" height="733" rx="45" ry="45"/>
+</svg>

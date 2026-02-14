@@ -1,0 +1,15 @@
+{
+  "name": "Aplikasi Leksika",
+  "short_name": "Leksika",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fc6acd",
+  "theme_color": "#fc6acd",
+  "icons": [
+    {
+      "src": "/Leksika_icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

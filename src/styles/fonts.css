@@ -1,0 +1,4 @@
+/* Font family utility for emojis */
+.font-emoji {
+  font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Android Emoji", "EmojiSymbols", "Symbola", sans-serif;
+}

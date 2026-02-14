@@ -1,0 +1,19 @@
+name: Publish PR Commit Pkg
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - 'src/**'
+      - package.json
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  build:
+    if: ${{ github.repository == 'yikoyu/vuetify-pro-tiptap' }}
+    uses: yikoyu/workflows/.github/workflows/publish-pr-commit-pkg.yml@main
+    with:
+      build-command: pnpm build:lib
