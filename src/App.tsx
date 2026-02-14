@@ -82,14 +82,14 @@ function App() {
         </div>
       </div>
 
-      {/* Calendar (Top-Right) */}
-      <div class="hidden md:block fixed top-20 right-8 z-30">
+      {/* Calendar (Bottom-Left) */}
+      <div class="hidden md:block fixed bottom-10 left-8 z-30">
         <Kalender notes={notes()} />
       </div>
 
 
 
-      <div class="flex-1 flex flex-col items-center p-4 pt-40 md:pt-0 overflow-y-auto w-full max-w-3xl mx-auto md:fixed md:bottom-6 md:left-6 md:w-[400px] md:h-[calc(100vh-200px)] md:items-start md:justify-end md:z-30">
+      <div class="flex-1 flex flex-col items-center p-4 pt-40 md:pt-0 overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30">
         <DaftarCatatan 
           notes={notes()} 
           onOpenNote={handleOpenNote} 

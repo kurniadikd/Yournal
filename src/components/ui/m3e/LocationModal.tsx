@@ -167,18 +167,22 @@ const LocationModal: Component<LocationModalProps> = (props) => {
       title="Pilih Lokasi"
       actions={
         <div class="flex justify-between w-full mt-4 px-1 items-center">
-            <div class="flex gap-2">
+            <div>
                 <Button variant="text" onClick={handleGetCurrentLocation} disabled={loading()}>
                      <span class="material-symbols-rounded mr-2">my_location</span>
                      Lokasi Saya
                 </Button>
-                <Show when={coords()}>
-                    <Button variant="text" class="text-[var(--color-error)] hover:bg-[var(--color-error-container)] hover:text-[var(--color-on-error-container)]" onClick={handleRemove}>
+            </div>
+            <div class="flex gap-2">
+                <Show when={props.initialLocation}>
+                    <Button 
+                        variant="text" 
+                        class="!text-[var(--color-error)] hover:!bg-[var(--color-error)]/10" 
+                        onClick={handleRemove}
+                    >
                         Hapus
                     </Button>
                 </Show>
-            </div>
-            <div class="flex gap-2">
                 <Button variant="text" onClick={props.onClose}>Batal</Button>
                 <Button variant="filled" onClick={handleConfirm} disabled={!coords() || loading()}>
                     Simpan

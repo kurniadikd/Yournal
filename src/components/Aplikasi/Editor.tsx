@@ -1,11 +1,13 @@
-import { createSignal, Show, createEffect } from "solid-js";
+import { createSignal, Show, createEffect, onCleanup } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
+import { Portal } from "solid-js/web";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
-import { ResizableImage } from "./extensions/ResizableImage";
+import Dropcursor from "@tiptap/extension-dropcursor";
+import { SelectableImage } from "./extensions/SelectableImage";
 import Highlight from "@tiptap/extension-highlight";
 import Bold from "@tiptap/extension-bold";
 import Italic from "@tiptap/extension-italic";
@@ -67,6 +69,8 @@ export default function Editor(props: EditorProps) {
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
   const [insertTableOpen, setInsertTableOpen] = createSignal(false);
   const [mood, setMood] = createSignal("");
+  const [previewImageUrl, setPreviewImageUrl] = createSignal<string | null>(null);
+  const [isPreviewZoomed, setIsPreviewZoomed] = createSignal(false);
 
   const handleSave = () => {
     const html = editor()?.getHTML() || '';
@@ -198,10 +202,14 @@ export default function Editor(props: EditorProps) {
       Heading.configure({
         levels: [1, 2, 3],
       }),
-      ResizableImage.configure({
+      SelectableImage.configure({
         inline: true,
         allowBase64: true,
+        HTMLAttributes: {
+          draggable: 'true',
+        },
       }),
+      Dropcursor,
       Underline,
       Link.configure({
         openOnClick: false,
@@ -213,7 +221,7 @@ export default function Editor(props: EditorProps) {
         multicolor: true,
       }),
       TextAlign.configure({
-        types: ['heading', 'paragraph', 'image'],
+        types: ['heading', 'paragraph'],
       }),
       Placeholder.configure({
         placeholder: 'Apa yang Anda pikirkan?',
@@ -300,6 +308,20 @@ export default function Editor(props: EditorProps) {
         commands.setContent(props.initialContent || "");
         commands.focus();
       }
+    }
+  });
+
+  // Handle custom preview-image event from SelectableImage extension
+  createEffect(() => {
+    const el = container();
+    if (el) {
+      const handlePreview = (e: any) => {
+        if (e.detail && e.detail.src) {
+          setPreviewImageUrl(e.detail.src);
+        }
+      };
+      el.addEventListener('preview-image', handlePreview);
+      onCleanup(() => el.removeEventListener('preview-image', handlePreview));
     }
   });
 
@@ -769,6 +791,39 @@ export default function Editor(props: EditorProps) {
             </div>
           </div>
         </Modal>
+
+        {/* Custom Zoomable Full-size Image Preview Overlay */}
+        <Show when={previewImageUrl()}>
+          <Portal>
+            <div 
+              class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center cursor-zoom-out animate-preview-overlay"
+              onClick={() => { setPreviewImageUrl(null); setIsPreviewZoomed(false); }}
+            >
+              <div class="relative w-full h-full flex items-center justify-center overflow-auto p-4 md:p-8 no-scrollbar">
+                <img 
+                  src={previewImageUrl() || ''} 
+                  class={`
+                    max-w-full max-h-full transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) cursor-zoom-in rounded-sm animate-preview-image
+                    ${isPreviewZoomed() ? 'scale-[2.4] md:scale-[3]' : 'scale-100'}
+                  `}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPreviewZoomed(!isPreviewZoomed());
+                  }}
+                  alt="Full preview"
+                />
+                
+                {/* Close button for convenience */}
+                <button 
+                  onClick={() => { setPreviewImageUrl(null); setIsPreviewZoomed(false); }}
+                  class="fixed top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-colors"
+                >
+                  <span class="material-symbols-rounded">close</span>
+                </button>
+              </div>
+            </div>
+          </Portal>
+        </Show>
 
       </div>
     </Show>

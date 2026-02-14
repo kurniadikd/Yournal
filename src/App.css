@@ -433,76 +433,84 @@ ul[data-type="taskList"] li > div > p {
   margin-bottom: 0.8em;
 }
 
-/* Resizable Image Styles */
-.resizable-image-wrapper {
-  display: inline-block;
+/* Visual feedback and layout for Tiptap Images */
+/* Selectable Image Wrapper */
+.selectable-image-wrapper {
+  display: inline-flex;
   position: relative;
   line-height: 0;
-  margin: 0.5rem 0;
+  margin: 1.5rem 0;
   max-width: 100%;
 }
 
-.resizable-image-wrapper img {
+.selectable-image-wrapper img {
   display: block;
+  height: auto; 
+  max-height: 18rem; 
+  width: auto;
   max-width: 100%;
-  border-radius: 12px;
-  transition: outline 0.1s;
+  border-radius: 12px; /* Rounded corners */
+  object-fit: contain;
+  margin: 0 !important; /* Override prose margins */
 }
 
-/* Selected State - Ring & Controls */
-.ProseMirror-selectednode .resizable-image-wrapper img,
-.resizable-image-wrapper.ProseMirror-selectednode img {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 0;
-}
-
-/* Resize Handle */
-.resize-handle {
-  display: none;
+/* Delete Button - Top Right */
+.selectable-image-wrapper .image-delete-btn {
   position: absolute;
-  bottom: -6px;
-  right: -6px;
-  width: 12px;
-  height: 12px;
-  background: var(--color-primary);
-  border: 2px solid var(--color-surface);
-  border-radius: 50%; /* Circle handle */
-  cursor: nwse-resize;
-  z-index: 10;
-}
-
-/* Delete Button */
-.image-delete-btn {
-  display: none;
-  position: absolute;
-  top: -10px;
-  right: -10px;
+  top: 12px;
+  right: 12px;
+  background-color: var(--color-primary, #6200ee) !important;
+  color: var(--color-on-primary, #ffffff) !important;
+  border: none;
+  border-radius: 50%;
   width: 24px;
   height: 24px;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  border-radius: 50%;
+  display: none; /* Hidden by default */
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  border: 2px solid var(--color-surface);
-  /* No shadow as requested */
 }
 
-.image-delete-btn span {
+.selectable-image-wrapper .image-delete-btn span {
   font-size: 16px;
-  font-weight: bold;
-  color: var(--color-on-primary);
+  color: inherit !important; /* Force inheritance */
 }
 
-/* Show controls on selection */
-.ProseMirror-selectednode .resize-handle,
-.ProseMirror-selectednode .image-delete-btn,
-.resizable-image-wrapper.ProseMirror-selectednode .resize-handle,
-.resizable-image-wrapper.ProseMirror-selectednode .image-delete-btn {
+/* Show delete button and outline when selected */
+.selectable-image-wrapper.ProseMirror-selectednode .image-delete-btn {
   display: flex;
 }
+
+/* Image Preview Animations */
+@keyframes preview-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes preview-zoom-in {
+  from { 
+    opacity: 0;
+    transform: scale(0.9) translateY(10px); 
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1) translateY(0); 
+  }
+}
+
+.animate-preview-overlay {
+  animation: preview-fade-in 0.3s ease-out forwards;
+}
+
+.animate-preview-image {
+  animation: preview-zoom-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.selectable-image-wrapper.ProseMirror-selectednode img {
+  outline: 3px solid var(--color-primary, #6200ee);
+}
+
 
 /* --- Placeholder Styles --- */
 .ProseMirror p.is-editor-empty:first-child::before {
