@@ -39,7 +39,7 @@ export class LyraService {
         }
     }
 
-    async startRecording(config: LyraRecordingConfig = {}) {
+    async startRecording(config: LyraRecordingConfig & { stream?: MediaStream } = {}) {
         if (this.isRecording) return;
 
         try {
@@ -51,15 +51,19 @@ export class LyraService {
 
             await this.audioContext.audioWorklet.addModule('/audio-recorder-processor.js');
 
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                    channelCount: 1, // Lyra is mono usually
-                    sampleRate: config.sampleRate || 48000
-                }
-            });
+            if (config.stream) {
+                this.stream = config.stream;
+            } else {
+                this.stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        channelCount: 1, // Lyra is mono usually
+                        sampleRate: config.sampleRate || 48000
+                    }
+                });
+            }
 
             const source = this.audioContext.createMediaStreamSource(this.stream);
             this.analyser = this.audioContext.createAnalyser();

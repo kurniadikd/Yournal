@@ -33,7 +33,7 @@ import ImageModal from "../ui/m3e/ImageModal";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import { getWeatherDescription } from "../../utils/weather";
-import { AudioRecorder } from "./AudioRecorder";
+import { InsertAudio } from "./InsertAudio";
 
 interface EditorProps {
   show: boolean;
@@ -807,23 +807,25 @@ export default function Editor(props: EditorProps) {
                 </div>
             }
         >
-            <AudioRecorder onRecordingComplete={(blob, duration, waveform) => {
-                // Convert to Base64 for persistence
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => {
-                    const base64data = reader.result as string;
-                    editor()?.chain().focus().insertContent({
-                        type: 'audioPlayer',
-                        attrs: {
-                            src: base64data,
-                            duration: duration,
-                            waveform: waveform
-                        }
-                    }).run();
-                };
-                setShowAudioRecorder(false);
-            }} />
+            <Show when={showAudioRecorder()}>
+                <InsertAudio onRecordingComplete={(blob, duration, waveform) => {
+                    // Convert to Base64 for persistence
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        const base64data = reader.result as string;
+                        editor()?.chain().focus().insertContent({
+                            type: 'audioPlayer',
+                            attrs: {
+                                src: base64data,
+                                duration: duration,
+                                waveform: waveform
+                            }
+                        }).run();
+                    };
+                    setShowAudioRecorder(false);
+                }} />
+            </Show>
         </Modal>
 
 
