@@ -37,6 +37,7 @@
         "@tiptap/pm": "^3.19.0",
         "@tiptap/starter-kit": "^3.19.0",
         "daisyui": "^5.5.18",
+        "@shiguredo/lyra-wasm": "github:shiguredo/lyra-wasm",
         "maplibre-gl": "^5.18.0",
         "solid-js": "^1.9.3",
         "solid-tiptap": "^0.8.0",
@@ -228,6 +229,8 @@
     "@rollup/rollup-win32-x64-gnu": ["@rollup/rollup-win32-x64-gnu@4.57.1", "", { "os": "win32", "cpu": "x64" }, "sha512-VMBH2eOOaKGtIJYleXsi2B8CPVADrh+TyNxJ4mWPnKfLB/DBUmzW+5m1xUrcwWoMfSLagIRpjUFeW5CO5hyciQ=="],
 
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.57.1", "", { "os": "win32", "cpu": "x64" }, "sha512-mxRFDdHIWRxg3UfIIAwCm6NzvxG0jDX/wBN6KsQFTvKFqqg9vTrWUE68qEjHt19A5wwx5X5aUi2zuZT7YR0jrA=="],
+
+    "@shiguredo/lyra-wasm": ["@shiguredo/lyra-wasm@github:shiguredo/lyra-wasm#3819d8c", {}, "shiguredo-lyra-wasm-3819d8c"],
 
     "@tailwindcss/node": ["@tailwindcss/node@4.1.18", "", { "dependencies": { "@jridgewell/remapping": "^2.3.4", "enhanced-resolve": "^5.18.3", "jiti": "^2.6.1", "lightningcss": "1.30.2", "magic-string": "^0.30.21", "source-map-js": "^1.2.1", "tailwindcss": "4.1.18" } }, "sha512-DoR7U1P7iYhw16qJ49fgXUlry1t4CpXeErJHnQ44JgTSKMaZUdf17cfn5mHchfJ4KRBZRFA/Coo+MUF5+gOaCQ=="],
 

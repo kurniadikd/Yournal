@@ -44,10 +44,10 @@ pub fn run() {
                 .build()
         )
         .plugin(tauri_plugin_http::init())
-        .setup(|app| {
+        .setup(|_app| {
             #[cfg(debug_assertions)]
             {
-                app.handle().plugin(
+                _app.handle().plugin(
                     tauri_plugin_log::Builder::default()
                         .level(log::LevelFilter::Info)
                         .build(),

@@ -3,10 +3,10 @@ import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
+// import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import Link from "@tiptap/extension-link";
-import Dropcursor from "@tiptap/extension-dropcursor";
+// import Link from "@tiptap/extension-link";
+// import Dropcursor from "@tiptap/extension-dropcursor";
 import { SelectableImage } from "./extensions/SelectableImage";
 import Highlight from "@tiptap/extension-highlight";
 import Bold from "@tiptap/extension-bold";
@@ -22,6 +22,7 @@ import Popover from "../ui/m3e/Popover";
 import MoodPicker from "../ui/m3e/MoodPicker";
 import TableGrid from "./editor/TableGrid";
 import { Table } from "./extensions/Table";
+import { AudioPlayer } from "./extensions/AudioPlayer";
 
 import Button from "../ui/m3e/Button";
 import DatePicker from "../ui/m3e/DatePicker";
@@ -32,6 +33,7 @@ import ImageModal from "../ui/m3e/ImageModal";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import { getWeatherDescription } from "../../utils/weather";
+import { AudioRecorder } from "./AudioRecorder";
 
 interface EditorProps {
   show: boolean;
@@ -64,6 +66,7 @@ export default function Editor(props: EditorProps) {
   const [showLinkModal, setShowLinkModal] = createSignal(false);
   const [showMoodPicker, setShowMoodPicker] = createSignal(false);
   const [showLocationModal, setShowLocationModal] = createSignal(false);
+  const [showAudioRecorder, setShowAudioRecorder] = createSignal(false);
   
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
@@ -195,6 +198,7 @@ export default function Editor(props: EditorProps) {
         bold: false,
         italic: false,
         heading: false,
+        dropcursor: false, // Configure dropcursor via StarterKit or disable it here if adding manually
       }),
       LinkCard,
       Bold,
@@ -209,14 +213,14 @@ export default function Editor(props: EditorProps) {
           draggable: 'true',
         },
       }),
-      Dropcursor,
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-[var(--color-primary)] underline cursor-pointer',
-        },
-      }),
+      // Dropcursor, // Already in StarterKit or we configure it there
+      // Underline, // Warning says duplicate?
+      // Link.configure({
+      //   openOnClick: false,
+      //   HTMLAttributes: {
+      //     class: 'text-[var(--color-primary)] underline cursor-pointer',
+      //   },
+      // }),
       Highlight.configure({ 
         multicolor: true,
       }),
@@ -236,6 +240,7 @@ export default function Editor(props: EditorProps) {
         limit: 10000,
       }),
       Table, 
+      AudioPlayer,
     ],
     content: props.initialContent || '',
     onTransaction: () => setUpdateTrigger(v => v + 1),
@@ -482,6 +487,7 @@ export default function Editor(props: EditorProps) {
                 <ToolbarButton icon="format_quote" action={() => editor()?.chain().focus().toggleBlockquote().run()} active={isActive('blockquote')} title="Blockquote" />
                 <ToolbarButton icon="horizontal_rule" action={() => editor()?.chain().focus().setHorizontalRule().run()} title="Garis Mendatar" />
                 <ToolbarButton icon="image" action={addImage} title="Sisipkan Gambar" />
+                <ToolbarButton icon="mic" action={() => setShowAudioRecorder(true)} title="Rekam Suara" />
                 <ToolbarButton icon="link" action={setLink} active={isActive('link')} title="Tambah Link" />
                 <ToolbarButton icon="link_off" action={() => editor()?.chain().focus().unsetLink().run()} disabled={!isActive('link')} title="Hapus Link" />
 
@@ -619,7 +625,7 @@ export default function Editor(props: EditorProps) {
 
         {/* --- 2. MAIN SCROLLABLE AREA --- */}
         <div 
-          class="flex-1 overflow-y-auto bg-[var(--color-surface-container-lowest)] cursor-text"
+          class="flex-1 overflow-y-auto bg-[var(--color-background)] cursor-text"
           onClick={() => editor()?.commands.focus()}
         >
           <div 
@@ -791,6 +797,35 @@ export default function Editor(props: EditorProps) {
             </div>
           </div>
         </Modal>
+
+        <Modal
+            show={showAudioRecorder()}
+            onClose={() => setShowAudioRecorder(false)}
+            actions={
+                <div class="flex justify-end gap-2 mt-4 px-1">
+                    <Button variant="text" onClick={() => setShowAudioRecorder(false)}>Tutup</Button>
+                </div>
+            }
+        >
+            <AudioRecorder onRecordingComplete={(blob, duration, waveform) => {
+                // Convert to Base64 for persistence
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => {
+                    const base64data = reader.result as string;
+                    editor()?.chain().focus().insertContent({
+                        type: 'audioPlayer',
+                        attrs: {
+                            src: base64data,
+                            duration: duration,
+                            waveform: waveform
+                        }
+                    }).run();
+                };
+                setShowAudioRecorder(false);
+            }} />
+        </Modal>
+
 
         {/* Custom Zoomable Full-size Image Preview Overlay */}
         <Show when={previewImageUrl()}>
