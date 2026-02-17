@@ -36,6 +36,26 @@ import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
 import { getWeatherDescription } from "../../utils/weather";
 import { InsertAudio } from "./InsertAudio";
+import Paragraph from "@tiptap/extension-paragraph";
+
+const CustomParagraph = Paragraph.extend({
+  addAttributes() {
+    return {
+      placeholder: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-placeholder'),
+        renderHTML: attributes => {
+          if (!attributes.placeholder) {
+            return {}
+          }
+          return {
+            'data-placeholder': attributes.placeholder,
+          }
+        },
+      },
+    }
+  },
+})
 
 interface EditorProps {
   show: boolean;
@@ -167,12 +187,14 @@ export default function Editor(props: EditorProps) {
     element: container() as HTMLElement,
     extensions: [
       StarterKit.configure({
+        paragraph: false,
         codeBlock: false,
         bold: false,
         italic: false,
         heading: false,
         dropcursor: false, // Configure dropcursor via StarterKit or disable it here if adding manually
       }),
+      CustomParagraph,
       LinkCard,
       Bold,
       Italic,
@@ -201,7 +223,16 @@ export default function Editor(props: EditorProps) {
         types: ['heading', 'paragraph'],
       }),
       Placeholder.configure({
-        placeholder: 'Apa yang Anda pikirkan?',
+        placeholder: ({ node }) => {
+            if (node.attrs.placeholder) {
+                return node.attrs.placeholder
+            }
+            return null
+        },
+        showOnlyWhenEditable: false,
+        includeChildren: true,
+        showOnlyCurrent: false,
+        emptyNodeClass: 'is-empty',
       }),
       TaskList,
       TaskItem.configure({

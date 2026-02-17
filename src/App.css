@@ -513,7 +513,7 @@ ul[data-type="taskList"] li > div > p {
 
 
 /* --- Placeholder Styles --- */
-.ProseMirror p.is-editor-empty:first-child::before {
+.ProseMirror p.is-empty::before {
   color: var(--color-on-surface-variant);
   content: attr(data-placeholder);
   float: left;

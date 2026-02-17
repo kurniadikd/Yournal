@@ -10,13 +10,17 @@ import FAB from "./components/ui/m3e/FAB";
 import Editor from "./components/Aplikasi/Editor.tsx";
 import DaftarCatatan from "./components/Aplikasi/DaftarCatatan";
 import Kalender from "./components/Aplikasi/Kalender";
+import CatatanBaru from "./components/Aplikasi/CatatanBaru";
 import { getNotes, saveNote, Note } from "./services/db";
 
 function App() {
   const [time, setTime] = createSignal(new Date());
   const [isEditorOpen, setIsEditorOpen] = createSignal(false);
+  const [isTemplatePickerOpen, setIsTemplatePickerOpen] = createSignal(false);
   const [notes, setNotes] = createSignal<Note[]>([]);
   const [selectedNote, setSelectedNote] = createSignal<Note | null>(null);
+  const [templateContent, setTemplateContent] = createSignal("");
+  const [templateTitle, setTemplateTitle] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(true);
 
   const fetchNotes = async () => {
@@ -66,7 +70,14 @@ function App() {
   };
 
   const handleCreateNew = () => {
+    setIsTemplatePickerOpen(true);
+  };
+
+  const handleTemplateSelect = (data: { content: string; title: string }) => {
+    setIsTemplatePickerOpen(false);
     setSelectedNote(null);
+    setTemplateContent(data.content);
+    setTemplateTitle(data.title);
     setIsEditorOpen(true);
   };
 
@@ -111,12 +122,18 @@ function App() {
         />
       </div>
 
+      <CatatanBaru
+        show={isTemplatePickerOpen()}
+        onClose={() => setIsTemplatePickerOpen(false)}
+        onSelect={handleTemplateSelect}
+      />
+
       <Editor 
         show={isEditorOpen()} 
         onClose={() => setIsEditorOpen(false)} 
         onSave={handleSaveNote}
-        initialTitle={selectedNote()?.title}
-        initialContent={selectedNote()?.content}
+        initialTitle={selectedNote()?.title ?? templateTitle()}
+        initialContent={selectedNote()?.content ?? templateContent()}
         initialMood={selectedNote()?.mood}
         initialDate={selectedNote() ? new Date(`${selectedNote()?.date}T${selectedNote()?.time}`) : undefined}
         initialLocation={selectedNote()?.location}
