@@ -1,4 +1,5 @@
-import { Component, createSignal } from "solid-js";
+import { Component, createSignal, onCleanup } from "solid-js";
+// LoadingSpinner removed as it was only used for Lyra decoding state
 
 const AudioPlayerComponent: Component<any> = (props) => {
   const src = () => props.node.attrs.src;
@@ -11,8 +12,14 @@ const AudioPlayerComponent: Component<any> = (props) => {
   const [isPlaying, setIsPlaying] = createSignal(false);
   const [currentTime, setCurrentTime] = createSignal(0);
   const [audio, setAudio] = createSignal<HTMLAudioElement | null>(null);
-
   const [realDuration, setRealDuration] = createSignal(0);
+
+  // Playable source is just the src (which should be a valid URL/DataURL)
+  const playableSrc = src;
+
+  onCleanup(() => {
+      // If we were creating ObjectURLs here we'd revoke them, but src comes from props
+  });
 
   let animationFrame: number;
 
@@ -86,40 +93,8 @@ const AudioPlayerComponent: Component<any> = (props) => {
   // Use passed duration (steps) as fallback, but prefer audio element duration
   const displayDuration = () => realDuration() || duration() || 0;
 
-  const generateWaveformPath = (data: number[]) => {
-      // If no data, return a visible flat track (pill shape)
-      if (!data || data.length === 0) {
-          // A flat rounded bar in the center
-          return 'M 0 48 L 100 48 L 100 52 L 0 52 Z';
-      }
-
-      let d = `M 0 50`;
-      const width = 100;
-      const step = width / (data.length - 1);
-
-      // Top curve
-      data.forEach((val, i) => {
-          const x = i * step;
-          // Ensure min amplitude for visibility (silence = thin line)
-          const amplitude = Math.max(val, 0.05) * 45; 
-          const y = 50 - amplitude;
-          d += ` L ${x} ${y}`;
-      });
-
-      // Bottom curve (mirrored)
-      for (let i = data.length - 1; i >= 0; i--) {
-          const x = i * step;
-          const val = data[i];
-          const amplitude = Math.max(val, 0.05) * 45;
-          const y = 50 + amplitude;
-          d += ` L ${x} ${y}`;
-      }
-
-      d += ' Z'; // Close path
-      return d;
-  };
-
-  const waveformPath = () => generateWaveformPath(waveform());
+  // Calculate playback progress ratio (0-1)
+  const progress = () => currentTime() / (displayDuration() || 1);
 
   return (
     <div class="audio-player-wrapper my-6 select-none group w-full" data-audio-player>
@@ -128,26 +103,29 @@ const AudioPlayerComponent: Component<any> = (props) => {
         
         <audio 
             ref={setAudio} 
-            src={src()} 
+            src={playableSrc() ?? undefined} 
             preload="metadata"
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={handleEnded}
             onPause={() => setIsPlaying(false)}
             onPlay={() => setIsPlaying(true)}
-            onError={(e) => console.error("Audio playback error:", e)}
+            onError={(e) => {
+                const target = e.target as HTMLAudioElement;
+                console.error("Audio playback error:", e, target.error);
+            }}
             class="hidden"
         />
 
         {/* Play/Pause Button - Prominent Circle */}
         <button 
             onClick={togglePlay}
-            class="group/play-btn flex items-center justify-center w-14 h-14 rounded-full bg-[var(--color-primary)] hover:brightness-110 active:brightness-90 active:scale-95 transition-all shrink-0 shadow-md z-10"
+            class={`group/play-btn flex items-center justify-center w-14 h-14 rounded-full bg-[var(--color-primary)] hover:brightness-110 active:brightness-90 active:scale-95 transition-all shrink-0 shadow-md z-10`}
         >
             <span 
                 class="material-symbols-rounded text-[32px] !text-[var(--color-on-primary)] fill-current transition-all duration-200"
                 style={{
-                  "font-variation-settings": "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 48"
+                "font-variation-settings": "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 48"
                 }}
             >
                 {isPlaying() ? 'pause' : 'play_arrow'}
@@ -169,31 +147,54 @@ const AudioPlayerComponent: Component<any> = (props) => {
                 title="Seek"
             />
 
-            {/* SVG Waveform wrapper */}
+            {/* Single SVG Waveform — individual bars colored by playback position */}
             <div class="relative w-full h-[60%] overflow-hidden rounded-[8px]">
-                 {/* Background Wave (Inactive / Unplayed) */}
-                 <svg 
-                    viewBox="0 0 100 100" 
+                <svg 
+                    viewBox="0 0 200 100" 
                     preserveAspectRatio="none" 
-                    class="absolute inset-0 w-full h-full text-[var(--color-on-surface-variant)] opacity-30 pointer-events-none"
-                 >
-                    <path d={waveformPath()} fill="currentColor" />
-                 </svg>
+                    class="w-full h-full pointer-events-none"
+                >
+                    {(() => {
+                        const data = waveform();
+                        const barCount = data.length || 1;
+                        const barWidth = 200 / barCount;
+                        const gap = barWidth * 0.15; // 15% gap between bars
+                        const effectiveWidth = barWidth - gap;
+                        const prog = progress();
 
-                 {/* Foreground Wave (Active / Played) - Masked by width */}
-                 <div 
-                    class="absolute inset-y-0 left-0 overflow-hidden pointer-events-none transition-[width] duration-100 ease-linear"
-                    style={{ width: `${(currentTime() / (displayDuration() || 1)) * 100}%` }}
-                 >
-                     <svg 
-                        viewBox="0 0 100 100" 
-                        preserveAspectRatio="none" 
-                        class="absolute inset-y-0 left-0 h-full w-[100vw] sm:w-full text-[var(--color-primary)] opacity-90"
-                        style={{ width: '100%' }} // Inner SVG must stretch to full container width to match background
-                     >
-                        <path d={waveformPath()} fill="currentColor" />
-                     </svg>
-                 </div>
+                        if (!data || data.length === 0) {
+                            // Flat line fallback
+                            return (
+                                <rect 
+                                    x="0" y="48" 
+                                    width="200" height="4" 
+                                    rx="2"
+                                    fill="var(--color-on-primary)" 
+                                />
+                            );
+                        }
+
+                        return data.map((val: number, i: number) => {
+                            const x = i * barWidth + gap / 2;
+                            const amplitude = Math.max(val, 0.04) * 45; // min height for visibility
+                            const barHeight = amplitude * 2;
+                            const y = 50 - amplitude;
+                            const barProgress = (i + 0.5) / barCount; // center of this bar
+                            const isPlayed = barProgress <= prog;
+
+                            return (
+                                <rect
+                                    x={x}
+                                    y={y}
+                                    width={effectiveWidth}
+                                    height={barHeight}
+                                    rx={effectiveWidth / 2}
+                                    fill={isPlayed ? "var(--color-primary)" : "var(--color-on-primary)"}
+                                />
+                            );
+                        });
+                    })()}
+                </svg>
             </div>
             
             {/* Time Labels */}

@@ -1,4 +1,4 @@
-import { createSignal, Show, createEffect, onCleanup } from "solid-js";
+import { createSignal, Show, createEffect, onCleanup, untrack } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
 import StarterKit from "@tiptap/starter-kit";
@@ -23,6 +23,7 @@ import MoodPicker from "../ui/m3e/MoodPicker";
 import TableGrid from "./editor/TableGrid";
 import { Table } from "./extensions/Table";
 import { AudioPlayer } from "./extensions/AudioPlayer";
+import { VideoPlayer } from "./extensions/VideoPlayer";
 
 import Button from "../ui/m3e/Button";
 import DatePicker from "../ui/m3e/DatePicker";
@@ -32,6 +33,7 @@ import { formatDate, formatTime } from "../../utils/date";
 import ImageModal from "../ui/m3e/ImageModal";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
+import VideoModal from "../ui/m3e/VideoModal";
 import { getWeatherDescription } from "../../utils/weather";
 import { InsertAudio } from "./InsertAudio";
 
@@ -67,6 +69,7 @@ export default function Editor(props: EditorProps) {
   const [showMoodPicker, setShowMoodPicker] = createSignal(false);
   const [showLocationModal, setShowLocationModal] = createSignal(false);
   const [showAudioRecorder, setShowAudioRecorder] = createSignal(false);
+  const [showVideoModal, setShowVideoModal] = createSignal(false);
   
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
@@ -154,37 +157,7 @@ export default function Editor(props: EditorProps) {
        }
   };
 
-  createEffect(() => {
-    if (props.show) {
-      if (titleRef) setTimeout(resizeTitle, 0);
-      
-      setTitle(props.initialTitle || "");
-      setMood(props.initialMood || "");
-      setEntryDate(props.initialDate || new Date());
-      
-      if (props.initialLocation) {
-        try {
-            setLocation(JSON.parse(props.initialLocation));
-        } catch (e) { setLocation(null); }
-      } else {
-        setLocation(null);
-      }
-
-      if (props.initialWeather) {
-        try {
-            setWeather(JSON.parse(props.initialWeather));
-        } catch (e) { setWeather(null); }
-      } else {
-        setWeather(null);
-      }
-      
-      const commands = editor()?.commands;
-      if (commands) {
-        commands.setContent(props.initialContent || "");
-        commands.focus();
-      }
-    }
-  });
+  // First effect removed — consolidated into the second createEffect below (after editor initialization)
 
   // ... (Toolbar buttons etc)
 
@@ -241,6 +214,7 @@ export default function Editor(props: EditorProps) {
       }),
       Table, 
       AudioPlayer,
+      VideoPlayer,
     ],
     content: props.initialContent || '',
     onTransaction: () => setUpdateTrigger(v => v + 1),
@@ -307,12 +281,16 @@ export default function Editor(props: EditorProps) {
         setWeather(null);
       }
       
-      // Sync Tiptap content
-      const commands = editor()?.commands;
-      if (commands) {
-        commands.setContent(props.initialContent || "");
-        commands.focus();
-      }
+      // Defer editor commands outside Solid's reactive batch
+      // to prevent ProseMirror "mismatched transaction" error
+      const content = props.initialContent || "";
+      setTimeout(() => {
+        const commands = editor()?.commands;
+        if (commands) {
+          commands.setContent(content);
+          commands.focus();
+        }
+      }, 0);
     }
   });
 
@@ -388,6 +366,17 @@ export default function Editor(props: EditorProps) {
 
   const handleImageConfirm = (url: string) => {
     editor()?.chain().focus().setImage({ src: url }).run();
+  };
+
+  const addVideo = () => {
+    setShowVideoModal(true);
+  };
+
+  const handleVideoConfirm = (url: string) => {
+    editor()?.chain().focus().insertContent({
+      type: 'videoPlayer',
+      attrs: { src: url }
+    }).run();
   };
 
   return (
@@ -487,6 +476,7 @@ export default function Editor(props: EditorProps) {
                 <ToolbarButton icon="format_quote" action={() => editor()?.chain().focus().toggleBlockquote().run()} active={isActive('blockquote')} title="Blockquote" />
                 <ToolbarButton icon="horizontal_rule" action={() => editor()?.chain().focus().setHorizontalRule().run()} title="Garis Mendatar" />
                 <ToolbarButton icon="image" action={addImage} title="Sisipkan Gambar" />
+                <ToolbarButton icon="movie" action={addVideo} title="Sisipkan Video" />
                 <ToolbarButton icon="mic" action={() => setShowAudioRecorder(true)} title="Rekam Suara" />
                 <ToolbarButton icon="link" action={setLink} active={isActive('link')} title="Tambah Link" />
                 <ToolbarButton icon="link_off" action={() => editor()?.chain().focus().unsetLink().run()} disabled={!isActive('link')} title="Hapus Link" />
@@ -759,12 +749,18 @@ export default function Editor(props: EditorProps) {
           initialLocation={location() || undefined}
         />
 
-        <ImageModal 
-          show={showImageModal()} 
+        <ImageModal
+          show={showImageModal()}
           onClose={() => setShowImageModal(false)}
-          onConfirm={handleImageConfirm}
+            onConfirm={handleImageConfirm}
         />
-        
+
+        <VideoModal // Added VideoModal rendering
+            show={showVideoModal()}
+            onClose={() => setShowVideoModal(false)}
+            onConfirm={handleVideoConfirm}
+        />
+
         <Modal
           show={showLinkModal()}
           onClose={() => setShowLinkModal(false)}

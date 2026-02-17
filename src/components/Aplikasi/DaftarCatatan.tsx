@@ -1,10 +1,12 @@
 import { Component, For, Show } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
+import LoadingSpinner from '../ui/m3e/LoadingSpinner';
 
 interface DaftarCatatanProps {
   notes: Note[];
   onOpenNote: (note: Note) => void;
+  isLoading: boolean;
 }
 
 const getGroupLabel = (dateString: string) => {
@@ -52,10 +54,17 @@ const groupNotes = (notes: Note[]) => {
 const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
   return (
     <div class="w-full flex flex-col gap-6 pb-24">
-      <Show when={props.notes.length === 0}>
+      <Show when={props.notes.length === 0 && !props.isLoading}>
         <div class="flex flex-col items-center justify-center py-20 opacity-50">
             <span class="material-symbols-rounded text-6xl mb-4">edit_note</span>
             <p class="text-lg">Belum ada catatan.</p>
+        </div>
+      </Show>
+
+      <Show when={props.isLoading}>
+        <div class="flex flex-col items-center justify-center py-20">
+          <LoadingSpinner size="large" />
+          <p class="mt-4 text-[var(--color-on-surface-variant)] text-sm">Memuat catatan...</p>
         </div>
       </Show>
 

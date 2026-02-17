@@ -1,67 +1,10 @@
-import { Component, createSignal, onCleanup, createEffect } from "solid-js";
-import { lyraService } from "../../services/lyra_service";
+import { Component, createSignal, onCleanup, Show } from "solid-js";
+import LoadingSpinner from "../ui/m3e/LoadingSpinner";
+import { bufferToWav } from "../../utils/audio";
 
 interface InsertAudioProps {
     onRecordingComplete?: (blob: Blob, duration: number, waveform: number[]) => void;
 }
-
-// Utility to encode AudioBuffer to WAV Blob
-const bufferToWav = (buffer: AudioBuffer): Blob => {
-    const numOfChan = buffer.numberOfChannels;
-    const length = buffer.length * numOfChan * 2 + 44;
-    const arrayBuffer = new ArrayBuffer(length);
-    const view = new DataView(arrayBuffer);
-    const channels = [];
-    let i;
-    let sample;
-    let offset = 0;
-    let pos = 0;
-
-    // write WAVE header
-    setUint32(0x46464952);                         // "RIFF"
-    setUint32(length - 8);                         // file length - 8
-    setUint32(0x45564157);                         // "WAVE"
-
-    setUint32(0x20746d66);                         // "fmt " chunk
-    setUint32(16);                                 // length = 16
-    setUint16(1);                                  // PCM (uncompressed)
-    setUint16(numOfChan);
-    setUint32(buffer.sampleRate);
-    setUint32(buffer.sampleRate * 2 * numOfChan);  // avg. bytes/sec
-    setUint16(numOfChan * 2);                      // block-align
-    setUint16(16);                                 // 16-bit (hardcoded in this writer)
-
-    setUint32(0x61746164);                         // "data" - chunk
-    setUint32(length - pos - 4);                   // chunk length
-
-    // write interleaved data
-    for(i = 0; i < buffer.numberOfChannels; i++)
-        channels.push(buffer.getChannelData(i));
-
-    while(pos < buffer.length) {
-        for(i = 0; i < numOfChan; i++) {             // interleave channels
-            sample = Math.max(-1, Math.min(1, channels[i][pos])); // clamp
-            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767)|0; // topcm
-            view.setInt16(44 + offset, sample, true);          // write 16-bit sample
-            offset += 2;
-        }
-        pos++;
-    }
-
-    // helper functions
-    function setUint16(data: any) {
-        view.setUint16(pos, data, true);
-        pos += 2;
-    }
-
-    function setUint32(data: any) {
-        view.setUint32(pos, data, true);
-        pos += 4;
-    }
-
-    return new Blob([arrayBuffer], { type: 'audio/wav' });
-}
-
 
 export const InsertAudio: Component<InsertAudioProps> = (props) => {
     // --- Recorder State ---
@@ -70,12 +13,13 @@ export const InsertAudio: Component<InsertAudioProps> = (props) => {
     
     // --- Trim State ---
     const [importedBuffer, setImportedBuffer] = createSignal<AudioBuffer | null>(null);
+    const [originalImportedBlob, setOriginalImportedBlob] = createSignal<Blob | null>(null);
     const [trimStart, setTrimStart] = createSignal(0);
     const [trimEnd, setTrimEnd] = createSignal(0);
     const [previewPlaying, setPreviewPlaying] = createSignal(false);
-    // Zoom removed
+    const [isFromRecording, setIsFromRecording] = createSignal(false);
 
-    let timerInterval: any;
+    let timerInterval:any;
     let animationFrame: number;
     let canvasRef: HTMLCanvasElement | undefined;
     let waveformAccumulator: number[] = [];
@@ -155,13 +99,16 @@ export const InsertAudio: Component<InsertAudioProps> = (props) => {
             const arrayBuffer = await file.arrayBuffer();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
             
+            // Store original file blob for pass-through (no re-encoding)
+            setOriginalImportedBlob(new Blob([await file.arrayBuffer()], { type: file.type || 'audio/mpeg' }));
+            setIsFromRecording(false);
+            
             // Set up Trim UI
             setImportedBuffer(audioBuffer);
             setTrimStart(0);
             setTrimEnd(audioBuffer.duration);
             
             audioCtx.close();
-            // Do NOT insert yet. UI will switch to Trim Mode.
 
         } catch (err) {
             console.error("Error importing audio:", err);
@@ -456,10 +403,44 @@ export const InsertAudio: Component<InsertAudioProps> = (props) => {
         };
     };
 
-    const confirmTrim = () => {
+    const [processing, setProcessing] = createSignal(false);
+
+    /**
+     * Generates waveform data from an AudioBuffer using peak sampling.
+     */
+    const generateWaveform = (buffer: AudioBuffer, samples: number = 200): number[] => {
+        const rawData = buffer.getChannelData(0);
+        const blockSize = Math.floor(rawData.length / samples);
+        const waveformData = [];
+        
+        for (let i = 0; i < samples; i++) {
+            let max = 0;
+            for (let j = 0; j < blockSize; j++) {
+                const idx = i * blockSize + j;
+                if (idx < rawData.length) {
+                    const val = Math.abs(rawData[idx]);
+                    if (val > max) max = val;
+                }
+            }
+            waveformData.push(max);
+        }
+        
+        const maxVal = Math.max(...waveformData, 0.001);
+        return waveformData.map(v => v / maxVal);
+    };
+
+    /**
+     * Confirms the trim selection.
+     * - For local imports with NO trimming: passes original file blob (no re-encoding).
+     * - For local imports WITH trimming: exports trimmed PCM as WAV.
+     * - For recordings: exports trimmed PCM as WAV (already encoded as Opus during capture).
+     */
+    const confirmTrim = async () => {
         const buffer = importedBuffer();
         if(!buffer) return;
 
+        setProcessing(true);
+        
         const sampleRate = buffer.sampleRate;
         const startSample = Math.floor(trimStart() * sampleRate);
         const endSample = Math.floor(trimEnd() * sampleRate);
@@ -467,54 +448,80 @@ export const InsertAudio: Component<InsertAudioProps> = (props) => {
         
         if (frameCount <= 0) {
             alert("Durasi potongan tidak valid.");
+            setProcessing(false);
             return;
         }
 
-        const newCtx = new AudioContext();
-        const newBuffer = newCtx.createBuffer(buffer.numberOfChannels, frameCount, sampleRate);
+        try {
+            // Check if user made any trim (not full duration)
+            const isTrimmed = Math.abs(trimStart()) > 0.05 || Math.abs(trimEnd() - buffer.duration) > 0.05;
+            const originalBlob = originalImportedBlob();
 
-        for (let i = 0; i < buffer.numberOfChannels; i++) {
-             const oldData = buffer.getChannelData(i);
-             const newData = newBuffer.getChannelData(i);
-             for (let j = 0; j < frameCount; j++) {
-                 newData[j] = oldData[startSample + j];
-             }
-        }
-        
-        const wavBlob = bufferToWav(newBuffer);
+            let outputBlob: Blob;
+            let outputDuration: number;
+            let outputBuffer: AudioBuffer;
 
-        const rawData = newBuffer.getChannelData(0);
-        const samples = 100;
-        const blockSize = Math.floor(rawData.length / samples);
-        const waveformData = [];
-        for (let i = 0; i < samples; i++) {
-                let sum = 0;
-                for (let j = 0; j < blockSize; j++) {
-                    sum += Math.abs(rawData[i * blockSize + j]);
+            if (!isTrimmed && originalBlob && !isFromRecording()) {
+                // No trimming + local import → pass original file as-is
+                outputBlob = originalBlob;
+                outputDuration = buffer.duration;
+                outputBuffer = buffer;
+                console.log(`[Audio] Passing original file. Size: ${outputBlob.size} bytes. Type: ${outputBlob.type}`);
+            } else {
+                // Trimming applied OR from recording → export trimmed PCM as WAV
+                const newCtx = new AudioContext();
+                const channels = buffer.numberOfChannels;
+                const newBuffer = newCtx.createBuffer(channels, frameCount, sampleRate);
+
+                for (let i = 0; i < channels; i++) {
+                    const oldData = buffer.getChannelData(i);
+                    const newData = newBuffer.getChannelData(i);
+                    for (let j = 0; j < frameCount; j++) {
+                        newData[j] = oldData[startSample + j];
+                    }
                 }
-                waveformData.push(sum / blockSize);
-        }
-        const maxVal = Math.max(...waveformData, 0.001);
-        const normalizedWaveform = waveformData.map(v => v / maxVal);
 
-        if (props.onRecordingComplete) {
-            props.onRecordingComplete(wavBlob, newBuffer.duration, normalizedWaveform);
-        }
+                outputBlob = bufferToWav(newBuffer);
+                outputDuration = newBuffer.duration;
+                outputBuffer = newBuffer;
+                newCtx.close();
+                console.log(`[Audio] Exported WAV. Size: ${outputBlob.size} bytes. Duration: ${outputDuration.toFixed(2)}s`);
+            }
 
-        setImportedBuffer(null);
-        newCtx.close();
+            const normalizedWaveform = generateWaveform(outputBuffer);
+
+            if (props.onRecordingComplete) {
+                props.onRecordingComplete(outputBlob, outputDuration, normalizedWaveform);
+            }
+
+            setImportedBuffer(null);
+            setOriginalImportedBlob(null);
+        } catch (e) {
+            console.error("Failed to process audio:", e);
+            alert("Gagal memproses audio.");
+        } finally {
+            setProcessing(false);
+        }
     };
 
     // --- Rec Logic ---
-    const startRecordingWithStream = async (stream: MediaStream, _knownDuration?: number) => {
+    const startRecordingWithStream = async (stream: MediaStream) => {
          try {
-             mediaRecorder = new MediaRecorder(stream);
+             // Prefer Opus
+             const options = { mimeType: 'audio/webm;codecs=opus' };
+             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                 console.warn("Opus not supported, falling back to default WebM");
+                 delete (options as any).mimeType;
+             }
+
+             mediaRecorder = new MediaRecorder(stream, options);
              audioChunks = [];
              mediaRecorder.ondataavailable = (event) => {
-                 audioChunks.push(event.data);
+                 if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                 }
              };
-             mediaRecorder.start();
-             await lyraService.startRecording({ stream });
+             mediaRecorder.start(100); // Collect bits every 100ms
 
              setIsRecording(true);
              setDuration(0);
@@ -549,37 +556,50 @@ export const InsertAudio: Component<InsertAudioProps> = (props) => {
 
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.onstop = async () => { 
-                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                     const lyraResult = await lyraService.stopRecording();
-                     const finalBlob = lyraResult.blob || audioBlob;
+                     const mimeType = mediaRecorder?.mimeType || 'audio/webm';
+                     const audioBlob = new Blob(audioChunks, { type: mimeType });
 
                     // Normalize waveform
-                    const maxPoints = 100;
+                    const maxPoints = 200; // Increased resolution
                     const resampledWaveform = [];
+                    
                     if (waveformAccumulator.length > maxPoints) {
                         const step = Math.ceil(waveformAccumulator.length / maxPoints);
-                        for (let i = 0; i < waveformAccumulator.length; i += step) {
-                             let chunkSum = 0;
-                             let count = 0;
-                             for (let j = 0; j < step && i + j < waveformAccumulator.length; j++) {
-                                 chunkSum += waveformAccumulator[i+j];
-                                 count++;
+                        for (let i = 0; i < maxPoints; i++) {
+                             let max = 0;
+                             // Resample using Max of RMS chunks to preserve peaks
+                             for (let j = 0; j < step; j++) {
+                                 const idx = i * step + j;
+                                 if (idx < waveformAccumulator.length) {
+                                     const val = waveformAccumulator[idx];
+                                     if (val > max) max = val;
+                                 }
                              }
-                             resampledWaveform.push(chunkSum / count);
+                             resampledWaveform.push(max);
                         }
                     } else {
                         resampledWaveform.push(...waveformAccumulator);
                     }
 
-                    if (props.onRecordingComplete) {
-                        props.onRecordingComplete(finalBlob, duration(), resampledWaveform);
-                    }
+                    // Decode for preview/trimming
+                   try {
+                       const arrayBuffer = await audioBlob.arrayBuffer();
+                       const audioCtx = new AudioContext();
+                       const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                       
+                       setOriginalImportedBlob(null); // No original file for recordings
+                       setIsFromRecording(true);
+                       setImportedBuffer(decodedBuffer);
+                       setTrimStart(0);
+                       setTrimEnd(decodedBuffer.duration);
+                       audioCtx.close();
+                   } catch (err) {
+                       console.error("Error decoding recorded audio for trim:", err);
+                   }
                     
                     mediaRecorder?.stream.getTracks().forEach(track => track.stop());
                 };
                 mediaRecorder.stop();
-            } else {
-                 try { await lyraService.stopRecording(); } catch(e) {}
             }
             
             setIsRecording(false);
@@ -639,19 +659,23 @@ export const InsertAudio: Component<InsertAudioProps> = (props) => {
 
                     <div class="flex gap-4 justify-center mt-2">
 
-                        <button 
+                         <button 
                             onClick={togglePreview}
-                            class="h-10 px-6 rounded-full bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-medium text-sm transition-all flex items-center gap-2"
+                            disabled={processing()}
+                            class="h-10 px-6 rounded-full bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-medium text-sm transition-all flex items-center gap-2 disabled:opacity-50"
                         >
                             <span class="material-symbols-rounded">{previewPlaying() ? 'stop' : 'play_arrow'}</span>
                             {previewPlaying() ? 'Stop' : 'Preview'}
                         </button>
                          <button 
                             onClick={confirmTrim}
-                            class="h-10 px-6 rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] font-medium text-sm transition-all flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95"
+                            disabled={processing()}
+                            class={`h-10 px-6 rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] font-medium text-sm transition-all flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95 ${processing() ? 'opacity-70 cursor-wait' : ''}`}
                         >
-                            <span class="material-symbols-rounded">check</span>
-                            Selesai
+                            <Show when={!processing()} fallback={<LoadingSpinner size="small" class="text-[var(--color-on-primary)]" />}>
+                                <span class="material-symbols-rounded">check</span>
+                                Selesai
+                            </Show>
                         </button>
                     </div>
                 </div>

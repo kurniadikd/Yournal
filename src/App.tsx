@@ -17,13 +17,17 @@ function App() {
   const [isEditorOpen, setIsEditorOpen] = createSignal(false);
   const [notes, setNotes] = createSignal<Note[]>([]);
   const [selectedNote, setSelectedNote] = createSignal<Note | null>(null);
+  const [isLoading, setIsLoading] = createSignal(true);
 
   const fetchNotes = async () => {
+    setIsLoading(true);
     try {
       const data = await getNotes();
       setNotes(data);
     } catch (err) {
       console.error("Failed to load notes:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,6 +96,7 @@ function App() {
       <div class="flex-1 flex flex-col items-center p-4 pt-40 md:pt-0 overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30">
         <DaftarCatatan 
           notes={notes()} 
+          isLoading={isLoading()}
           onOpenNote={handleOpenNote} 
         />
       </div>

@@ -18,9 +18,28 @@ export const AudioPlayer = Node.create({
       },
       duration: {
         default: 0,
+        parseHTML: (element: HTMLElement) => {
+          const val = element.getAttribute('data-duration');
+          return val ? parseFloat(val) : 0;
+        },
+        renderHTML: (attributes: Record<string, any>) => {
+          return { 'data-duration': attributes.duration };
+        },
       },
       waveform: {
         default: [],
+        parseHTML: (element: HTMLElement) => {
+          const val = element.getAttribute('data-waveform');
+          if (!val) return [];
+          try {
+            return JSON.parse(val);
+          } catch {
+            return [];
+          }
+        },
+        renderHTML: (attributes: Record<string, any>) => {
+          return { 'data-waveform': JSON.stringify(attributes.waveform || []) };
+        },
       },
     };
   },
@@ -41,3 +60,4 @@ export const AudioPlayer = Node.create({
     return createSolidNodeView(AudioPlayerComponent);
   },
 });
+
