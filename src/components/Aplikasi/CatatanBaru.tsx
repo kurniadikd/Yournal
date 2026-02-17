@@ -1,4 +1,4 @@
-import { Component, createSignal, For, Show, onMount } from "solid-js";
+import { Component, createSignal, createEffect, For, Show, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { Portal } from "solid-js/web";
 import LoadingSpinner from "../ui/m3e/LoadingSpinner";
@@ -20,6 +20,20 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
   const [templates, setTemplates] = createSignal<TemplateInfo[]>([]);
   const [loading, setLoading] = createSignal(false);
   const [previews, setPreviews] = createSignal<Record<string, string>>({});
+  const [shouldRender, setShouldRender] = createSignal(false);
+  const [isVisible, setIsVisible] = createSignal(false);
+  let timer: number;
+
+  createEffect(() => {
+    if (props.show) {
+      if (timer) clearTimeout(timer);
+      setShouldRender(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setIsVisible(true)));
+    } else {
+      setIsVisible(false);
+      timer = setTimeout(() => setShouldRender(false), 300);
+    }
+  });
 
   onMount(async () => {
     try {
@@ -41,7 +55,7 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
   });
 
   const handleBlank = () => {
-    props.onSelect({ content: '<p data-placeholder="Mulai menulis..."></p>', title: "" });
+    props.onSelect({ content: '', title: "" });
   };
 
   const handleTemplate = async (template: TemplateInfo) => {
@@ -63,20 +77,24 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
   };
 
   return (
-    <Show when={props.show}>
+    <Show when={shouldRender()}>
       <Portal>
-        <div class="fixed inset-0 z-50 bg-[var(--color-surface)] flex flex-col animate-in fade-in duration-200 overflow-hidden">
+        <div class={`
+          fixed inset-0 z-50 bg-[var(--color-on-tertiary)] flex flex-col overflow-hidden
+          transition-all duration-300 ease-out
+          ${isVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+        `}>
           
           {/* Top Bar */}
-          <header class="flex items-center gap-4 px-6 py-4 shrink-0 border-b border-[var(--color-outline-variant)]/20">
+          <header class="flex items-center gap-4 px-6 py-4 shrink-0 bg-[var(--color-on-tertiary)] text-[var(--color-tertiary)]">
             <button
               onClick={props.onClose}
-              class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-highest)] transition-colors"
+              class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-tertiary)] hover:bg-[var(--color-tertiary)]/10 transition-colors"
             >
               <span class="material-symbols-rounded text-[24px]">arrow_back</span>
             </button>
             <div class="flex-1">
-              <h1 class="text-2xl font-bold text-[var(--color-on-surface)]">Baru</h1>
+              <h1 class="text-2xl font-bold text-[var(--color-tertiary)]">Baru</h1>
             </div>
           </header>
 
@@ -99,13 +117,13 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                 class="group flex flex-col items-center gap-3 text-center"
               >
                 {/* Preview thumbnail */}
-                <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white flex items-start justify-center pt-6 transition-all group-hover:border-[var(--color-primary)] group-hover:shadow-lg group-hover:shadow-[var(--color-primary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
+                <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white flex items-start justify-center pt-6 transition-all group-hover:border-[var(--color-tertiary)] group-hover:shadow-lg group-hover:shadow-[var(--color-tertiary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
                   {/* Blank page with just cursor line */}
                   <div class="w-[70%] flex flex-col gap-1.5 items-start">
                     <div class="w-1 h-4 bg-gray-400 animate-pulse rounded-full"></div>
                   </div>
                 </div>
-                <span class="text-sm font-medium text-[var(--color-on-surface)] group-hover:text-[var(--color-primary)] transition-colors">
+                <span class="text-sm font-medium text-[var(--color-tertiary)] group-hover:bg-[var(--color-tertiary)]/10 px-2 py-0.5 rounded transition-all">
                   Halaman kosong
                 </span>
               </button>
@@ -119,7 +137,7 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                     class="group flex flex-col items-center gap-3 text-center disabled:opacity-50"
                   >
                     {/* Preview thumbnail — render HTML preview */}
-                    <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white overflow-hidden transition-all group-hover:border-[var(--color-primary)] group-hover:shadow-lg group-hover:shadow-[var(--color-primary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
+                    <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white overflow-hidden transition-all group-hover:border-[var(--color-tertiary)] group-hover:shadow-lg group-hover:shadow-[var(--color-tertiary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
                       <Show 
                         when={previews()[template.id]}
                         fallback={
@@ -134,13 +152,13 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                         }
                       >
                         <div 
-                          class="w-[200%] h-[200%] origin-top-left scale-50 p-4 text-left pointer-events-none"
-                          style={{ "font-size": "11px", "line-height": "1.4", "color": "#333" }}
+                          class="w-[200%] h-[200%] origin-top-left scale-50 p-6 text-left pointer-events-none bg-white text-gray-800"
+                          style={{ "font-size": "16px", "line-height": "1.6" }}
                           innerHTML={previews()[template.id]}
                         ></div>
                       </Show>
                     </div>
-                    <span class="text-sm font-medium text-[var(--color-on-surface)] group-hover:text-[var(--color-primary)] transition-colors">
+                    <span class="text-sm font-medium text-[var(--color-tertiary)] group-hover:bg-[var(--color-tertiary)]/10 px-2 py-0.5 rounded transition-all">
                       {template.name}
                     </span>
                   </button>

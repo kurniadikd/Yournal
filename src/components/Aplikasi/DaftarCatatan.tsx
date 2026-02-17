@@ -71,7 +71,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
       <For each={groupNotes(props.notes)}>
         {(group) => (
           <div class="flex flex-col gap-3" id={`section-${group.id}`}>
-            <h3 class="text-xl text-[var(--color-primary)] ml-2">
+            <h3 class="text-xl text-[var(--color-secondary)] ml-2">
               {group.label}
             </h3>
             <div class="flex flex-col gap-3">

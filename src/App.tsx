@@ -11,7 +11,8 @@ import Editor from "./components/Aplikasi/Editor.tsx";
 import DaftarCatatan from "./components/Aplikasi/DaftarCatatan";
 import Kalender from "./components/Aplikasi/Kalender";
 import CatatanBaru from "./components/Aplikasi/CatatanBaru";
-import { getNotes, saveNote, Note } from "./services/db";
+import ConfirmationModal from "./components/ui/m3e/ConfirmationModal";
+import { getNotes, saveNote, deleteNote, Note } from "./services/db";
 
 function App() {
   const [time, setTime] = createSignal(new Date());
@@ -21,6 +22,7 @@ function App() {
   const [selectedNote, setSelectedNote] = createSignal<Note | null>(null);
   const [templateContent, setTemplateContent] = createSignal("");
   const [templateTitle, setTemplateTitle] = createSignal("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(true);
 
   const fetchNotes = async () => {
@@ -50,7 +52,7 @@ function App() {
       title: data.title || "Tanpa Judul",
       content: data.content,
       mood: data.mood,
-      date: data.date.toISOString().split('T')[0],
+      date: `${data.date.getFullYear()}-${String(data.date.getMonth() + 1).padStart(2, '0')}-${String(data.date.getDate()).padStart(2, '0')}`,
       time: data.date.toTimeString().split(' ')[0],
       location: data.location,
       weather: data.weather,
@@ -59,6 +61,19 @@ function App() {
     };
     
     await saveNote(noteToSave);
+    await fetchNotes(); // Refresh list
+    setIsEditorOpen(false);
+    setSelectedNote(null);
+  };
+
+  const handleDeleteNote = () => {
+    if (!selectedNote()) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedNote()) return;
+    await deleteNote(selectedNote()!.id);
     await fetchNotes(); // Refresh list
     setIsEditorOpen(false);
     setSelectedNote(null);
@@ -88,7 +103,7 @@ function App() {
       {/* Relocated Clock (Top-Left, NOT in header) */}
       <div class="fixed top-18 md:top-20 left-4 md:left-8 z-30 pointer-events-none">
         <div class="flex flex-col">
-          <span class="text-xl font-bold text-[var(--color-primary)] mb-1">
+          <span class="text-xl font-bold text-[var(--color-secondary)] mb-1">
             {formatDate(time())}
           </span>
           <span class="text-3xl md:text-5xl font-light text-[var(--color-on-surface)] leading-none tracking-tighter">
@@ -117,6 +132,7 @@ function App() {
         <FAB 
           icon="add" 
           onClick={handleCreateNew} 
+          variant="tertiary"
           size="large"
           class="shadow-xl shadow-black/20"
         />
@@ -132,6 +148,7 @@ function App() {
         show={isEditorOpen()} 
         onClose={() => setIsEditorOpen(false)} 
         onSave={handleSaveNote}
+        onDelete={selectedNote() ? handleDeleteNote : undefined}
         initialTitle={selectedNote()?.title ?? templateTitle()}
         initialContent={selectedNote()?.content ?? templateContent()}
         initialMood={selectedNote()?.mood}
@@ -143,6 +160,17 @@ function App() {
       <Pengaturan />
       <Personalisasi />
       <PaletWarna />
+      
+      <ConfirmationModal
+        show={showDeleteConfirm()}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Hapus Catatan?"
+        message="Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin ingin menghapus catatan ini secara permanen?"
+        confirmLabel="Hapus"
+        variant="danger"
+        icon="delete"
+      />
     </main>
   );
 }

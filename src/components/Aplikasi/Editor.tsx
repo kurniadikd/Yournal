@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 // import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-// import Link from "@tiptap/extension-link";
+import Link from "@tiptap/extension-link";
 // import Dropcursor from "@tiptap/extension-dropcursor";
 import { SelectableImage } from "./extensions/SelectableImage";
 import Highlight from "@tiptap/extension-highlight";
@@ -34,6 +34,7 @@ import ImageModal from "../ui/m3e/ImageModal";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
+import ConfirmationModal from "../ui/m3e/ConfirmationModal";
 import { getWeatherDescription } from "../../utils/weather";
 import { InsertAudio } from "./InsertAudio";
 import Paragraph from "@tiptap/extension-paragraph";
@@ -45,7 +46,7 @@ const CustomParagraph = Paragraph.extend({
         default: null,
         parseHTML: element => element.getAttribute('data-placeholder'),
         renderHTML: attributes => {
-          if (!attributes.placeholder) {
+          if (!attributes.placeholder || attributes.placeholder === 'Mulai menulis...') {
             return {}
           }
           return {
@@ -61,6 +62,7 @@ interface EditorProps {
   show: boolean;
   onClose: () => void;
   onSave?: (note: { title: string; content: string; mood: string; date: Date; location?: string; weather?: string }) => void;
+  onDelete?: () => void;
   initialContent?: string;
   initialTitle?: string;
   initialMood?: string;
@@ -97,6 +99,10 @@ export default function Editor(props: EditorProps) {
   const [mood, setMood] = createSignal("");
   const [previewImageUrl, setPreviewImageUrl] = createSignal<string | null>(null);
   const [isPreviewZoomed, setIsPreviewZoomed] = createSignal(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = createSignal(false);
+  const [shouldRenderEditor, setShouldRenderEditor] = createSignal(false);
+  const [isEditorVisible, setIsEditorVisible] = createSignal(false);
+  let editorTransitionTimer: number;
 
   const handleSave = () => {
     const html = editor()?.getHTML() || '';
@@ -210,12 +216,12 @@ export default function Editor(props: EditorProps) {
       }),
       // Dropcursor, // Already in StarterKit or we configure it there
       // Underline, // Warning says duplicate?
-      // Link.configure({
-      //   openOnClick: false,
-      //   HTMLAttributes: {
-      //     class: 'text-[var(--color-primary)] underline cursor-pointer',
-      //   },
-      // }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-[var(--color-primary)] underline cursor-pointer',
+        },
+      }),
       Highlight.configure({ 
         multicolor: true,
       }),
@@ -223,7 +229,7 @@ export default function Editor(props: EditorProps) {
         types: ['heading', 'paragraph'],
       }),
       Placeholder.configure({
-        placeholder: ({ node }) => {
+        placeholder: ({ node, editor }) => {
             if (node.attrs.placeholder) {
                 return node.attrs.placeholder
             }
@@ -276,6 +282,38 @@ export default function Editor(props: EditorProps) {
     updateTrigger();
     return editor()?.can().redo();
   }
+
+  const isDirty = () => {
+    updateTrigger(); // Reactive dependency for content changes
+
+    // 1. Check content changes
+    const currentContent = editor()?.getHTML();
+    const initialCont = props.initialContent || "";
+    const contentChanged = currentContent !== initialCont 
+      && !(initialCont === "" && currentContent === "<p></p>");
+
+    // 2. Check title changes
+    const titleChanged = title() !== (props.initialTitle || "");
+
+    // 3. Check mood changes
+    const moodChanged = mood() !== (props.initialMood || "");
+
+    // 4. Check date changes
+    const initialDate = props.initialDate || null;
+    const dateChanged = initialDate 
+      ? entryDate().getTime() !== initialDate.getTime()
+      : false; // New notes don't track date changes
+
+    // 5. Check location changes
+    const currentLoc = location() ? JSON.stringify(location()) : undefined;
+    const locationChanged = currentLoc !== (props.initialLocation || undefined);
+
+    // 6. Check weather changes  
+    const currentWeather = weather() ? JSON.stringify(weather()) : undefined;
+    const weatherChanged = currentWeather !== (props.initialWeather || undefined);
+
+    return contentChanged || titleChanged || moodChanged || dateChanged || locationChanged || weatherChanged;
+  };
 
   const resizeTitle = () => {
     if (titleRef) {
@@ -410,9 +448,33 @@ export default function Editor(props: EditorProps) {
     }).run();
   };
 
+  const handleClose = () => {
+    if (isDirty()) {
+        setShowDiscardConfirm(true);
+    } else {
+        props.onClose();
+    }
+  };
+
+  // Transition effect for editor open/close
+  createEffect(() => {
+    if (props.show) {
+      if (editorTransitionTimer) clearTimeout(editorTransitionTimer);
+      setShouldRenderEditor(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setIsEditorVisible(true)));
+    } else {
+      setIsEditorVisible(false);
+      editorTransitionTimer = setTimeout(() => setShouldRenderEditor(false), 300);
+    }
+  });
+
   return (
-    <Show when={props.show}>
-      <div class="fixed inset-0 z-50 bg-[var(--color-background)] flex flex-col animate-in fade-in duration-300">
+    <Show when={shouldRenderEditor()}>
+      <div class={`
+        fixed inset-0 z-50 bg-[var(--color-background)] flex flex-col overflow-hidden
+        transition-all duration-300 ease-out
+        ${isEditorVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
+      `}>
         
         {/* --- 1. STICKY HEADER & TOOLBAR --- */}
         <div class="sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10">
@@ -423,24 +485,37 @@ export default function Editor(props: EditorProps) {
                {/* Optional: Status or Title placeholder */}
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2">
+              <Show when={props.onDelete}>
+                <Button 
+                  variant="text" 
+                  onClick={props.onDelete}
+                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-error)] hover:bg-[var(--color-error-container)] mr-2"
+                  title="Hapus"
+                >
+                  <span class="material-symbols-rounded !text-[20px] font-normal">delete</span>
+                  <span class="hidden sm:inline sm:ml-2">Hapus</span>
+                </Button>
+              </Show>
               <Button 
                 variant="tonal" 
-                onClick={props.onClose}
+                onClick={handleClose}
                 class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
                 title="Batal"
               >
                 <span class="material-symbols-rounded !text-[20px] font-normal">close</span>
                 <span class="hidden sm:inline sm:ml-2">Batal</span>
               </Button>
-              <Button 
-                variant="filled" 
-                onClick={handleSave}
-                class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
-                title="Simpan"
-              >
-                <span class="material-symbols-rounded !text-[20px] font-normal">save</span>
-                <span class="hidden sm:inline sm:ml-2">Simpan</span>
-              </Button>
+              <Show when={isDirty()}>
+                <Button 
+                  variant="filled" 
+                  onClick={handleSave}
+                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
+                  title="Simpan"
+                >
+                  <span class="material-symbols-rounded !text-[20px] font-normal">save</span>
+                  <span class="hidden sm:inline sm:ml-2">Simpan</span>
+                </Button>
+              </Show>
             </div>
           </div>
 
@@ -461,7 +536,7 @@ export default function Editor(props: EditorProps) {
 
                 <ToolbarButton icon="subscript" action={() => editor()?.chain().focus().toggleSubscript().run()} active={isActive('subscript')} title="Subscript" />
                 <ToolbarButton icon="superscript" action={() => editor()?.chain().focus().toggleSuperscript().run()} active={isActive('superscript')} title="Superscript" />
-                <ToolbarButton icon="border_color" action={() => editor()?.chain().focus().toggleHighlight({ color: 'var(--color-secondary-container)' }).run()} active={isActive('highlight')} title="Highlight" />
+                <ToolbarButton icon="border_color" action={() => editor()?.chain().focus().toggleHighlight({ color: 'var(--color-tertiary)' }).run()} active={isActive('highlight')} title="Highlight" />
                 
                 <Divider />
 
@@ -888,6 +963,17 @@ export default function Editor(props: EditorProps) {
             </div>
           </Portal>
         </Show>
+
+        <ConfirmationModal
+            show={showDiscardConfirm()}
+            onClose={() => setShowDiscardConfirm(false)}
+            onConfirm={props.onClose}
+            title="Buang Perubahan?"
+            message="Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin menutup catatan ini? Semua perubahan akan hilang."
+            confirmLabel="Ya, Buang"
+            variant="danger"
+            icon="warning"
+        />
 
       </div>
     </Show>

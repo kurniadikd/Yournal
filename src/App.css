@@ -380,6 +380,14 @@ ul[data-type="taskList"] li > div > p {
 }
 
 /* Explicit Styles for Italic and Headings */
+.ProseMirror mark[style*="--color-tertiary"] {
+  color: var(--color-on-tertiary) !important;
+  border-radius: 4px;
+  padding: 0 2px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 .ProseMirror em, .ProseMirror i {
   font-style: italic !important;
   color: inherit !important;
@@ -513,11 +521,19 @@ ul[data-type="taskList"] li > div > p {
 
 
 /* --- Placeholder Styles --- */
+/* --- Placeholder Styles --- */
+.ProseMirror p.is-empty {
+  position: relative;
+}
+
 .ProseMirror p.is-empty::before {
   color: var(--color-on-surface-variant);
   content: attr(data-placeholder);
-  float: left;
-  height: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0; /* Ensures text wraps within container */
   pointer-events: none;
   opacity: 0.5;
+  /* Removed float: left and height: 0 to handle multi-line text better */
 }
