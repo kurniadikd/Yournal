@@ -53,9 +53,8 @@ export default function ExportModal(props: ExportModalProps) {
     });
   };
 
-  const SectionLabel = (p: { text: string; icon: string }) => (
+  const SectionLabel = (p: { text: string }) => (
     <div class="flex items-center gap-2 mb-2">
-      <span class="material-symbols-rounded text-[18px] text-[var(--color-primary)]">{p.icon}</span>
       <span class="text-sm font-semibold text-[var(--color-on-surface)]">{p.text}</span>
     </div>
   );
@@ -111,7 +110,7 @@ export default function ExportModal(props: ExportModalProps) {
           
           {/* Paper Size */}
           <div>
-            <SectionLabel text="Ukuran Kertas" icon="description" />
+            <SectionLabel text="Ukuran Kertas" />
             <div class="grid grid-cols-2 gap-2">
               {PAPER_SIZES.map(ps => (
                 <OptionChip
@@ -126,7 +125,7 @@ export default function ExportModal(props: ExportModalProps) {
 
           {/* Orientation */}
           <div>
-            <SectionLabel text="Orientasi" icon="screen_rotation" />
+            <SectionLabel text="Orientasi" />
             <div class="grid grid-cols-2 gap-2">
               <OptionChip
                 label="Potret"
@@ -145,7 +144,7 @@ export default function ExportModal(props: ExportModalProps) {
 
           {/* Margins */}
           <div>
-            <SectionLabel text="Margin" icon="padding" />
+            <SectionLabel text="Margin" />
             <div class="grid grid-cols-3 gap-2">
               {(Object.keys(MARGIN_VALS) as Array<keyof typeof MARGIN_VALS>).map(m => (
                 <OptionChip
@@ -159,7 +158,7 @@ export default function ExportModal(props: ExportModalProps) {
 
           {/* Font Size */}
           <div>
-            <SectionLabel text="Ukuran Font" icon="text_fields" />
+            <SectionLabel text="Ukuran Font" />
             <div class="grid grid-cols-3 gap-2">
               {(Object.keys(FONT_VALS) as Array<keyof typeof FONT_VALS>).map(fs => (
                 <OptionChip
