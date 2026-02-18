@@ -1053,10 +1053,8 @@ export default function Editor(props: EditorProps) {
 
             {/* TAGS SECTION */}
             <div class="mt-8 pt-6 border-t border-[var(--color-outline-variant)]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div class="flex flex-wrap items-center gap-2 mb-3">
-                  <span class="material-symbols-rounded text-[var(--color-on-surface)]/70 text-lg">tag</span>
-                  <span class="text-lg font-normal text-[var(--color-on-surface)]/90">Tagar</span>
-               </div>
+               <div class="flex flex-wrap items-center gap-2">
+                </div>
                
                <div class="flex flex-wrap items-center gap-2">
                   <For each={tags()}>
