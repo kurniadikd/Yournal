@@ -15,6 +15,10 @@ const getGroupLabel = (dateString: string) => {
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
 
+  if (isNaN(date.getTime())) {
+    return "Tanggal tidak valid";
+  }
+
   if (date.toDateString() === today.toDateString()) {
     return "Hari ini";
   } else if (date.toDateString() === yesterday.toDateString()) {

@@ -1,6 +1,7 @@
-import { createSignal, Show, createEffect, onCleanup, untrack } from "solid-js";
+import { createSignal, Show, createEffect, onCleanup, untrack, For } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
+import { invoke } from "@tauri-apps/api/core";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 // import Underline from "@tiptap/extension-underline";
@@ -24,6 +25,8 @@ import TableGrid from "./editor/TableGrid";
 import { Table } from "./extensions/Table";
 import { AudioPlayer } from "./extensions/AudioPlayer";
 import { VideoPlayer } from "./extensions/VideoPlayer";
+import { Mathematics } from "./extensions/Mathematics";
+import "katex/dist/katex.min.css";
 
 import Button from "../ui/m3e/Button";
 import DatePicker from "../ui/m3e/DatePicker";
@@ -63,7 +66,7 @@ const CustomParagraph = Paragraph.extend({
 interface EditorProps {
   show: boolean;
   onClose: () => void;
-  onSave?: (note: { title: string; content: string; mood: string; date: Date; location?: string; weather?: string }) => void;
+  onSave?: (note: { title: string; content: string; mood: string; date: Date; location?: string; weather?: string; tags?: string[] }) => void;
   onDelete?: () => void;
   initialContent?: string;
   initialTitle?: string;
@@ -71,6 +74,7 @@ interface EditorProps {
   initialDate?: Date;
   initialLocation?: string; // JSON String
   initialWeather?: string; // JSON String
+  initialTags?: string[];
 }
 
 export default function Editor(props: EditorProps) {
@@ -85,6 +89,8 @@ export default function Editor(props: EditorProps) {
   const [entryDate, setEntryDate] = createSignal(new Date());
   const [location, setLocation] = createSignal<{ name: string; lat: number; lng: number } | null>(null);
   const [weather, setWeather] = createSignal<{ temp: number; code: number; desc: string } | null>(null);
+  const [tags, setTags] = createSignal<string[]>(props.initialTags || []);
+  const [tagInput, setTagInput] = createSignal("");
   
   const [showDatePicker, setShowDatePicker] = createSignal(false);
   const [showTimePicker, setShowTimePicker] = createSignal(false);
@@ -100,6 +106,14 @@ export default function Editor(props: EditorProps) {
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
   const [insertTableOpen, setInsertTableOpen] = createSignal(false);
   const [mood, setMood] = createSignal("");
+
+  const handleAddTag = () => {
+    const val = tagInput().trim();
+    if (val && !tags().includes(val)) {
+       setTags([...tags(), val]);
+       setTagInput("");
+    }
+  };
   const [previewImageUrl, setPreviewImageUrl] = createSignal<string | null>(null);
   const [isPreviewZoomed, setIsPreviewZoomed] = createSignal(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = createSignal(false);
@@ -116,7 +130,8 @@ export default function Editor(props: EditorProps) {
         mood: mood(),
         date: entryDate(),
         location: location() ? JSON.stringify(location()) : undefined,
-        weather: weather() ? JSON.stringify(weather()) : undefined
+        weather: weather() ? JSON.stringify(weather()) : undefined,
+        tags: tags().length > 0 ? tags() : undefined
       });
     }
     props.onClose();
@@ -201,7 +216,8 @@ export default function Editor(props: EditorProps) {
         bold: false,
         italic: false,
         heading: false,
-        dropcursor: false, // Configure dropcursor via StarterKit or disable it here if adding manually
+        dropcursor: false, 
+        link: false,
       }),
       CustomParagraph,
       LinkCard,
@@ -255,6 +271,7 @@ export default function Editor(props: EditorProps) {
       Table, 
       AudioPlayer,
       VideoPlayer,
+      Mathematics,
     ],
     content: props.initialContent || '',
     onTransaction: () => setUpdateTrigger(v => v + 1),
@@ -262,6 +279,65 @@ export default function Editor(props: EditorProps) {
     editorProps: {
       attributes: {
         class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
+      },
+      handlePaste: (view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+
+        for (const item of Array.from(items)) {
+          if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            const file = item.getAsFile();
+            if (!file) return true;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              const base64 = e.target?.result as string;
+              try {
+                const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
+                view.dispatch(view.state.tr.replaceSelectionWith(
+                  view.state.schema.nodes.selectableImage.create({ src: avifData })
+                ));
+              } catch (err) {
+                console.warn('AVIF conversion failed for paste, using original:', err);
+                view.dispatch(view.state.tr.replaceSelectionWith(
+                  view.state.schema.nodes.selectableImage.create({ src: base64 })
+                ));
+              }
+            };
+            reader.readAsDataURL(file);
+            return true;
+          }
+        }
+        return false;
+      },
+      handleDrop: (view, event) => {
+        const files = event.dataTransfer?.files;
+        if (!files || files.length === 0) return false;
+
+        const imageFile = Array.from(files).find(f => f.type.startsWith('image/'));
+        if (!imageFile) return false;
+
+        event.preventDefault();
+        const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target?.result as string;
+          try {
+            const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
+            const node = view.state.schema.nodes.selectableImage.create({ src: avifData });
+            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
+            view.dispatch(tr);
+          } catch (err) {
+            console.warn('AVIF conversion failed for drop, using original:', err);
+            const node = view.state.schema.nodes.selectableImage.create({ src: base64 });
+            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
+            view.dispatch(tr);
+          }
+        };
+        reader.readAsDataURL(imageFile);
+        return true;
       },
     },
   }));
@@ -842,7 +918,7 @@ export default function Editor(props: EditorProps) {
                             >
                                <span class="material-symbols-rounded text-[18px]">table_rows</span> Tambah Baris (Bawah)
                             </button>
-                            <button 
+                            <button
                               disabled={!editor()?.can().deleteRow()}
                               onClick={() => { editor()?.chain().focus().deleteRow().run(); setTableMenuOpen(false); }}
                               class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-error)] hover:bg-[var(--color-error-container)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
@@ -852,7 +928,7 @@ export default function Editor(props: EditorProps) {
 
                             <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
 
-                            <button 
+                            <button
                               disabled={!editor()?.can().mergeCells()}
                               onClick={() => { editor()?.chain().focus().mergeCells().run(); setTableMenuOpen(false); }}
                               class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
@@ -974,6 +1050,58 @@ export default function Editor(props: EditorProps) {
                style={{ "font-family": "inherit" }}
                onClick={() => editor()?.commands.focus()}
             />
+
+            {/* TAGS SECTION */}
+            <div class="mt-8 pt-6 border-t border-[var(--color-outline-variant)]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div class="flex flex-wrap items-center gap-2 mb-3">
+                  <span class="material-symbols-rounded text-[var(--color-on-surface)]/70 text-lg">tag</span>
+                  <span class="text-lg font-normal text-[var(--color-on-surface)]/90">Tagar</span>
+               </div>
+               
+               <div class="flex flex-wrap items-center gap-2">
+                  <For each={tags()}>
+                     {(tag) => (
+                        <div class="flex items-center gap-1 pl-3 pr-2 py-1 bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] rounded-lg text-lg font-normal transition-all hover:shadow-sm">
+                           <span>#{tag}</span>
+                           <button 
+                             onClick={() => setTags(tags().filter(t => t !== tag))}
+                             class="w-5 h-5 flex items-center justify-center rounded-full hover:bg-[var(--color-on-secondary-container)]/10"
+                           >
+                              <span class="material-symbols-rounded text-[14px]">close</span>
+                           </button>
+                        </div>
+                     )}
+                  </For>
+                  
+                  <div class="flex items-center bg-[var(--color-surface-container)] rounded-lg border border-transparent focus-within:border-[var(--color-primary)] transition-all overflow-hidden group/input">
+                     <span class="pl-3 text-[var(--color-on-surface)] text-md shrink-0">#</span>
+                     <input
+                        type="text"
+                        value={tagInput()}
+                        onInput={(e) => setTagInput(e.currentTarget.value)}
+                        onKeyDown={(e) => {
+                           if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddTag();
+                           } else if (e.key === 'Backspace' && !tagInput() && tags().length > 0) {
+                              setTags(tags().slice(0, -1));
+                           }
+                        }}
+                        placeholder="Tambah tag..."
+                        class="h-10 pl-1 pr-2 bg-transparent text-lg text-[var(--color-on-surface)]/90 placeholder:text-[var(--color-on-surface-variant)]/50 border-none outline-none transition-all font-normal"
+                        style={{ width: `${Math.max(tagInput().length || 10, 8) + 1}ch` }}
+                     />
+                     <Show when={tagInput().trim()}>
+                        <button 
+                           onClick={handleAddTag}
+                           class="flex items-center justify-center w-10 h-10 hover:bg-[var(--color-on-surface)]/5 text-[var(--color-primary)] transition-all animate-in fade-in zoom-in duration-200"
+                        >
+                           <span class="material-symbols-rounded text-xl">check</span>
+                        </button>
+                     </Show>
+                  </div>
+               </div>
+            </div>
 
           </div>
         </div>

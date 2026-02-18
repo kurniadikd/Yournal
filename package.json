@@ -45,6 +45,7 @@
     "@tiptap/pm": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
     "daisyui": "^5.5.18",
+    "katex": "^0.16.28",
     "maplibre-gl": "^5.18.0",
     "solid-js": "^1.9.3",
     "solid-tiptap": "^0.8.0"
@@ -52,6 +53,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "@tauri-apps/cli": "^2",
+    "@types/katex": "^0.16.8",
     "@types/maplibre-gl": "^1.14.0",
     "autoprefixer": "^10.4.24",
     "postcss": "^8.5.6",

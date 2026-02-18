@@ -1,4 +1,4 @@
-import { Component, createSignal, onCleanup, Show } from "solid-js";
+import { Component, createSignal, onCleanup, Show, createEffect } from "solid-js";
 import Modal from "./Modal";
 import Button from "./Button";
 import maplibregl from 'maplibre-gl';
@@ -22,6 +22,103 @@ const LocationModal: Component<LocationModalProps> = (props) => {
   // Default to Monas (Jakarta)
   const defaultCenter = { lat: -6.1754, lng: 106.8272 };
 
+  const applyMapTheme = (instance?: maplibregl.Map) => {
+      const m = instance || map();
+      if (!m) return;
+      
+      const style = getComputedStyle(document.documentElement);
+      
+      // Helper to ensure we get a valid color string or fallback
+      const getColor = (varName: string, fallback: string) => {
+          const val = style.getPropertyValue(varName).trim();
+          return val || fallback;
+      }
+
+      const cPrimary = getColor('--color-primary', '#6200ee');
+      const cSecondary = getColor('--color-secondary', '#03dac6');
+      const cTertiary = getColor('--color-tertiary', '#018786');
+      const cSurface = getColor('--color-surface', '#ffffff');
+      const cSurfaceVar = getColor('--color-surface-variant', '#eeeeee');
+      const cOnSurface = getColor('--color-on-surface', '#000000');
+      const cOutline = getColor('--color-outline', '#e0e0e0');
+
+      console.log("Applying Map Theme:", { cPrimary, cSurface });
+
+      // 1. Background
+      if (!m.getLayer('background')) {
+           m.addLayer({
+              id: 'background',
+              type: 'background',
+              paint: { 'background-color': cSurface }
+           }, m.getStyle().layers[0].id);
+      } else {
+           m.setPaintProperty('background', 'background-color', cSurface);
+      }
+
+      const layers = m.getStyle().layers;
+
+      layers.forEach(layer => {
+          const sourceLayer = layer['source-layer'];
+          
+          // Water (River, Lakes, Ocean)
+          if (layer.id === 'water' || sourceLayer === 'water' || sourceLayer === 'waterway') {
+              if (layer.type === 'fill') {
+                   m.setPaintProperty(layer.id, 'fill-color', cSecondary);
+                   m.setPaintProperty(layer.id, 'fill-opacity', 0.15); 
+              } else if (layer.type === 'line') {
+                   m.setPaintProperty(layer.id, 'line-color', cSecondary);
+                   m.setPaintProperty(layer.id, 'line-opacity', 0.3); 
+              }
+          }
+          
+          // Greenery (Park, Grass, Wood)
+          if (['park', 'landcover_wood', 'landcover_grass', 'landuse_residential'].some(k => layer.id.includes(k))) {
+               if (layer.type === 'fill') {
+                  // Use primary but very transparent
+                  m.setPaintProperty(layer.id, 'fill-color', cPrimary);
+                  m.setPaintProperty(layer.id, 'fill-opacity', 0.05);
+               }
+          }
+          
+          // Buildings
+          if (layer.id.includes('building')) {
+               if (layer.type === 'fill' || layer.type === 'fill-extrusion') {
+                   // Slightly darker than surface
+                   const prop = layer.type === 'fill-extrusion' ? 'fill-extrusion-color' : 'fill-color';
+                   m.setPaintProperty(layer.id, prop, cSurfaceVar);
+               }
+          }
+
+          // Roads (All types)
+          if (sourceLayer === 'transportation') {
+              if (layer.type === 'line') {
+                  // Make all roads subtle outline color
+                  m.setPaintProperty(layer.id, 'line-color', cOutline);
+              }
+          }
+          
+          // Text Labels (Place names, roads, etc)
+          if (layer.type === 'symbol') {
+              if (layer.paint && 'text-color' in layer.paint) {
+                  m.setPaintProperty(layer.id, 'text-color', cOnSurface);
+                  m.setPaintProperty(layer.id, 'text-halo-color', cSurface);
+              }
+          }
+      });
+
+      // Update Marker Color
+      const currentMarker = marker();
+      if (currentMarker) {
+          const el = currentMarker.getElement();
+          const svgPaths = el.querySelectorAll('path, circle');
+          svgPaths.forEach((path) => {
+               if (path.getAttribute('fill') !== '#FFFFFF' && path.getAttribute('fill') !== 'white') {
+                   (path as SVGElement).style.fill = cTertiary;
+               }
+          });
+      }
+  };
+
   const initMap = () => {
     if (!mapContainer || map()) return;
 
@@ -35,6 +132,10 @@ const LocationModal: Component<LocationModalProps> = (props) => {
       center: [initialLng, initialLat],
       zoom: 14,
       attributionControl: false // Custom attribution if needed
+    });
+
+    mapInstance.on('style.load', () => {
+        applyMapTheme(mapInstance); 
     });
 
     mapInstance.addControl(new maplibregl.NavigationControl(), 'top-right');
@@ -55,6 +156,7 @@ const LocationModal: Component<LocationModalProps> = (props) => {
 
     setMap(mapInstance);
     setMarker(initialMarker);
+
 
     if (hasInitial) {
         setLocationName(props.initialLocation!.name);
@@ -81,21 +183,27 @@ const LocationModal: Component<LocationModalProps> = (props) => {
     }
   };
 
-  // Ensure map resizes correctly when modal opens
-  let resizeTimer: number;
-  const checkResize = () => {
-      if (props.show && map()) {
-          // Slight delay to allow modal transition
-          resizeTimer = setTimeout(() => {
-              map()?.resize();
-          }, 200) as any;
-      } else if (props.show && !map()) {
-          // Init if not already
-           resizeTimer = setTimeout(() => {
-              initMap();
-          }, 100) as any;
+  // Manage map lifecycle with createEffect
+  createEffect(() => {
+      if (props.show) {
+          // Modal is shown
+          setTimeout(() => {
+              if (!map()) {
+                  initMap();
+              } else {
+                  map()?.resize();
+                  applyMapTheme(); 
+              }
+          }, 100);
+      } else {
+          // Modal is hidden - cleanup
+          const m = map();
+          if (m) {
+              m.remove();
+              setMap(null);
+          }
       }
-  };
+  });
 
   const handleLocationSelect = async (lat: number, lng: number) => {
     setCoords({ lat, lng });
@@ -193,7 +301,7 @@ const LocationModal: Component<LocationModalProps> = (props) => {
     >
         {/* Trigger resize/init when shown */}
         <Show when={props.show}>
-            {(() => { checkResize(); return null; })()}
+            {/* Map lifecycle handled by createEffect */}
         </Show>
 
         <div class="flex flex-col gap-3">
@@ -208,7 +316,7 @@ const LocationModal: Component<LocationModalProps> = (props) => {
             <div class="w-full h-[300px] rounded-2xl overflow-hidden relative bg-[var(--color-surface-variant)]">
                <div ref={mapContainer} class="w-full h-full z-10" />
                <Show when={loading()}>
-                   <div class="absolute inset-0 bg-black/20 flex items-center justify-center z-20">
+                   <div class="absolute inset-0 bg-black/20 flex items-center justify-center z-30">
                        <span class="loading loading-spinner loading-md text-white"></span>
                    </div>
                </Show>

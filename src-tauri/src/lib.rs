@@ -1,6 +1,8 @@
 use serde::Serialize;
 use std::fs;
 use tauri::{Manager, path::BaseDirectory};
+use base64::{Engine as _, engine::general_purpose};
+use rgb::RGBA8;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -208,6 +210,53 @@ fn get_template_content(app_handle: tauri::AppHandle, id: String) -> Result<Stri
         .map_err(|e| format!("Failed to read template '{}' from path '{:?}': {}", id, final_path, e))
 }
 
+/// Convert any image (PNG, JPG, WebP, GIF, BMP) to AVIF format.
+/// Uses pure Rust crates — no external CLI dependencies.
+/// Works on all platforms: Windows, macOS, Linux, Android, iOS.
+#[tauri::command]
+fn convert_to_avif(base64_data: String) -> Result<String, String> {
+    // 1. Strip data URI prefix if present (e.g. "data:image/png;base64,")
+    let raw_b64 = if let Some(pos) = base64_data.find(",") {
+        &base64_data[pos + 1..]
+    } else {
+        &base64_data
+    };
+
+    // 2. Decode base64 to bytes
+    let bytes = general_purpose::STANDARD
+        .decode(raw_b64)
+        .map_err(|e| format!("Failed to decode base64: {}", e))?;
+
+    // 3. Decode image using the `image` crate (supports PNG, JPG, WebP, GIF, BMP)
+    let img = image::load_from_memory(&bytes)
+        .map_err(|e| format!("Failed to decode image: {}", e))?;
+
+    let rgba_img = img.to_rgba8();
+    let width = rgba_img.width() as usize;
+    let height = rgba_img.height() as usize;
+
+    // 4. Convert pixels to ravif's RGBA8 format
+    let pixels: Vec<RGBA8> = rgba_img
+        .pixels()
+        .map(|p| RGBA8 { r: p[0], g: p[1], b: p[2], a: p[3] })
+        .collect();
+
+    // 5. Encode to AVIF using ravif (pure Rust, rav1e encoder)
+    //    quality=50, speed=10 (maximum performance)
+    let encoder = ravif::Encoder::new()
+        .with_quality(50.0)
+        .with_speed(10) // 10 = fastest processing
+        .with_alpha_quality(50.0);
+
+    let encoded = encoder
+        .encode_rgba(ravif::Img::new(&pixels, width, height))
+        .map_err(|e| format!("AVIF encoding failed: {}", e))?;
+
+    // 6. Return as data URI
+    let avif_b64 = general_purpose::STANDARD.encode(&encoded.avif_file);
+    Ok(format!("data:image/avif;base64,{}", avif_b64))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -237,6 +286,12 @@ pub fn run() {
             description: "add_weather_column",
             sql: "ALTER TABLE notes ADD COLUMN weather TEXT;",
             kind: tauri_plugin_sql::MigrationKind::Up,
+        },
+        tauri_plugin_sql::Migration {
+            version: 4,
+            description: "add_tags_column",
+            sql: "ALTER TABLE notes ADD COLUMN tags TEXT;",
+            kind: tauri_plugin_sql::MigrationKind::Up,
         }
     ];
 
@@ -259,7 +314,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, get_templates, get_template_content])
+        .invoke_handler(tauri::generate_handler![greet, get_templates, get_template_content, convert_to_avif])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

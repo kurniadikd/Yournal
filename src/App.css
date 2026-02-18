@@ -521,7 +521,6 @@ ul[data-type="taskList"] li > div > p {
 
 
 /* --- Placeholder Styles --- */
-/* --- Placeholder Styles --- */
 .ProseMirror p.is-empty {
   position: relative;
 }
@@ -537,3 +536,6 @@ ul[data-type="taskList"] li > div > p {
   opacity: 0.5;
   /* Removed float: left and height: 0 to handle multi-line text better */
 }
+
+/* Map Theming handled in LocationModal.tsx via JS */
+

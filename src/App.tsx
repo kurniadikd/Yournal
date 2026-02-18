@@ -25,13 +25,19 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(true);
 
-  const fetchNotes = async () => {
+  const fetchNotes = async (isRetry = false) => {
     setIsLoading(true);
     try {
       const data = await getNotes();
+      console.log(`App: fetchNotes success, ${data.length} notes`);
       setNotes(data);
+      
+      // If empty and not a retry, try one more time after a short delay
+      if (data.length === 0 && !isRetry) {
+        setTimeout(() => fetchNotes(true), 1500);
+      }
     } catch (err) {
-      console.error("Failed to load notes:", err);
+      console.error("App: fetchNotes failed:", err);
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +50,7 @@ function App() {
     onCleanup(() => clearInterval(timer));
   });
 
-  const handleSaveNote = async (data: { title: string; content: string; mood: string; date: Date; location?: string; weather?: string }) => {
+  const handleSaveNote = async (data: { title: string; content: string; mood: string; date: Date; location?: string; weather?: string; tags?: string[] }) => {
     const currentNote = selectedNote();
     
     const noteToSave: Note = {
@@ -56,6 +62,7 @@ function App() {
       time: data.date.toTimeString().split(' ')[0],
       location: data.location,
       weather: data.weather,
+      tags: data.tags ? JSON.stringify(data.tags) : undefined,
       created_at: currentNote ? currentNote.created_at : new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -103,10 +110,10 @@ function App() {
       {/* Relocated Clock (Top-Left, NOT in header) */}
       <div class="fixed top-18 md:top-20 left-4 md:left-8 z-30 pointer-events-none">
         <div class="flex flex-col">
-          <span class="text-xl font-bold text-[var(--color-secondary)] mb-1">
+          <span class="text-xl font-medium text-[var(--color-secondary)] mb-1">
             {formatDate(time())}
           </span>
-          <span class="text-3xl md:text-5xl font-light text-[var(--color-on-surface)] leading-none tracking-tighter">
+          <span class="text-3xl md:text-5xl font-medium text-[var(--color-on-surface)] leading-none tracking-tighter">
             {formatTime(time())}
           </span>
         </div>
@@ -155,6 +162,7 @@ function App() {
         initialDate={selectedNote() ? new Date(`${selectedNote()?.date}T${selectedNote()?.time}`) : undefined}
         initialLocation={selectedNote()?.location}
         initialWeather={selectedNote()?.weather}
+        initialTags={selectedNote()?.tags ? JSON.parse(selectedNote()?.tags!) : undefined}
       />
 
       <Pengaturan />
