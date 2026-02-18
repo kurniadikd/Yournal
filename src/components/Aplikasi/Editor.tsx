@@ -552,16 +552,28 @@ export default function Editor(props: EditorProps) {
 </body>
 </html>`;
 
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printHtml);
-      printWindow.document.close();
-      printWindow.focus();
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(printHtml);
+      doc.close();
+      
+      // Wait for content to potentially load (like images)
       setTimeout(() => {
-        printWindow.print();
-      }, 300);
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        // Remove iframe after print dialog is closed
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
+      }, 500);
     } else {
-      alert('Pop-up diblokir oleh browser. Izinkan pop-up untuk fitur cetak.');
+      alert('Gagal membuat frame untuk pencetakan.');
+      document.body.removeChild(iframe);
     }
   };
 
