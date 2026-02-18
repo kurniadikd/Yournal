@@ -172,7 +172,7 @@ export default function DatePicker(props: DatePickerProps) {
             {/* Nama Hari */}
             <div class="grid grid-cols-7 mb-2 text-center">
               <For each={daysHeader}>
-                {(d) => <span class="text-xs font-medium text-[var(--color-on-surface-variant)]">{d}</span>}
+                {(d) => <span class="text-xs font-bold text-[var(--color-secondary)]">{d}</span>}
               </For>
             </div>
 
