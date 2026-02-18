@@ -495,6 +495,7 @@ export default function Editor(props: EditorProps) {
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${noteTitle}</title>
 <style>
   @page {
@@ -507,7 +508,9 @@ export default function Editor(props: EditorProps) {
     font-size: ${baseFontSize};
     line-height: 1.6;
     color: #1a1a1a;
-    padding: 0;
+    padding: ${settings.format === 'html' ? '3rem max(5vw, 20px)' : '0'};
+    max-width: ${settings.format === 'html' ? '900px' : 'none'};
+    margin: ${settings.format === 'html' ? '0 auto' : '0'};
   }
   .header {
     margin-bottom: 1.5em;
@@ -515,29 +518,34 @@ export default function Editor(props: EditorProps) {
     border-bottom: 2px solid #e0e0e0;
   }
   .header h1 {
-    font-size: 2em;
+    font-size: 2.2em;
     font-weight: 700;
     margin-bottom: 0.25em;
+    color: #111;
   }
   .header .meta {
-    font-size: 0.85em;
+    font-size: 0.9em;
     color: #666;
   }
-  .content h1 { font-size: 1.8em; margin: 1em 0 0.5em; }
-  .content h2 { font-size: 1.5em; margin: 0.8em 0 0.4em; }
-  .content h3 { font-size: 1.25em; margin: 0.6em 0 0.3em; }
-  .content p { margin: 0.5em 0; }
-  .content ul, .content ol { margin: 0.5em 0; padding-left: 1.5em; }
-  .content li { margin: 0.25em 0; }
-  .content blockquote { border-left: 4px solid #ccc; padding-left: 1em; margin: 0.5em 0; color: #555; }
-  .content img { max-width: 100%; height: auto; page-break-inside: avoid; }
-  .content table { width: 100%; border-collapse: collapse; margin: 0.5em 0; page-break-inside: avoid; }
-  .content th, .content td { border: 1px solid #ccc; padding: 0.4em 0.6em; text-align: left; }
-  .content th { background: #f5f5f5; font-weight: 600; }
-  .content hr { border: none; border-top: 1px solid #ccc; margin: 1em 0; }
-  .content mark { background: #fff3cd; padding: 0 2px; }
+  .content {
+    font-size: 1.05em;
+  }
+  .content h1 { font-size: 1.8em; margin: 1.2em 0 0.6em; }
+  .content h2 { font-size: 1.5em; margin: 1em 0 0.5em; }
+  .content h3 { font-size: 1.25em; margin: 0.8em 0 0.4em; }
+  .content p { margin: 0.8em 0; }
+  .content ul, .content ol { margin: 0.8em 0; padding-left: 1.8em; }
+  .content li { margin: 0.4em 0; }
+  .content blockquote { border-left: 5px solid #ddd; padding-left: 1.2em; margin: 1em 0; color: #444; font-style: italic; }
+  .content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  .content table { width: 100%; border-collapse: collapse; margin: 1.2em 0; overflow: hidden; border-radius: 8px; border: 1px solid #eee; }
+  .content th, .content td { border: 1px solid #eee; padding: 0.6em 0.8em; text-align: left; }
+  .content th { background: #fafafa; font-weight: 600; color: #333; }
+  .content hr { border: none; border-top: 1px solid #eee; margin: 1.5em 0; }
+  .content mark { background: #fff3cd; padding: 0 4px; border-radius: 2px; }
   @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+    .header { border-bottom-color: #333; }
   }
 </style>
 </head>
@@ -552,28 +560,41 @@ export default function Editor(props: EditorProps) {
 </body>
 </html>`;
 
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    
-    const doc = iframe.contentWindow?.document || iframe.contentDocument;
-    if (doc) {
-      doc.open();
-      doc.write(printHtml);
-      doc.close();
+    if (settings.format === 'pdf') {
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
       
-      // Wait for content to potentially load (like images)
-      setTimeout(() => {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-        // Remove iframe after print dialog is closed
+      const doc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(printHtml);
+        doc.close();
+        
         setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 1000);
-      }, 500);
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+          }, 1000);
+        }, 500);
+      } else {
+        alert('Gagal membuat frame untuk pencetakan.');
+        document.body.removeChild(iframe);
+      }
     } else {
-      alert('Gagal membuat frame untuk pencetakan.');
-      document.body.removeChild(iframe);
+      // HTML Export: Direct Download
+      const blob = new Blob([printHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safeTitle = noteTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'note';
+      
+      a.href = url;
+      a.download = `${safeTitle}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
     }
   };
 

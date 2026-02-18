@@ -3,6 +3,7 @@ import Modal from "./Modal";
 import Button from "./Button";
 
 export interface ExportSettings {
+  format: 'pdf' | 'html';
   paperSize: 'A4' | 'Letter' | 'Legal' | 'F4';
   orientation: 'portrait' | 'landscape';
   margin: 'normal' | 'narrow' | 'wide';
@@ -39,6 +40,7 @@ const FONT_VALS = {
 };
 
 export default function ExportModal(props: ExportModalProps) {
+  const [format, setFormat] = createSignal<ExportSettings['format']>('pdf');
   const [paperSize, setPaperSize] = createSignal<ExportSettings['paperSize']>('A4');
   const [orientation, setOrientation] = createSignal<ExportSettings['orientation']>('portrait');
   const [margin, setMargin] = createSignal<ExportSettings['margin']>('normal');
@@ -46,6 +48,7 @@ export default function ExportModal(props: ExportModalProps) {
 
   const handleExport = () => {
     props.onExport({
+      format: format(),
       paperSize: paperSize(),
       orientation: orientation(),
       margin: margin(),
@@ -75,7 +78,7 @@ export default function ExportModal(props: ExportModalProps) {
           : 'bg-[var(--color-surface-container)] border-transparent text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]'}
       `}
     >
-      <span class={`text-sm ${p.selected ? 'font-bold' : 'font-medium'}`}>{p.label}</span>
+      <span class={`text-[13px] ${p.selected ? 'font-bold' : 'font-medium'}`}>{p.label}</span>
       <Show when={p.desc}>
         <span class="text-[10px] opacity-70 mt-0">{p.desc}</span>
       </Show>
@@ -83,6 +86,7 @@ export default function ExportModal(props: ExportModalProps) {
   );
 
   const getAspect = () => {
+    if (format() === 'html') return 'none';
     const base = PAPER_SIZES.find(ps => ps.value === paperSize())?.aspect || 0.7;
     return orientation() === 'portrait' ? base : 1 / base;
   };
@@ -97,8 +101,10 @@ export default function ExportModal(props: ExportModalProps) {
         <div class="flex items-center justify-end gap-2 px-6 py-3 border-t border-[var(--color-outline-variant)]/10">
           <Button variant="text" onClick={props.onClose}>Batal</Button>
           <Button variant="filled" onClick={handleExport}>
-            <span class="material-symbols-rounded text-[18px]">print</span>
-            Cetak / PDF
+            <span class="material-symbols-rounded text-[18px]">
+              {format() === 'pdf' ? 'print' : 'download'}
+            </span>
+            {format() === 'pdf' ? 'Cetak / PDF' : 'Simpan HTML'}
           </Button>
         </div>
       }
@@ -108,53 +114,74 @@ export default function ExportModal(props: ExportModalProps) {
         {/* Left: Settings */}
         <div class="w-[320px] p-6 space-y-4 overflow-y-auto no-scrollbar border-r border-[var(--color-outline-variant)]/10 bg-[var(--color-surface-container-low)]/30">
           
-          {/* Paper Size */}
+          {/* Format */}
           <div>
-            <SectionLabel text="Ukuran Kertas" />
-            <div class="grid grid-cols-2 gap-2">
-              {PAPER_SIZES.map(ps => (
-                <OptionChip
-                  label={ps.label}
-                  desc={ps.desc}
-                  selected={paperSize() === ps.value}
-                  onClick={() => setPaperSize(ps.value)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Orientation */}
-          <div>
-            <SectionLabel text="Orientasi" />
+            <SectionLabel text="Format Ekspor" />
             <div class="grid grid-cols-2 gap-2">
               <OptionChip
-                label="Potret"
-                desc="Vertikal"
-                selected={orientation() === 'portrait'}
-                onClick={() => setOrientation('portrait')}
+                label="Dokumen (PDF)"
+                desc="Gunakan Paginasi"
+                selected={format() === 'pdf'}
+                onClick={() => setFormat('pdf')}
               />
               <OptionChip
-                label="Lanskap"
-                desc="Horizontal"
-                selected={orientation() === 'landscape'}
-                onClick={() => setOrientation('landscape')}
+                label="Web (HTML)"
+                desc="Tanpa Paginasi"
+                selected={format() === 'html'}
+                onClick={() => setFormat('html')}
               />
             </div>
           </div>
 
-          {/* Margins */}
-          <div>
-            <SectionLabel text="Margin" />
-            <div class="grid grid-cols-3 gap-2">
-              {(Object.keys(MARGIN_VALS) as Array<keyof typeof MARGIN_VALS>).map(m => (
-                <OptionChip
-                  label={m.charAt(0).toUpperCase() + m.slice(1)}
-                  selected={margin() === m}
-                  onClick={() => setMargin(m)}
-                />
-              ))}
+          <Show when={format() === 'pdf'}>
+            {/* Paper Size */}
+            <div class="animate-in fade-in slide-in-from-left-2 duration-300">
+              <SectionLabel text="Ukuran Kertas" />
+              <div class="grid grid-cols-2 gap-2">
+                {PAPER_SIZES.map(ps => (
+                  <OptionChip
+                    label={ps.label}
+                    desc={ps.desc}
+                    selected={paperSize() === ps.value}
+                    onClick={() => setPaperSize(ps.value)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* Orientation */}
+            <div class="animate-in fade-in slide-in-from-left-2 duration-300">
+              <SectionLabel text="Orientasi" />
+              <div class="grid grid-cols-2 gap-2">
+                <OptionChip
+                  label="Potret"
+                  desc="Vertikal"
+                  selected={orientation() === 'portrait'}
+                  onClick={() => setOrientation('portrait')}
+                />
+                <OptionChip
+                  label="Lanskap"
+                  desc="Horizontal"
+                  selected={orientation() === 'landscape'}
+                  onClick={() => setOrientation('landscape')}
+                />
+              </div>
+            </div>
+
+            {/* Margins */}
+            <div class="animate-in fade-in slide-in-from-left-2 duration-300">
+              <SectionLabel text="Margin" />
+              <div class="grid grid-cols-3 gap-2">
+                {(Object.keys(MARGIN_VALS) as Array<keyof typeof MARGIN_VALS>).map(m => (
+                  <OptionChip
+                    label={m.charAt(0).toUpperCase() + m.slice(1)}
+                    selected={margin() === m}
+                    onClick={() => setMargin(m)}
+                  />
+                ))}
+              </div>
+            </div>
+          </Show>
 
           {/* Font Size */}
           <div>
@@ -174,21 +201,23 @@ export default function ExportModal(props: ExportModalProps) {
         {/* Right: Live Preview */}
         <div class="flex-1 bg-black/5 flex items-center justify-center p-8 overflow-hidden relative">
           <div class="absolute top-4 left-4 text-[10px] font-bold text-[var(--color-on-surface-variant)] opacity-40 uppercase tracking-widest">
-            Pratinjau Halaman
+            Pratinjau {format() === 'pdf' ? 'Halaman' : 'Web'}
           </div>
           
           {/* The Paper Component */}
           <div 
-            class="bg-white shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden flex flex-col origin-center"
+            class={`bg-white shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex flex-col origin-center scrollbar-hide
+              ${format() === 'html' ? 'w-full h-full overflow-y-auto rounded-lg' : 'overflow-hidden'}
+            `}
             style={{
-              width: orientation() === 'portrait' ? 'auto' : '100%',
-              height: orientation() === 'portrait' ? '100%' : 'auto',
+              width: format() === 'html' ? '100%' : (orientation() === 'portrait' ? 'auto' : '100%'),
+              height: format() === 'html' ? '100%' : (orientation() === 'portrait' ? '100%' : 'auto'),
               'aspect-ratio': getAspect(),
-              padding: MARGIN_VALS[margin()],
+              padding: format() === 'html' ? '2.5rem' : MARGIN_VALS[margin()],
               'font-size': FONT_VALS[fontSize()],
             }}
           >
-            <div class="flex flex-col h-full w-full overflow-hidden text-[#1a1a1a]">
+            <div class="flex flex-col h-full w-full text-[#1a1a1a]">
               <div class="mb-4 border-b-2 border-gray-100 pb-3">
                 <h1 class="text-[2em] font-bold leading-tight mb-1">
                   {props.title || 'Judul Catatan'}
@@ -198,7 +227,7 @@ export default function ExportModal(props: ExportModalProps) {
                 </div>
               </div>
               <div 
-                class="flex-1 text-[0.85em] leading-[1.6] opacity-90 prose prose-sm prose-p:my-1 prose-headings:my-2 prose-img:rounded-lg"
+                class="text-[0.85em] leading-[1.6] opacity-90 prose prose-sm prose-p:my-1 prose-headings:my-2 prose-img:rounded-lg"
                 innerHTML={props.content || '<p class="opacity-30 italic">Konten kosong...</p>'}
               />
             </div>
@@ -209,3 +238,4 @@ export default function ExportModal(props: ExportModalProps) {
     </Modal>
   );
 }
+
