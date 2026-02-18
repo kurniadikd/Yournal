@@ -496,6 +496,27 @@ export default function Editor(props: EditorProps) {
                   <span class="hidden sm:inline sm:ml-2">Hapus</span>
                 </Button>
               </Show>
+              
+               <Button 
+                  variant="text" 
+                  onClick={() => {
+                      const htmlContent = editor()?.getHTML();
+                      if (!htmlContent) return;
+                      const titleSlug = (title() || 'Untitled').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                      const element = document.createElement("a");
+                      const file = new Blob([htmlContent], {type: 'text/html'});
+                      element.href = URL.createObjectURL(file);
+                      element.download = `${titleSlug}.html`;
+                      document.body.appendChild(element); 
+                      element.click();
+                      document.body.removeChild(element);
+                  }}
+                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] mr-2"
+                  title="Ekspor"
+                >
+                  <span class="material-symbols-rounded !text-[20px] font-normal">ios_share</span>
+                  <span class="hidden sm:inline sm:ml-2">Ekspor</span>
+                </Button>
               <Button 
                 variant="tonal" 
                 onClick={handleClose}
