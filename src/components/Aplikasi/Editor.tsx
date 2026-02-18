@@ -35,6 +35,8 @@ import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
 import ConfirmationModal from "../ui/m3e/ConfirmationModal";
+import ExportModal from "../ui/m3e/ExportModal";
+import type { ExportSettings } from "../ui/m3e/ExportModal";
 import { getWeatherDescription } from "../../utils/weather";
 import { InsertAudio } from "./InsertAudio";
 import Paragraph from "@tiptap/extension-paragraph";
@@ -92,6 +94,7 @@ export default function Editor(props: EditorProps) {
   const [showLocationModal, setShowLocationModal] = createSignal(false);
   const [showAudioRecorder, setShowAudioRecorder] = createSignal(false);
   const [showVideoModal, setShowVideoModal] = createSignal(false);
+  const [showExportModal, setShowExportModal] = createSignal(false);
   
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
@@ -456,6 +459,112 @@ export default function Editor(props: EditorProps) {
     }
   };
 
+  const handleAdvancedExport = (settings: ExportSettings) => {
+    setShowExportModal(false);
+    const editorInstance = editor();
+    if (!editorInstance) return;
+
+    const content = editorInstance.getHTML() || '';
+    const noteTitle = title() || 'Untitled';
+    const dateStr = formatDate(entryDate());
+    const timeStr = formatTime(entryDate());
+
+    const paperMap: Record<string, string> = {
+      'A4': '210mm 297mm',
+      'Letter': '216mm 279mm',
+      'Legal': '216mm 356mm',
+      'F4': '215mm 330mm',
+    };
+    const marginMap: Record<string, string> = {
+      'normal': '2.54cm',
+      'narrow': '1.27cm',
+      'wide': '5.08cm',
+    };
+    const fontSizeMap: Record<string, string> = {
+      'small': '10pt',
+      'normal': '12pt',
+      'large': '14pt',
+    };
+
+    const pageSize = paperMap[settings.paperSize] || '210mm 297mm';
+    const pageMargin = marginMap[settings.margin] || '2.54cm';
+    const baseFontSize = fontSizeMap[settings.fontSize] || '12pt';
+    const orient = settings.orientation;
+
+    const printHtml = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>${noteTitle}</title>
+<style>
+  @page {
+    size: ${pageSize} ${orient};
+    margin: ${pageMargin};
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: ${baseFontSize};
+    line-height: 1.6;
+    color: #1a1a1a;
+    padding: 0;
+  }
+  .header {
+    margin-bottom: 1.5em;
+    padding-bottom: 0.75em;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  .header h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin-bottom: 0.25em;
+  }
+  .header .meta {
+    font-size: 0.85em;
+    color: #666;
+  }
+  .content h1 { font-size: 1.8em; margin: 1em 0 0.5em; }
+  .content h2 { font-size: 1.5em; margin: 0.8em 0 0.4em; }
+  .content h3 { font-size: 1.25em; margin: 0.6em 0 0.3em; }
+  .content p { margin: 0.5em 0; }
+  .content ul, .content ol { margin: 0.5em 0; padding-left: 1.5em; }
+  .content li { margin: 0.25em 0; }
+  .content blockquote { border-left: 4px solid #ccc; padding-left: 1em; margin: 0.5em 0; color: #555; }
+  .content img { max-width: 100%; height: auto; page-break-inside: avoid; }
+  .content table { width: 100%; border-collapse: collapse; margin: 0.5em 0; page-break-inside: avoid; }
+  .content th, .content td { border: 1px solid #ccc; padding: 0.4em 0.6em; text-align: left; }
+  .content th { background: #f5f5f5; font-weight: 600; }
+  .content hr { border: none; border-top: 1px solid #ccc; margin: 1em 0; }
+  .content mark { background: #fff3cd; padding: 0 2px; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>${noteTitle}</h1>
+    <div class="meta">${dateStr} &bull; ${timeStr}</div>
+  </div>
+  <div class="content">
+    ${content}
+  </div>
+</body>
+</html>`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    } else {
+      alert('Pop-up diblokir oleh browser. Izinkan pop-up untuk fitur cetak.');
+    }
+  };
+
   // Transition effect for editor open/close
   createEffect(() => {
     if (props.show) {
@@ -497,20 +606,10 @@ export default function Editor(props: EditorProps) {
                 </Button>
               </Show>
               
-               <Button 
+              <Button 
+                  type="button"
                   variant="text" 
-                  onClick={() => {
-                      const htmlContent = editor()?.getHTML();
-                      if (!htmlContent) return;
-                      const titleSlug = (title() || 'Untitled').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                      const element = document.createElement("a");
-                      const file = new Blob([htmlContent], {type: 'text/html'});
-                      element.href = URL.createObjectURL(file);
-                      element.download = `${titleSlug}.html`;
-                      document.body.appendChild(element); 
-                      element.click();
-                      document.body.removeChild(element);
-                  }}
+                  onClick={() => setShowExportModal(true)}
                   class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] mr-2"
                   title="Ekspor"
                 >
@@ -886,6 +985,12 @@ export default function Editor(props: EditorProps) {
             show={showVideoModal()}
             onClose={() => setShowVideoModal(false)}
             onConfirm={handleVideoConfirm}
+        />
+
+        <ExportModal
+          show={showExportModal()}
+          onClose={() => setShowExportModal(false)}
+          onExport={handleAdvancedExport}
         />
 
         <Modal
