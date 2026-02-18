@@ -49,8 +49,8 @@ export default function Modal(props: ModalProps) {
             class={`
               relative w-full bg-[var(--color-surface-container-high)] 
               rounded-[28px] overflow-hidden flex flex-col p-0 shadow-2xl
-              transition-all duration-300 ease-out
-              ${isVisible() ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}
+              transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] origin-center
+              ${isVisible() ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}
             `}
             style={{ "max-width": props.maxWidth || '560px' }}
           >
