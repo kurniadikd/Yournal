@@ -991,6 +991,10 @@ export default function Editor(props: EditorProps) {
           show={showExportModal()}
           onClose={() => setShowExportModal(false)}
           onExport={handleAdvancedExport}
+          title={title()}
+          content={editor()?.getHTML() || ''}
+          dateStr={formatDate(entryDate())}
+          timeStr={formatTime(entryDate())}
         />
 
         <Modal

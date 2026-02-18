@@ -13,26 +13,30 @@ interface ExportModalProps {
   show: boolean;
   onClose: () => void;
   onExport: (settings: ExportSettings) => void;
+  title: string;
+  content: string;
+  dateStr: string;
+  timeStr: string;
 }
 
 const PAPER_SIZES = [
-  { value: 'A4', label: 'A4', desc: '210 × 297 mm' },
-  { value: 'Letter', label: 'Letter', desc: '216 × 279 mm' },
-  { value: 'Legal', label: 'Legal', desc: '216 × 356 mm' },
-  { value: 'F4', label: 'Folio (F4)', desc: '215 × 330 mm' },
+  { value: 'A4', label: 'A4', desc: '210 × 297 mm', aspect: 210/297 },
+  { value: 'Letter', label: 'Letter', desc: '216 × 279 mm', aspect: 216/279 },
+  { value: 'Legal', label: 'Legal', desc: '216 × 356 mm', aspect: 216/356 },
+  { value: 'F4', label: 'Folio (F4)', desc: '215 × 330 mm', aspect: 215/330 },
 ] as const;
 
-const MARGINS = [
-  { value: 'normal', label: 'Normal', desc: '2.54 cm' },
-  { value: 'narrow', label: 'Sempit', desc: '1.27 cm' },
-  { value: 'wide', label: 'Lebar', desc: '5.08 cm' },
-] as const;
+const MARGIN_VALS = {
+  normal: '12%',
+  narrow: '6%',
+  wide: '20%'
+};
 
-const FONT_SIZES = [
-  { value: 'small', label: 'Kecil', desc: '10pt' },
-  { value: 'normal', label: 'Normal', desc: '12pt' },
-  { value: 'large', label: 'Besar', desc: '14pt' },
-] as const;
+const FONT_VALS = {
+  small: '0.8rem',
+  normal: '1rem',
+  large: '1.2rem'
+};
 
 export default function ExportModal(props: ExportModalProps) {
   const [paperSize, setPaperSize] = createSignal<ExportSettings['paperSize']>('A4');
@@ -66,7 +70,7 @@ export default function ExportModal(props: ExportModalProps) {
       type="button"
       onClick={p.onClick}
       class={`
-        flex flex-col items-start px-3 py-2 rounded-xl text-left transition-all duration-200 border
+        flex flex-col items-start px-3 py-1.5 rounded-xl text-left transition-all duration-200 border
         ${p.selected
           ? 'bg-[var(--color-primary-container)] border-[var(--color-primary)] text-[var(--color-on-primary-container)]'
           : 'bg-[var(--color-surface-container)] border-transparent text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]'}
@@ -74,19 +78,24 @@ export default function ExportModal(props: ExportModalProps) {
     >
       <span class={`text-sm ${p.selected ? 'font-bold' : 'font-medium'}`}>{p.label}</span>
       <Show when={p.desc}>
-        <span class="text-[11px] opacity-70 mt-0.5">{p.desc}</span>
+        <span class="text-[10px] opacity-70 mt-0">{p.desc}</span>
       </Show>
     </button>
   );
+
+  const getAspect = () => {
+    const base = PAPER_SIZES.find(ps => ps.value === paperSize())?.aspect || 0.7;
+    return orientation() === 'portrait' ? base : 1 / base;
+  };
 
   return (
     <Modal
       show={props.show}
       onClose={props.onClose}
       title="Ekspor Catatan"
-      maxWidth="420px"
+      maxWidth="860px"
       actions={
-        <div class="flex items-center justify-end gap-2 px-6 py-3">
+        <div class="flex items-center justify-end gap-2 px-6 py-3 border-t border-[var(--color-outline-variant)]/10">
           <Button variant="text" onClick={props.onClose}>Batal</Button>
           <Button variant="filled" onClick={handleExport}>
             <span class="material-symbols-rounded text-[18px]">print</span>
@@ -95,69 +104,105 @@ export default function ExportModal(props: ExportModalProps) {
         </div>
       }
     >
-      <div class="px-6 py-4 space-y-5">
+      <div class="flex h-[580px] overflow-hidden">
+        
+        {/* Left: Settings */}
+        <div class="w-[320px] p-6 space-y-4 overflow-y-auto no-scrollbar border-r border-[var(--color-outline-variant)]/10 bg-[var(--color-surface-container-low)]/30">
+          
+          {/* Paper Size */}
+          <div>
+            <SectionLabel text="Ukuran Kertas" icon="description" />
+            <div class="grid grid-cols-2 gap-2">
+              {PAPER_SIZES.map(ps => (
+                <OptionChip
+                  label={ps.label}
+                  desc={ps.desc}
+                  selected={paperSize() === ps.value}
+                  onClick={() => setPaperSize(ps.value)}
+                />
+              ))}
+            </div>
+          </div>
 
-        {/* Paper Size */}
-        <div>
-          <SectionLabel text="Ukuran Kertas" icon="description" />
-          <div class="grid grid-cols-2 gap-2">
-            {PAPER_SIZES.map(ps => (
+          {/* Orientation */}
+          <div>
+            <SectionLabel text="Orientasi" icon="screen_rotation" />
+            <div class="grid grid-cols-2 gap-2">
               <OptionChip
-                label={ps.label}
-                desc={ps.desc}
-                selected={paperSize() === ps.value}
-                onClick={() => setPaperSize(ps.value)}
+                label="Potret"
+                desc="Vertikal"
+                selected={orientation() === 'portrait'}
+                onClick={() => setOrientation('portrait')}
               />
-            ))}
+              <OptionChip
+                label="Lanskap"
+                desc="Horizontal"
+                selected={orientation() === 'landscape'}
+                onClick={() => setOrientation('landscape')}
+              />
+            </div>
+          </div>
+
+          {/* Margins */}
+          <div>
+            <SectionLabel text="Margin" icon="padding" />
+            <div class="grid grid-cols-3 gap-2">
+              {(Object.keys(MARGIN_VALS) as Array<keyof typeof MARGIN_VALS>).map(m => (
+                <OptionChip
+                  label={m.charAt(0).toUpperCase() + m.slice(1)}
+                  selected={margin() === m}
+                  onClick={() => setMargin(m)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Font Size */}
+          <div>
+            <SectionLabel text="Ukuran Font" icon="text_fields" />
+            <div class="grid grid-cols-3 gap-2">
+              {(Object.keys(FONT_VALS) as Array<keyof typeof FONT_VALS>).map(fs => (
+                <OptionChip
+                  label={fs.charAt(0).toUpperCase() + fs.slice(1)}
+                  selected={fontSize() === fs}
+                  onClick={() => setFontSize(fs)}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Orientation */}
-        <div>
-          <SectionLabel text="Orientasi" icon="screen_rotation" />
-          <div class="grid grid-cols-2 gap-2">
-            <OptionChip
-              label="Potret"
-              desc="Vertikal"
-              selected={orientation() === 'portrait'}
-              onClick={() => setOrientation('portrait')}
-            />
-            <OptionChip
-              label="Lanskap"
-              desc="Horizontal"
-              selected={orientation() === 'landscape'}
-              onClick={() => setOrientation('landscape')}
-            />
+        {/* Right: Live Preview */}
+        <div class="flex-1 bg-black/5 flex items-center justify-center p-8 overflow-hidden relative">
+          <div class="absolute top-4 left-4 text-[10px] font-bold text-[var(--color-on-surface-variant)] opacity-40 uppercase tracking-widest">
+            Pratinjau Halaman
           </div>
-        </div>
-
-        {/* Margins */}
-        <div>
-          <SectionLabel text="Margin" icon="padding" />
-          <div class="grid grid-cols-3 gap-2">
-            {MARGINS.map(m => (
-              <OptionChip
-                label={m.label}
-                desc={m.desc}
-                selected={margin() === m.value}
-                onClick={() => setMargin(m.value)}
+          
+          {/* The Paper Component */}
+          <div 
+            class="bg-white shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden flex flex-col origin-center"
+            style={{
+              width: orientation() === 'portrait' ? 'auto' : '100%',
+              height: orientation() === 'portrait' ? '100%' : 'auto',
+              'aspect-ratio': getAspect(),
+              padding: MARGIN_VALS[margin()],
+              'font-size': FONT_VALS[fontSize()],
+            }}
+          >
+            <div class="flex flex-col h-full w-full overflow-hidden text-[#1a1a1a]">
+              <div class="mb-4 border-b-2 border-gray-100 pb-3">
+                <h1 class="text-[2em] font-bold leading-tight mb-1">
+                  {props.title || 'Judul Catatan'}
+                </h1>
+                <div class="text-[0.75em] text-gray-500 font-medium">
+                  {props.dateStr} &bull; {props.timeStr}
+                </div>
+              </div>
+              <div 
+                class="flex-1 text-[0.85em] leading-[1.6] opacity-90 prose prose-sm prose-p:my-1 prose-headings:my-2 prose-img:rounded-lg"
+                innerHTML={props.content || '<p class="opacity-30 italic">Konten kosong...</p>'}
               />
-            ))}
-          </div>
-        </div>
-
-        {/* Font Size */}
-        <div>
-          <SectionLabel text="Ukuran Font" icon="text_fields" />
-          <div class="grid grid-cols-3 gap-2">
-            {FONT_SIZES.map(fs => (
-              <OptionChip
-                label={fs.label}
-                desc={fs.desc}
-                selected={fontSize() === fs.value}
-                onClick={() => setFontSize(fs.value)}
-              />
-            ))}
+            </div>
           </div>
         </div>
 
