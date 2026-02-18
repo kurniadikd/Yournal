@@ -1,0 +1,52 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (Ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
+
+      - name: Install Frontend Dependencies
+        run: bun install
+
+      - name: Initialize Android Project
+        # This generates src-tauri/gen/android which is needed for build
+        run: bun tauri android init
+
+      - name: Build APK (Debug)
+        # builds a debug APK. For release, signing is needed but debug is "working" for basic testing.
+        run: bun tauri android build --apk --target aarch64-linux-android
+        env:
+          NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+
+      - name: Upload APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
