@@ -50,7 +50,7 @@ export default function Modal(props: ModalProps) {
               relative w-full bg-[var(--color-surface-container-high)] 
               rounded-[28px] overflow-hidden flex flex-col p-0 shadow-2xl
               transition-all duration-300 ease-out
-              ${isVisible() ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'}
+              ${isVisible() ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}
             `}
             style={{ "max-width": props.maxWidth || '560px' }}
           >
