@@ -507,7 +507,7 @@ export default function Editor(props: EditorProps) {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     font-size: ${baseFontSize};
     line-height: 1.6;
-    color: #1a1a1a;
+    color: #000000;
     padding: ${settings.format === 'html' ? '3rem max(5vw, 20px)' : '0'};
     max-width: ${settings.format === 'html' ? '900px' : 'none'};
     margin: ${settings.format === 'html' ? '0 auto' : '0'};
@@ -515,20 +515,21 @@ export default function Editor(props: EditorProps) {
   .header {
     margin-bottom: 1.5em;
     padding-bottom: 0.75em;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid #000000;
   }
   .header h1 {
     font-size: 2.2em;
     font-weight: 700;
     margin-bottom: 0.25em;
-    color: #111;
+    color: #000000;
   }
   .header .meta {
     font-size: 0.9em;
-    color: #666;
+    color: #000000;
   }
   .content {
     font-size: 1.05em;
+    color: #000000;
   }
   .content h1 { font-size: 1.8em; margin: 1.2em 0 0.6em; }
   .content h2 { font-size: 1.5em; margin: 1em 0 0.5em; }

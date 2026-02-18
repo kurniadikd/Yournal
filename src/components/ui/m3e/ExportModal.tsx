@@ -217,18 +217,18 @@ export default function ExportModal(props: ExportModalProps) {
               'font-size': FONT_VALS[fontSize()],
             }}
           >
-            <div class="flex flex-col h-full w-full text-[#1a1a1a]">
-              <div class="mb-4 border-b-2 border-gray-100 pb-3">
-                <h1 class="text-[2em] font-bold leading-tight mb-1">
+            <div class="flex flex-col h-full w-full text-black">
+              <div class="mb-4 border-b-2 border-black pb-3">
+                <h1 class="text-[2em] font-bold leading-tight mb-1 text-black">
                   {props.title || 'Judul Catatan'}
                 </h1>
-                <div class="text-[0.75em] text-gray-500 font-medium">
+                <div class="text-[0.75em] text-black font-medium">
                   {props.dateStr} &bull; {props.timeStr}
                 </div>
               </div>
               <div 
-                class="text-[0.85em] leading-[1.6] opacity-90 prose prose-sm prose-p:my-1 prose-headings:my-2 prose-img:rounded-lg"
-                innerHTML={props.content || '<p class="opacity-30 italic">Konten kosong...</p>'}
+                class="text-[0.85em] leading-[1.6] text-black prose prose-sm prose-headings:text-black prose-p:text-black prose-li:text-black prose-strong:text-black prose-p:my-1 prose-headings:my-2 prose-img:rounded-lg"
+                innerHTML={props.content || '<p class="text-gray-400 italic">Konten kosong...</p>'}
               />
             </div>
           </div>
