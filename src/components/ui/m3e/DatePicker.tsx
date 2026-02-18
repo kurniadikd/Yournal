@@ -125,18 +125,19 @@ export default function DatePicker(props: DatePickerProps) {
       show={props.show}
       onClose={props.onClose}
       title="Pilih Tanggal"
+      maxWidth="320px"
       actions={
         <div class="flex justify-end gap-2 w-full pt-2">
-          <Button variant="tonal" onClick={props.onClose}>Batal</Button>
-          <Button variant="filled" onClick={() => { props.onSelect(selectedDate()); props.onClose(); }}>Oke</Button>
+          <Button variant="tonal" class="!py-1 px-4 text-xs" onClick={props.onClose}>Batal</Button>
+          <Button variant="filled" class="!py-1 px-4 text-xs" onClick={() => { props.onSelect(selectedDate()); props.onClose(); }}>Oke</Button>
         </div>
       }
     >
-      <div class="w-full flex flex-col" style={{ "min-height": "380px" }}>
+      <div class="w-full flex flex-col" style={{ "min-height": "300px" }}>
         
         {/* --- HEADER STATIC (Judul Tanggal) --- */}
-        <div class="mb-4 px-2">
-          <h1 class="text-3xl font-bold text-[var(--color-on-surface)]">
+        <div class="mb-2 px-2 text-center">
+          <h1 class="text-xl font-bold text-[var(--color-on-surface)]">
             {fmtFull.format(selectedDate())}
           </h1>
         </div>
@@ -190,7 +191,7 @@ export default function DatePicker(props: DatePickerProps) {
                           if (!item.isCurrentMonth) setViewDate(new Date(item.fullDate));
                         }}
                         class={`
-                          w-9 h-9 rounded-full flex items-center justify-center text-sm relative transition-all
+                          w-8 h-8 rounded-full flex items-center justify-center text-xs relative transition-all
                           ${!item.isCurrentMonth ? 'text-[var(--color-on-surface-variant)] opacity-40' : 'text-[var(--color-on-surface)]'}
                           ${isSelected() 
                             ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold' 
@@ -211,7 +212,7 @@ export default function DatePicker(props: DatePickerProps) {
           <div 
             ref={yearListRef}
             class={`
-              absolute inset-0 bg-[var(--color-surface)] grid grid-cols-4 gap-3 overflow-y-auto content-start p-2
+              absolute inset-0 bg-[var(--color-surface)] grid grid-cols-4 gap-2 overflow-y-auto content-start p-2
               transition-all duration-300 transform
               ${mode() === 'year' ? 'translate-y-0 opacity-100 z-10' : 'translate-y-10 opacity-0 z-[-1] pointer-events-none'}
             `}
@@ -222,7 +223,7 @@ export default function DatePicker(props: DatePickerProps) {
                   data-year={year}
                   onClick={() => selectYear(year)}
                   class={`
-                    py-2 px-4 rounded-full text-sm transition-colors
+                    py-2 px-2 rounded-full text-sm transition-colors
                     ${year === viewDate().getFullYear() 
                       ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold' 
                       : 'hover:bg-[var(--color-surface-container-highest)] text-[var(--color-on-surface)]'}
