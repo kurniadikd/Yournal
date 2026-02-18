@@ -194,9 +194,9 @@ export default function DatePicker(props: DatePickerProps) {
                           w-8 h-8 rounded-full flex items-center justify-center text-xs relative transition-all
                           ${!item.isCurrentMonth ? 'text-[var(--color-on-surface-variant)] opacity-40' : 'text-[var(--color-on-surface)]'}
                           ${isSelected() 
-                            ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold' 
+                            ? 'bg-[var(--color-tertiary)] text-[var(--color-on-tertiary)] font-bold' 
                             : 'hover:bg-[var(--color-surface-container-highest)]'}
-                          ${isCurrentDay() && !isSelected() ? 'text-[var(--color-primary)] font-bold' : ''}
+                          ${isCurrentDay() && !isSelected() ? 'text-[var(--color-tertiary)] font-bold' : ''}
                         `}
                       >
                         {item.day}
@@ -225,7 +225,7 @@ export default function DatePicker(props: DatePickerProps) {
                   class={`
                     py-2 px-2 rounded-full text-sm transition-colors
                     ${year === viewDate().getFullYear() 
-                      ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold' 
+                      ? 'bg-[var(--color-tertiary)] text-[var(--color-on-tertiary)] font-bold' 
                       : 'hover:bg-[var(--color-surface-container-highest)] text-[var(--color-on-surface)]'}
                   `}
                 >
