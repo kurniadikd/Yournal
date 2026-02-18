@@ -125,7 +125,7 @@ export default function DatePicker(props: DatePickerProps) {
       show={props.show}
       onClose={props.onClose}
       title="Pilih Tanggal"
-      maxWidth="320px"
+      maxWidth="360px"
       actions={
         <div class="flex justify-end gap-2 w-full pt-2">
           <Button variant="tonal" class="!py-1 px-4 text-xs" onClick={props.onClose}>Batal</Button>
@@ -133,10 +133,10 @@ export default function DatePicker(props: DatePickerProps) {
         </div>
       }
     >
-      <div class="w-full flex flex-col" style={{ "min-height": "300px" }}>
+      <div class="w-full flex flex-col" style={{ "min-height": "360px" }}>
         
         {/* --- HEADER STATIC (Judul Tanggal) --- */}
-        <div class="mb-2 px-2 text-center">
+        <div class="mb-2 px-2">
           <h1 class="text-xl font-bold text-[var(--color-on-surface)]">
             {fmtFull.format(selectedDate())}
           </h1>
