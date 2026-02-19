@@ -1,14 +1,21 @@
-import { Component, createSignal } from "solid-js";
+import { Component } from "solid-js";
 
-const VideoPlayerComponent: Component<any> = (props) => {
+const VideoPlayerComponent: Component<{
+  node: any;
+  updateAttributes: (attrs: any) => void;
+  selected: boolean;
+  deleteNode: () => void;
+  extension: any;
+  getPos: () => number;
+}> = (props) => {
   const src = () => props.node.attrs.src;
-  
-  const handleDelete = () => {
-      props.deleteNode();
-  };
 
   return (
-    <div class="video-player-wrapper my-6 select-none group w-full relative" data-video-player>
+    <div class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} video-player-wrapper my-6 relative rounded-[16px] transition-all duration-300 w-full ${
+      props.selected 
+        ? 'shadow-[0_0_0_3px_var(--color-secondary)]' 
+        : 'shadow-[0_0_0_0_var(--color-secondary)]'
+    }`} data-video-player>
       
       <div class="relative w-full rounded-[16px] overflow-hidden bg-black shadow-lg border border-[var(--color-outline-variant)]/20">
         <video 
@@ -18,17 +25,16 @@ const VideoPlayerComponent: Component<any> = (props) => {
         >
             Browser Anda tidak mendukung tag video.
         </video>
-
-        {/* Delete Button (Visible on Hover) */}
-        <button 
-            onClick={handleDelete}
-            class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 hover:bg-[var(--color-error)] text-white hover:text-[var(--color-on-error)] transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 backdrop-blur-sm"
-            title="Hapus Video"
-        >
-             <span class="material-symbols-rounded text-[20px]">close</span>
-        </button>
       </div>
 
+      {/* Persis tombol hapus SelectableImage */}
+      <button 
+        class="image-delete-btn"
+        style={{ display: props.selected ? 'flex' : 'none' }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); props.deleteNode(); }}
+      >
+        <span class="material-symbols-rounded">close</span>
+      </button>
     </div>
   );
 };

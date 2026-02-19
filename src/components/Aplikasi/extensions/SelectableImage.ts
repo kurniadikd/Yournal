@@ -51,19 +51,41 @@ export const SelectableImage = Image.extend({
 
       container.append(img, btn)
 
+      const onSelectionUpdate = () => {
+        if (typeof getPos !== 'function') return
+        const pos = getPos()
+        if (typeof pos !== 'number') return
+        
+        const { selection } = editor.state
+        // Check if node is directly selected or inside a range selection (block cursor)
+        const isNodeSelected = (selection as any).node === node
+        const isInsideRange = selection.from <= pos && selection.to >= pos + node.nodeSize
+        
+        if (isNodeSelected || isInsideRange) {
+          container.classList.add('ProseMirror-selectednode')
+        } else {
+          container.classList.remove('ProseMirror-selectednode')
+        }
+      }
+
+      editor.on('selectionUpdate', onSelectionUpdate)
+
       return {
         dom: container,
-        // Optional: Manual class management if Tiptap doesn't add it to wrapper automatically (it usually does for inline nodes)
         selectNode: () => {
              container.classList.add('ProseMirror-selectednode')
         },
         deselectNode: () => {
-             container.classList.remove('ProseMirror-selectednode')
+             // Only remove if it's not actually inside a range selection
+             onSelectionUpdate()
         },
         update: (updatedNode) => {
             if (updatedNode.type !== this.type) return false
             if (updatedNode.attrs.src !== img.src) img.src = updatedNode.attrs.src
             return true
+        },
+        destroy: () => {
+          editor.off('selectionUpdate', onSelectionUpdate)
         }
       }
     }

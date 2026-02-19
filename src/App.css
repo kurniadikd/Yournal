@@ -449,6 +449,7 @@ ul[data-type="taskList"] li > div > p {
   line-height: 0;
   margin: 1.5rem 0;
   max-width: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .selectable-image-wrapper img {
@@ -460,6 +461,7 @@ ul[data-type="taskList"] li > div > p {
   border-radius: 12px; /* Rounded corners */
   object-fit: contain;
   margin: 0 !important; /* Override prose margins */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Delete Button - Top Right */
@@ -478,6 +480,7 @@ ul[data-type="taskList"] li > div > p {
   justify-content: center;
   cursor: pointer;
   z-index: 10;
+  user-select: none;
 }
 
 .selectable-image-wrapper .image-delete-btn span {
@@ -516,7 +519,7 @@ ul[data-type="taskList"] li > div > p {
 }
 
 .selectable-image-wrapper.ProseMirror-selectednode img {
-  outline: 3px solid var(--color-primary, #6200ee);
+  box-shadow: 0 0 0 3px var(--color-secondary, #006a6a);
 }
 
 

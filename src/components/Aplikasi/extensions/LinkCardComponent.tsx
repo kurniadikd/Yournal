@@ -9,7 +9,12 @@ export interface LinkCardAttributes {
   domain?: string;
 }
 
-export default function LinkCardComponent(props: { node: { attrs: LinkCardAttributes }, updateAttributes: (attrs: Partial<LinkCardAttributes>) => void }) {
+export default function LinkCardComponent(props: { 
+  node: { attrs: LinkCardAttributes }, 
+  updateAttributes: (attrs: Partial<LinkCardAttributes>) => void,
+  selected: boolean,
+  deleteNode: () => void
+}) {
   const [loading, setLoading] = createSignal(true);
   
   // Gunakan signal lokal untuk data agar UI reaktif, 
@@ -90,7 +95,11 @@ export default function LinkCardComponent(props: { node: { attrs: LinkCardAttrib
   });
 
   return (
-    <div class="link-card-wrapper my-4">
+    <div class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} link-card-wrapper my-6 relative rounded-xl transition-all duration-300 w-full ${
+      props.selected 
+        ? 'shadow-[0_0_0_3px_var(--color-secondary)]' 
+        : 'shadow-[0_0_0_0_var(--color-secondary)]'
+    }`}>
       <a 
         href={data().href} 
         target="_blank" 
@@ -148,6 +157,15 @@ export default function LinkCardComponent(props: { node: { attrs: LinkCardAttrib
           </div>
         </div>
       </a>
+
+      {/* Persis tombol hapus SelectableImage */}
+      <button 
+        class="image-delete-btn"
+        style={{ display: props.selected ? 'flex' : 'none' }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); props.deleteNode(); }}
+      >
+        <span class="material-symbols-rounded">close</span>
+      </button>
     </div>
   );
 }

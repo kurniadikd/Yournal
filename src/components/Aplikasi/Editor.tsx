@@ -1,4 +1,4 @@
-import { createSignal, Show, createEffect, onCleanup, untrack, For } from "solid-js";
+import { createSignal, Show, createEffect, onCleanup, For } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
 import { invoke } from "@tauri-apps/api/core";
@@ -25,13 +25,15 @@ import TableGrid from "./editor/TableGrid";
 import { Table } from "./extensions/Table";
 import { AudioPlayer } from "./extensions/AudioPlayer";
 import { VideoPlayer } from "./extensions/VideoPlayer";
+import { migrateMathStrings } from "@tiptap/extension-mathematics";
 import { Mathematics } from "./extensions/Mathematics";
 import "katex/dist/katex.min.css";
 
 import Button from "../ui/m3e/Button";
 import DatePicker from "../ui/m3e/DatePicker";
 import TimePicker from "../ui/m3e/TimePicker";
-import { formatDate, formatTime } from "../../utils/date";
+import MathModal from "../ui/m3e/MathModal";
+import { formatTime, formatDate } from "../../utils/date";
 
 import ImageModal from "../ui/m3e/ImageModal";
 import LocationModal from "../ui/m3e/LocationModal";
@@ -84,6 +86,7 @@ export default function Editor(props: EditorProps) {
   const [emojiBtnRef, setEmojiBtnRef] = createSignal<HTMLButtonElement>();
   const [container, setContainer] = createSignal<HTMLDivElement>();
   const [updateTrigger, setUpdateTrigger] = createSignal(0);
+  const [baseHTML, setBaseHTML] = createSignal("");
 
   const [title, setTitle] = createSignal(props.initialTitle || "");
   const [entryDate, setEntryDate] = createSignal(new Date());
@@ -207,6 +210,20 @@ export default function Editor(props: EditorProps) {
 
 
 
+  const [mathModalOpen, setMathModalOpen] = createSignal(false);
+  const [mathModalLatex, setMathModalLatex] = createSignal('');
+  const [mathModalPos, setMathModalPos] = createSignal<number | null>(null);
+  const [mathModalIsEdit, setMathModalIsEdit] = createSignal(false);
+  const [mathModalType, setMathModalType] = createSignal<'inline' | 'block'>('block');
+
+  const openMathModal = (latex: string, pos: number | null = null, isEdit = false, type: 'inline' | 'block' = 'block') => {
+    setMathModalLatex(latex);
+    setMathModalPos(pos);
+    setMathModalIsEdit(isEdit);
+    setMathModalType(type);
+    setMathModalOpen(true);
+  };
+
   const editor = createTiptapEditor(() => ({
     element: container() as HTMLElement,
     extensions: [
@@ -248,7 +265,7 @@ export default function Editor(props: EditorProps) {
         types: ['heading', 'paragraph'],
       }),
       Placeholder.configure({
-        placeholder: ({ node, editor }) => {
+        placeholder: ({ node }) => {
             if (node.attrs.placeholder) {
                 return node.attrs.placeholder
             }
@@ -271,9 +288,27 @@ export default function Editor(props: EditorProps) {
       Table, 
       AudioPlayer,
       VideoPlayer,
-      Mathematics,
+      Mathematics.configure({
+        inlineOptions: {
+          onClick: (node, pos) => {
+            openMathModal(node.attrs.latex, pos, true, 'inline');
+          },
+        },
+        blockOptions: {
+          onClick: (node, pos) => {
+            openMathModal(node.attrs.latex, pos, true, 'block');
+          },
+        },
+        katexOptions: {
+          throwOnError: false,
+        },
+      }),
     ],
     content: props.initialContent || '',
+    onCreate: ({ editor: currentEditor }) => {
+      migrateMathStrings(currentEditor);
+      setBaseHTML(currentEditor.getHTML());
+    },
     onTransaction: () => setUpdateTrigger(v => v + 1),
     onSelectionUpdate: () => setUpdateTrigger(v => v + 1),
     editorProps: {
@@ -367,7 +402,7 @@ export default function Editor(props: EditorProps) {
 
     // 1. Check content changes
     const currentContent = editor()?.getHTML();
-    const initialCont = props.initialContent || "";
+    const initialCont = baseHTML() || "";
     const contentChanged = currentContent !== initialCont 
       && !(initialCont === "" && currentContent === "<p></p>");
 
@@ -436,6 +471,8 @@ export default function Editor(props: EditorProps) {
         const commands = editor()?.commands;
         if (commands) {
           commands.setContent(content);
+          migrateMathStrings(editor()!);
+          setBaseHTML(editor()?.getHTML() || "");
           commands.focus();
         }
       }, 0);
@@ -816,6 +853,7 @@ export default function Editor(props: EditorProps) {
                 <ToolbarButton icon="mic" action={() => setShowAudioRecorder(true)} title="Rekam Suara" />
                 <ToolbarButton icon="link" action={setLink} active={isActive('link')} title="Tambah Link" />
                 <ToolbarButton icon="link_off" action={() => editor()?.chain().focus().unsetLink().run()} disabled={!isActive('link')} title="Hapus Link" />
+                <ToolbarButton icon="function" action={() => openMathModal('E=mc^2', null, false)} title="Sisipkan Rumus Matematika" />
 
                 <Divider />
 
@@ -1264,7 +1302,47 @@ export default function Editor(props: EditorProps) {
             variant="danger"
             icon="warning"
         />
+        <MathModal
+        show={mathModalOpen()}
+        onClose={() => setMathModalOpen(false)}
+        initialValue={mathModalLatex()}
+        initialType={mathModalType()}
+        isEdit={mathModalIsEdit()}
+        onConfirm={(latex, type) => {
+          if (mathModalIsEdit()) {
+            const pos = mathModalPos();
+            if (pos !== null) {
+              const currentNode = editor()?.state.doc.nodeAt(pos);
+              const currentType = currentNode?.type.name === 'inlineMath' ? 'inline' : 'block';
 
+              if (currentType === type) {
+                // Just update attributes
+                if (type === 'inline') {
+                  (editor() as any).chain().setNodeSelection(pos).updateInlineMath({ latex }).focus().run();
+                } else {
+                  (editor() as any).chain().setNodeSelection(pos).updateBlockMath({ latex }).focus().run();
+                }
+              } else {
+                // Type changed: delete old, insert new
+                (editor() as any).chain()
+                  .deleteSelection() // Since pos is selected/focused or we should use deleteInlineMath/deleteBlockMath
+                  .setNodeSelection(pos)
+                  .deleteSelection()
+                  .insertContentAt(pos, { type: type === 'inline' ? 'inlineMath' : 'blockMath', attrs: { latex } })
+                  .focus()
+                  .run();
+              }
+            }
+          } else {
+            if (type === 'inline') {
+              (editor() as any).chain().focus().insertInlineMath({ latex }).run();
+            } else {
+              (editor() as any).chain().focus().insertBlockMath({ latex }).run();
+            }
+          }
+          setMathModalOpen(false);
+        }}
+      />
       </div>
     </Show>
   );

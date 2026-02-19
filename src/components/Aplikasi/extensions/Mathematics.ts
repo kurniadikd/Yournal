@@ -1,67 +1,31 @@
-import { mergeAttributes, Node, nodeInputRule } from '@tiptap/core';
-import { createSolidNodeView } from '../../../utils/SolidNodeView';
-import MathComponent from './MathComponent';
+import { Mathematics as TiptapMathematics, BlockMath as TiptapBlockMath, InlineMath as TiptapInlineMath } from "@tiptap/extension-mathematics";
+import { createSolidNodeView } from "../../../utils/SolidNodeView";
+import MathBlockComponent from "./MathBlockComponent";
+import MathInlineComponent from "./MathInlineComponent";
 
-declare module '@tiptap/core' {
-  interface Commands<ReturnType> {
-    equation: {
-      setEquation: (options: { latex: string }) => ReturnType;
-    };
-  }
-}
-
-export const Mathematics = Node.create({
-  name: 'equation',
-
-  group: 'block',
-
-  atom: true,
-
-  draggable: true,
-
-  addAttributes() {
-    return {
-      latex: {
-        default: 'E = mc^2',
-      },
-    };
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: 'div[data-type="equation"]',
-      },
-    ];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'equation' })];
-  },
-
+/**
+ * Localized Mathematics extension using official Tiptap Mathematics nodes
+ * but with custom SolidJS NodeViews for consistent project UX.
+ */
+const BlockMath = TiptapBlockMath.extend({
   addNodeView() {
-    return createSolidNodeView(MathComponent);
-  },
-
-  addCommands() {
-    return {
-      setEquation:
-        (options: { latex: string }) =>
-        ({ commands }: { commands: any }) => {
-          return commands.insertContent({
-            type: this.name,
-            attrs: options,
-          });
-        },
-    };
-  },
-
-  addInputRules() {
-    return [
-      nodeInputRule({
-        find: /^\$\$ $/,
-        type: this.type,
-      }),
-    ];
+    return createSolidNodeView(MathBlockComponent);
   },
 });
+
+const InlineMath = TiptapInlineMath.extend({
+  addNodeView() {
+    return createSolidNodeView(MathInlineComponent);
+  },
+});
+
+export const Mathematics = TiptapMathematics.extend({
+  addExtensions() {
+    return [
+      BlockMath.configure({ ...this.options.blockOptions, katexOptions: this.options.katexOptions }),
+      InlineMath.configure({ ...this.options.inlineOptions, katexOptions: this.options.katexOptions })
+    ];
+  }
+});
+
+

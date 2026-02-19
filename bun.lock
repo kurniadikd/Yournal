@@ -23,6 +23,7 @@
         "@tiptap/extension-image": "^3.19.0",
         "@tiptap/extension-italic": "^3.19.0",
         "@tiptap/extension-link": "^3.19.0",
+        "@tiptap/extension-mathematics": "^3.20.0",
         "@tiptap/extension-placeholder": "^3.19.0",
         "@tiptap/extension-subscript": "^3.19.0",
         "@tiptap/extension-superscript": "^3.19.0",
@@ -343,6 +344,8 @@
     "@tiptap/extension-list-item": ["@tiptap/extension-list-item@3.19.0", "", { "peerDependencies": { "@tiptap/extension-list": "^3.19.0" } }, "sha512-VsSKuJz4/Tb6ZmFkXqWpDYkRzmaLTyE6dNSEpNmUpmZ32sMqo58mt11/huADNwfBFB0Ve7siH/VnFNIJYY3xvg=="],
 
     "@tiptap/extension-list-keymap": ["@tiptap/extension-list-keymap@3.19.0", "", { "peerDependencies": { "@tiptap/extension-list": "^3.19.0" } }, "sha512-bxgmAgA3RzBGA0GyTwS2CC1c+QjkJJq9hC+S6PSOWELGRiTbwDN3MANksFXLjntkTa0N5fOnL27vBHtMStURqw=="],
+
+    "@tiptap/extension-mathematics": ["@tiptap/extension-mathematics@3.20.0", "", { "peerDependencies": { "@tiptap/core": "^3.20.0", "@tiptap/pm": "^3.20.0", "katex": "^0.16.4" } }, "sha512-tVdAqew37SVLlymYGqraz1huWUlkuMj986hvrYOwsOtre2Zbvd8ULxN92TnbuxJSQ6Nt4zrElRbiPrFL2dG8nQ=="],
 
     "@tiptap/extension-ordered-list": ["@tiptap/extension-ordered-list@3.19.0", "", { "peerDependencies": { "@tiptap/extension-list": "^3.19.0" } }, "sha512-cxGsINquwHYE1kmhAcLNLHAofmoDEG6jbesR5ybl7tU5JwtKVO7S/xZatll2DU1dsDAXWPWEeeMl4e/9svYjCg=="],
 

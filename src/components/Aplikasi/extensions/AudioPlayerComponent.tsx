@@ -1,7 +1,14 @@
 import { Component, createSignal, onCleanup } from "solid-js";
 // LoadingSpinner removed as it was only used for Lyra decoding state
 
-const AudioPlayerComponent: Component<any> = (props) => {
+const AudioPlayerComponent: Component<{
+  node: any;
+  updateAttributes: (attrs: any) => void;
+  selected: boolean;
+  deleteNode: () => void;
+  extension: any;
+  getPos: () => number;
+}> = (props) => {
   const src = () => props.node.attrs.src;
   const duration = () => props.node.attrs.duration; // in ms
   const waveform = () => {
@@ -97,7 +104,11 @@ const AudioPlayerComponent: Component<any> = (props) => {
   const progress = () => currentTime() / (displayDuration() || 1);
 
   return (
-    <div class="audio-player-wrapper my-6 select-none group w-full" data-audio-player>
+    <div class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} audio-player-wrapper my-6 relative rounded-[32px] transition-all duration-300 w-full ${
+      props.selected 
+        ? 'shadow-[0_0_0_3px_var(--color-secondary)]' 
+        : 'shadow-[0_0_0_0_var(--color-secondary)]'
+    }`} data-audio-player>
       {/* Container: M3 Expressive style */}
       <div class="flex items-center gap-4 bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] rounded-[32px] pl-2 pr-4 py-2 w-full shadow-sm border border-[var(--color-outline-variant)]/20 h-[80px] relative transition-colors hover:bg-[var(--color-surface-container-highest)]">
         
@@ -205,16 +216,16 @@ const AudioPlayerComponent: Component<any> = (props) => {
 
         </div>
 
-        {/* Delete Button */}
-        <button 
-            onClick={handleDelete}
-            class="group/delete-btn flex items-center justify-center w-10 h-10 rounded-full text-[var(--color-on-surface-variant)] hover:bg-[var(--color-error-container)] hover:text-[var(--color-on-error-container)] transition-colors shrink-0 z-10 self-center"
-            title="Hapus Audio"
-        >
-             <span class="material-symbols-rounded text-[24px] !text-inherit">close</span>
-        </button>
-
       </div>
+
+      {/* Persis tombol hapus SelectableImage */}
+      <button 
+        class="image-delete-btn"
+        style={{ display: props.selected ? 'flex' : 'none' }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); props.deleteNode(); }}
+      >
+        <span class="material-symbols-rounded">close</span>
+      </button>
     </div>
   );
 };

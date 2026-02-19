@@ -162,7 +162,11 @@ function App() {
         initialDate={selectedNote() ? new Date(`${selectedNote()?.date}T${selectedNote()?.time}`) : undefined}
         initialLocation={selectedNote()?.location}
         initialWeather={selectedNote()?.weather}
-        initialTags={selectedNote()?.tags ? JSON.parse(selectedNote()?.tags!) : undefined}
+        initialTags={(() => {
+          try {
+            return selectedNote()?.tags ? JSON.parse(selectedNote()?.tags!) : undefined;
+          } catch (e) { return undefined; }
+        })()}
       />
 
       <Pengaturan />
