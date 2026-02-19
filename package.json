@@ -48,6 +48,7 @@
     "daisyui": "^5.5.18",
     "katex": "^0.16.28",
     "maplibre-gl": "^5.18.0",
+    "mathjs": "^15.1.1",
     "solid-js": "^1.9.3",
     "solid-tiptap": "^0.8.0"
   },

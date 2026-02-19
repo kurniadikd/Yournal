@@ -100,7 +100,7 @@ const PaletWarna = () => {
 
             {/* Header */}
             <div class="px-3 pb-2 flex items-center justify-between">
-              <h3 class="text-[10px] font-bold uppercase tracking-widest text-[var(--color-on-surface-variant)]">Palet Warna</h3>
+              <h3 class="text-[11px] font-bold tracking-wide text-[var(--color-on-surface-variant)]">Palet Warna</h3>
               <IconButton 
                 variant="standard"
                 class="scale-75"

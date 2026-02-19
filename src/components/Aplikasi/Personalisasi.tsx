@@ -69,7 +69,7 @@ const Personalisasi = () => {
           {/* Group: Mode & Style */}
           <div class="space-y-3">
              <section>
-                <h3 class="text-[10px] font-bold mb-2 text-[var(--color-primary)] uppercase tracking-[0.2em] ml-1">Mode Tampilan</h3>
+                <h3 class="text-[11px] font-bold mb-2 text-[var(--color-primary)] tracking-wide ml-1">Mode Tampilan</h3>
                 <SegmentedButton 
                   class="w-full"
                   value={appStore.theme.state.mode === 'system' ? 'Sistem' : (appStore.theme.state.mode === 'dark' ? 'Gelap' : 'Terang')}
@@ -87,7 +87,7 @@ const Personalisasi = () => {
              </section>
 
              <section>
-                <h3 class="text-[10px] font-bold mb-2 text-[var(--color-primary)] uppercase tracking-[0.2em] ml-1">Gaya Warna</h3>
+                <h3 class="text-[11px] font-bold mb-2 text-[var(--color-primary)] tracking-wide ml-1">Gaya Warna</h3>
                 <div class="grid grid-cols-2 gap-2">
                   <For each={themeStyles}>
                     {(style) => (
@@ -119,7 +119,7 @@ const Personalisasi = () => {
 
           {/* Warna Dasar */}
           <section>
-            <h3 class="text-[10px] font-bold mb-2 text-[var(--color-primary)] uppercase tracking-[0.2em] ml-1">Warna Dasar</h3>
+            <h3 class="text-[11px] font-bold mb-2 text-[var(--color-primary)] tracking-wide ml-1">Warna Dasar</h3>
             <div class="flex flex-wrap gap-2 px-1">
               <For each={themePresets}>
                 {(preset) => (
@@ -144,7 +144,7 @@ const Personalisasi = () => {
           </section>
 
           <section>
-            <h3 class="text-[10px] font-bold mb-2 text-[var(--color-primary)] uppercase tracking-[0.2em] ml-1">Gaya Font</h3>
+            <h3 class="text-[11px] font-bold mb-2 text-[var(--color-primary)] tracking-wide ml-1">Gaya Font</h3>
             <Dropdown 
               value={appStore.theme.state.fontFamily}
               onChange={(val) => appStore.theme.setFontFamily(val)}
@@ -175,7 +175,7 @@ const Personalisasi = () => {
 
            <div class="space-y-4">
              <div class="space-y-2">
-               <div class="flex justify-between text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest px-1">
+               <div class="flex justify-between text-xs font-bold text-[var(--color-primary)] tracking-widest px-1">
                  <span>Hue</span>
                  <span>{tempHue()}°</span>
                </div>

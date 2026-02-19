@@ -43,7 +43,7 @@ export default function Snackbar(props: SnackbarProps) {
           <Show when={props.actionLabel}>
             <button 
               onClick={() => { props.onAction?.(); props.onClose(); }}
-              class="text-[var(--color-inverse-primary)] text-sm font-bold px-2 py-1 rounded hover:bg-white/10 transition-colors uppercase"
+              class="text-[var(--color-inverse-primary)] text-sm font-bold px-2 py-1 rounded hover:bg-white/10 transition-colors"
             >
               {props.actionLabel}
             </button>

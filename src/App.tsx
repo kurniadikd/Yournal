@@ -25,21 +25,51 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(true);
 
-  const fetchNotes = async (isRetry = false) => {
-    setIsLoading(true);
-    try {
-      const data = await getNotes();
-      console.log(`App: fetchNotes success, ${data.length} notes`);
-      setNotes(data);
-      
-      // If empty and not a retry, try one more time after a short delay
-      if (data.length === 0 && !isRetry) {
-        setTimeout(() => fetchNotes(true), 1500);
+  const fetchNotes = async () => {
+    let attempts = 0;
+    const maxAttempts = 3;
+    const retryDelays = [1000, 2000, 3000];
+
+    const performFetch = async () => {
+      setIsLoading(true);
+      try {
+        console.log(`App: Fetching notes (attempt ${attempts + 1})...`);
+        const data = await getNotes();
+        
+        if (data.length > 0) {
+          console.log(`App: fetchNotes success, found ${data.length} notes`);
+          setNotes(data);
+          setIsLoading(false);
+          return true;
+        } else {
+          console.log("App: fetchNotes returned 0 notes.");
+          return false;
+        }
+      } catch (err) {
+        console.error("App: fetchNotes failed:", err);
+        return false;
       }
-    } catch (err) {
-      console.error("App: fetchNotes failed:", err);
-    } finally {
-      setIsLoading(false);
+    };
+
+    const success = await performFetch();
+    
+    if (!success) {
+      // Start retry loop if first attempt failed to find notes
+      const retry = async () => {
+        if (attempts < maxAttempts) {
+          const delay = retryDelays[attempts];
+          attempts++;
+          console.log(`App: Retrying in ${delay}ms... (${attempts}/${maxAttempts})`);
+          await new Promise(r => setTimeout(r, delay));
+          const retrySuccess = await performFetch();
+          if (!retrySuccess) await retry();
+        } else {
+          console.log("App: Max fetch attempts reached. Showing empty state.");
+          setNotes([]);
+          setIsLoading(false);
+        }
+      };
+      await retry();
     }
   };
 
@@ -130,7 +160,8 @@ function App() {
         <DaftarCatatan 
           notes={notes()} 
           isLoading={isLoading()}
-          onOpenNote={handleOpenNote} 
+          onOpenNote={handleOpenNote}
+          onRefresh={fetchNotes}
         />
       </div>
 

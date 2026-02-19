@@ -1,4 +1,4 @@
-import { mergeAttributes, Node } from '@tiptap/core';
+import { mergeAttributes, Node, nodePasteRule, InputRule } from '@tiptap/core';
 import { createSolidNodeView } from '../../../utils/SolidNodeView';
 import LinkCardComponent from './LinkCardComponent';
 
@@ -7,7 +7,6 @@ export const LinkCard = Node.create({
 
   group: 'block',
 
-  // Atom true means it's treated as a single unit, cursor can't go inside
   atom: true, 
 
   draggable: true,
@@ -29,6 +28,12 @@ export const LinkCard = Node.create({
       domain: {
         default: null,
       },
+      isFramable: {
+        default: null, // null = unknown, true = can iframe, false = blocked
+      },
+      favicon: {
+        default: null,
+      },
     };
   },
 
@@ -42,6 +47,46 @@ export const LinkCard = Node.create({
 
   renderHTML({ HTMLAttributes }) {
     return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'link-card' })];
+  },
+
+  addCommands() {
+    return {
+      setLinkCard: (attributes) => ({ commands }) => {
+        return commands.insertContent({
+          type: this.name,
+          attrs: attributes,
+        });
+      },
+    };
+  },
+
+  addPasteRules() {
+    return [
+      nodePasteRule({
+        find: /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+        type: this.type,
+        getAttributes: (match) => ({
+          href: match[0],
+        }),
+      }),
+    ];
+  },
+
+  addInputRules() {
+    return [
+      new InputRule({
+        find: /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)\s$/g,
+        handler: ({ state, range, match }) => {
+          const { tr } = state;
+          const start = range.from;
+          const end = range.to;
+          
+          tr.replaceWith(start, end, this.type.create({
+            href: match[0].trim(),
+          }));
+        },
+      }),
+    ];
   },
 
   addNodeView() {

@@ -15,7 +15,7 @@ const MathBlockComponent: Component<MathBlockProps> = (props) => {
   
   return (
     <div 
-      class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} my-6 select-none relative w-full cursor-pointer transition-all duration-300 rounded-[12px] ${
+      class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} select-none relative w-full cursor-pointer transition-all duration-300 rounded-[12px] ${
         props.selected 
           ? 'bg-transparent shadow-[0_0_0_3px_var(--color-secondary)]' 
           : 'bg-transparent hover:bg-[var(--color-surface-container)]/30'
@@ -46,7 +46,7 @@ const MathBlockComponent: Component<MathBlockProps> = (props) => {
         />
       </div>
 
-      {/* Persis tombol hapus SelectableImage */}
+      {/* Tombol Hapus */}
       <button 
         class="image-delete-btn select-none"
         style={{ display: props.selected ? 'flex' : 'none' }}

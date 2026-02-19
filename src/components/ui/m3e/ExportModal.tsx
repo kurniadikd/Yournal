@@ -200,7 +200,7 @@ export default function ExportModal(props: ExportModalProps) {
 
         {/* Right: Live Preview */}
         <div class="flex-1 bg-black/5 flex items-center justify-center p-8 overflow-hidden relative">
-          <div class="absolute top-4 left-4 text-[10px] font-bold text-[var(--color-on-surface-variant)] opacity-40 uppercase tracking-widest">
+          <div class="absolute top-4 left-4 text-[11px] font-bold text-[var(--color-on-surface-variant)] opacity-40 tracking-wide">
             Pratinjau {format() === 'pdf' ? 'Halaman' : 'Web'}
           </div>
           

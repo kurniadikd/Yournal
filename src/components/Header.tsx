@@ -1,7 +1,7 @@
 import { createSignal, createMemo } from "solid-js";
 import { appStore } from "../stores/appStore";
-import logoIcon from "../assets/yournal_logo.svg";
-import logoName from "../assets/yournal_text.svg";
+import LogoIcon from "./ui/m3e/LogoIcon";
+import LogoText from "./ui/m3e/LogoText";
 import TopAppBar from "./ui/m3e/TopAppBar";
 import IconButton from "./ui/m3e/IconButton";
 
@@ -66,8 +66,8 @@ const Header = () => {
             ...logo3DStyle() 
           }}
         >
-          <img src={logoIcon} class="h-8 w-auto filter" alt="Logo" />
-          <img src={logoName} class="h-4 w-auto" style={{ filter: "var(--theme-logo-filter)" }} alt="Yournal" />
+          <LogoIcon size={32} class="w-8 h-8" />
+          <LogoText height={16} fill="var(--color-on-surface)" class="h-4 w-auto" />
         </div>
       }
       actions={

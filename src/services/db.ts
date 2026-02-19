@@ -22,21 +22,33 @@ export const initDB = async () => {
   dbPromise = (async () => {
     try {
       console.log("Database: Initializing...");
-      
-      // Small delay to ensure backend migrations are done
-      await new Promise(r => setTimeout(r, 100));
-      
       const instance = await Database.load("sqlite:yournal.db");
       
-      // Verify table exists
-      const tables = await instance.select<{name: string}[]>(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='notes'"
-      );
+      // Robustly wait for the 'notes' table to exist
+      // This solves the race condition with backend migrations
+      const checkTableExists = async () => {
+        const tables = await instance.select<{name: string}[]>(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='notes'"
+        );
+        return tables.length > 0;
+      };
+
+      let tableReady = await checkTableExists();
+      let attempts = 0;
+      const maxAttempts = 25; // 5 seconds total (25 * 200ms)
       
-      if (tables.length === 0) {
-        console.warn("Database: 'notes' table not found! Migrations might still be running.");
+      while (!tableReady && attempts < maxAttempts) {
+        attempts++;
+        console.log(`Database: Waiting for 'notes' table... attempt ${attempts}/${maxAttempts}`);
+        await new Promise(r => setTimeout(r, 200));
+        tableReady = await checkTableExists();
+      }
+
+      if (!tableReady) {
+        console.error("Database: 'notes' table failed to appear after 5s. Continuing anyway...");
       } else {
-        // Failsafe: Ensure tags column exists
+        console.log("Database: 'notes' table is ready.");
+        // Failsafe: Ensure tags column exists (backward compatibility)
         try {
           await instance.execute("ALTER TABLE notes ADD COLUMN tags TEXT");
           console.log("Database: tags column added via failsafe");
@@ -64,7 +76,7 @@ export const getNotes = async (): Promise<Note[]> => {
     console.log(`Database: getNotes() success, found ${notes.length} notes`);
     return notes;
   } catch (err) {
-    console.error("Database: getNotes() failed", err);
+    console.error("Database: getNotes() query failed", err);
     throw err;
   }
 };

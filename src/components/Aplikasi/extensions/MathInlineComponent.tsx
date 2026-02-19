@@ -15,10 +15,10 @@ const MathInlineComponent: Component<MathInlineProps> = (props) => {
 
   return (
     <span 
-      class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} inline-math-wrapper px-2 py-1.5 rounded-[12px] cursor-pointer transition-all duration-300 relative align-middle leading-none mx-1 ${
+      class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} inline-math-wrapper px-1 cursor-pointer transition-all duration-300 relative ${
         props.selected 
-          ? 'bg-transparent shadow-[0_0_0_3px_var(--color-secondary)]' 
-          : 'bg-transparent hover:bg-[var(--color-surface-container)]/30 shadow-[0_0_0_0_var(--color-secondary)]'
+          ? 'bg-[var(--color-secondary-container)]/30 shadow-[0_0_0_2px_var(--color-secondary)] rounded-[4px]' 
+          : 'bg-transparent hover:bg-[var(--color-surface-container)]/30 rounded-[4px]'
       }`}
       onClick={(e) => {
         e.preventDefault();

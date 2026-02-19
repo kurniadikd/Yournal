@@ -425,8 +425,13 @@ export default function Editor(props: EditorProps) {
     // 6. Check weather changes  
     const currentWeather = weather() ? JSON.stringify(weather()) : undefined;
     const weatherChanged = currentWeather !== (props.initialWeather || undefined);
+    
+    // 7. Check tags changes
+    const currentTags = [...tags()].sort();
+    const initialTags = [...(props.initialTags || [])].sort();
+    const tagsChanged = JSON.stringify(currentTags) !== JSON.stringify(initialTags);
 
-    return contentChanged || titleChanged || moodChanged || dateChanged || locationChanged || weatherChanged;
+    return contentChanged || titleChanged || moodChanged || dateChanged || locationChanged || weatherChanged || tagsChanged;
   };
 
   const resizeTitle = () => {
@@ -488,8 +493,9 @@ export default function Editor(props: EditorProps) {
           setPreviewImageUrl(e.detail.src);
         }
       };
-      el.addEventListener('preview-image', handlePreview);
-      onCleanup(() => el.removeEventListener('preview-image', handlePreview));
+      onCleanup(() => {
+        el.removeEventListener('preview-image', handlePreview);
+      });
     }
   });
 
@@ -852,6 +858,7 @@ export default function Editor(props: EditorProps) {
                 <ToolbarButton icon="movie" action={addVideo} title="Sisipkan Video" />
                 <ToolbarButton icon="mic" action={() => setShowAudioRecorder(true)} title="Rekam Suara" />
                 <ToolbarButton icon="link" action={setLink} active={isActive('link')} title="Tambah Link" />
+                <ToolbarButton icon="add_link" action={() => setShowLinkModal(true)} title="Sisipkan Link Card" />
                 <ToolbarButton icon="link_off" action={() => editor()?.chain().focus().unsetLink().run()} disabled={!isActive('link')} title="Hapus Link" />
                 <ToolbarButton icon="function" action={() => openMathModal('E=mc^2', null, false)} title="Sisipkan Rumus Matematika" />
 

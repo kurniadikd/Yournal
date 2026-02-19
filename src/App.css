@@ -96,8 +96,7 @@ button:active .icon {
   font-weight: 400;
   color: var(--color-on-surface-variant);
   margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: 1px;
 }
 
 .clock-display {
@@ -452,7 +451,15 @@ ul[data-type="taskList"] li > div > p {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.selectable-image-wrapper img {
+/* Specific overrides for inline math to prevent spacing issues */
+.inline-math-wrapper.selectable-image-wrapper {
+  margin: 0;
+  vertical-align: baseline;
+  line-height: inherit;
+  display: inline-block; /* Changed to inline-block for better baseline behavior */
+}
+
+.selectable-image-wrapper img:not(.no-ring) {
   display: block;
   height: auto; 
   max-height: 18rem; 
@@ -518,7 +525,7 @@ ul[data-type="taskList"] li > div > p {
   animation: preview-zoom-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-.selectable-image-wrapper.ProseMirror-selectednode img {
+.selectable-image-wrapper.ProseMirror-selectednode img:not(.no-ring) {
   box-shadow: 0 0 0 3px var(--color-secondary, #006a6a);
 }
 
