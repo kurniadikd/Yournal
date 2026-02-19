@@ -28,9 +28,6 @@ export const LinkCard = Node.create({
       domain: {
         default: null,
       },
-      isFramable: {
-        default: null, // null = unknown, true = can iframe, false = blocked
-      },
       favicon: {
         default: null,
       },
