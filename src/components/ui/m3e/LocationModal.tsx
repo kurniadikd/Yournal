@@ -114,6 +114,8 @@ const LocationModal: Component<LocationModalProps> = (props) => {
           svgPaths.forEach((path) => {
                if (path.getAttribute('fill') !== '#FFFFFF' && path.getAttribute('fill') !== 'white') {
                    (path as SVGElement).style.fill = cTertiary;
+                   (path as SVGElement).style.fillOpacity = "1";
+                   (path as SVGElement).style.strokeOpacity = "1";
                }
           });
       }

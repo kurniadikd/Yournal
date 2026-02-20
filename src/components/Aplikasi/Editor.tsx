@@ -36,6 +36,7 @@ import MathModal from "../ui/m3e/MathModal";
 import { formatTime, formatDate } from "../../utils/date";
 
 import ImageModal from "../ui/m3e/ImageModal";
+import { MapAttachment } from "./extensions/MapAttachment";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
@@ -105,6 +106,7 @@ export default function Editor(props: EditorProps) {
   const [showAudioRecorder, setShowAudioRecorder] = createSignal(false);
   const [showVideoModal, setShowVideoModal] = createSignal(false);
   const [showExportModal, setShowExportModal] = createSignal(false);
+  const [showMapAttachmentModal, setShowMapAttachmentModal] = createSignal(false);
   
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
@@ -259,6 +261,8 @@ export default function Editor(props: EditorProps) {
       Heading.configure({
         levels: [1, 2, 3],
       }),
+      VideoPlayer,
+      MapAttachment,
       SelectableImage.configure({
         inline: true,
         allowBase64: true,
@@ -590,6 +594,19 @@ export default function Editor(props: EditorProps) {
     }).run();
   };
 
+  const addMapAttachment = () => {
+    setShowMapAttachmentModal(true);
+  };
+
+  const handleMapAttachmentConfirm = (loc: { name: string; lat: number; lng: number } | null) => {
+    if (loc) {
+      editor()?.chain().focus().insertContent({
+        type: 'mapAttachment',
+        attrs: { name: loc.name, lat: loc.lat, lng: loc.lng }
+      }).run();
+    }
+  };
+
   const handleClose = () => {
     if (isDirty()) {
         setShowDiscardConfirm(true);
@@ -877,9 +894,9 @@ export default function Editor(props: EditorProps) {
                 <ToolbarButton icon="horizontal_rule" action={() => editor()?.chain().focus().setHorizontalRule().run()} title="Garis Mendatar" />
                 <ToolbarButton icon="image" action={addImage} title="Sisipkan Gambar" />
                 <ToolbarButton icon="movie" action={addVideo} title="Sisipkan Video" />
+                <ToolbarButton icon="add_location_alt" action={addMapAttachment} title="Sisipkan Peta Lokasi" />
                 <ToolbarButton icon="mic" action={() => setShowAudioRecorder(true)} title="Rekam Suara" />
                 <ToolbarButton icon="link" action={setLink} active={isActive('link')} title="Tambah Link" />
-                <ToolbarButton icon="add_link" action={() => setShowLinkModal(true)} title="Sisipkan Link Card" />
                 <ToolbarButton icon="link_off" action={() => editor()?.chain().focus().unsetLink().run()} disabled={!isActive('link')} title="Hapus Link" />
                 <ToolbarButton icon="function" action={() => openMathModal('E=mc^2', null, false)} title="Sisipkan Rumus Matematika" />
 
@@ -1212,6 +1229,12 @@ export default function Editor(props: EditorProps) {
           onClose={() => setShowLocationModal(false)}
           onConfirm={handleLocationConfirm}
           initialLocation={location() || undefined}
+        />
+
+        <LocationModal 
+          show={showMapAttachmentModal()}
+          onClose={() => setShowMapAttachmentModal(false)}
+          onConfirm={handleMapAttachmentConfirm}
         />
 
         <ImageModal

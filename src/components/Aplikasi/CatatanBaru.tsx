@@ -1,4 +1,3 @@
-```
 import { Component, createSignal, createEffect, For, Show, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { Portal } from "solid-js/web";
@@ -127,20 +126,18 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                           onClick={handleBlank}
                           class="group flex flex-col items-center gap-3 text-center"
                         >
-                onClick={handleBlank}
-                class="group flex flex-col items-center gap-3 text-center"
-              >
-                {/* Preview thumbnail */}
-                <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white flex items-start justify-center pt-6 transition-all group-hover:border-[var(--color-tertiary)] group-hover:shadow-lg group-hover:shadow-[var(--color-tertiary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
-                  {/* Blank page with just cursor line */}
-                  <div class="w-[70%] flex flex-col gap-1.5 items-start">
-                    <div class="w-1 h-4 bg-gray-400 animate-pulse rounded-full"></div>
-                  </div>
-                </div>
-                <span class="text-sm font-medium text-[var(--color-tertiary)] group-hover:bg-[var(--color-tertiary)]/10 px-2 py-0.5 rounded transition-all">
-                  Halaman kosong
-                </span>
-              </button>
+                          {/* Preview thumbnail */}
+                          <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white flex items-start justify-center pt-6 transition-all group-hover:border-[var(--color-tertiary)] group-hover:shadow-lg group-hover:shadow-[var(--color-tertiary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
+                            {/* Blank page with just cursor line */}
+                            <div class="w-[70%] flex flex-col gap-1.5 items-start">
+                              <div class="w-1 h-4 bg-gray-400 animate-pulse rounded-full"></div>
+                            </div>
+                          </div>
+                          <span class="text-sm font-medium text-[var(--color-tertiary)] group-hover:bg-[var(--color-tertiary)]/10 px-2 py-0.5 rounded transition-all">
+                            Halaman kosong
+                          </span>
+                        </button>
+                      </Show>
 
                       {/* Template Cards for this category */}
                       <For each={templates().filter(t => t.category === category)}>
