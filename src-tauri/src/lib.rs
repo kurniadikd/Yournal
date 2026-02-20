@@ -16,192 +16,232 @@ struct TemplateInfo {
     name: String,
     description: String,
     icon: String,
+    category: String,
 }
 
 fn get_template_list() -> Vec<TemplateInfo> {
     vec![
-        // --- CBT & Basic ---
-        TemplateInfo {
-            id: "cbt_thought_record".into(),
-            name: "Rekam Pikiran (CBT)".into(),
-            description: "Identifikasi & tantang pikiran negatif".into(),
-            icon: "psychology".into(),
-        },
+        // ======================================
+        // 1. Dasar & Keseharian (Daily & Basics)
+        // ======================================
         TemplateInfo {
             id: "daily_checkin".into(),
             name: "Cek Harian".into(),
             description: "Mindfulness & kondisi emosi".into(),
             icon: "person_check".into(),
+            category: "Dasar & Keseharian".into(),
         },
-        TemplateInfo {
-            id: "swot".into(),
-            name: "Analisis SWOT".into(),
-            description: "Strengths, Weaknesses, Opportunities, Threats".into(),
-            icon: "target".into(),
-        },
-
-        // --- Psikologi Positif ---
         TemplateInfo {
             id: "gratitude".into(),
             name: "Gratitude Journal".into(),
             description: "Jurnal Syukur: Fokus hal positif harian".into(),
             icon: "volunteer_activism".into(),
+            category: "Dasar & Keseharian".into(),
         },
         TemplateInfo {
             id: "three_good_things".into(),
             name: "Three Good Things".into(),
             description: "3 kejadian baik & alasannya".into(),
             icon: "thumb_up".into(),
-        },
-
-        // --- Mindfulness ---
-        TemplateInfo {
-            id: "brain_dump".into(),
-            name: "Brain Dump".into(),
-            description: "Tulis bebas untuk lepas beban mental".into(),
-            icon: "delete_sweep".into(),
-        },
-        TemplateInfo {
-            id: "body_scan".into(),
-            name: "Body Scan & Emotion".into(),
-            description: "Sadari letak emosi di tubuh".into(),
-            icon: "accessibility_new".into(),
-        },
-        TemplateInfo {
-            id: "stop_technique".into(),
-            name: "Teknik STOP".into(),
-            description: "Stop, Take breath, Observe, Proceed".into(),
-            icon: "pan_tool".into(),
-        },
-
-        // --- ACT (Acceptance & Commitment) ---
-        TemplateInfo {
-            id: "value_alignment".into(),
-            name: "Value-Action Alignment".into(),
-            description: "Cek keselarasan tindakan & nilai diri".into(),
-            icon: "balance".into(),
-        },
-        TemplateInfo {
-            id: "trigger_identification".into(),
-            name: "Identifikasi Pemicu".into(),
-            description: "Pahami pola emosi & trigger-nya".into(),
-            icon: "warning".into(),
-        },
-        TemplateInfo {
-            id: "worry_time".into(),
-            name: "Kotak Kecemasan (Worry Time)".into(),
-            description: "Tunda & kelola cemas di waktu khusus".into(),
-            icon: "inventory_2".into(),
-        },
-
-        // --- Refleksi & Pertumbuhan ---
-        TemplateInfo {
-            id: "unsent_letter".into(),
-            name: "Surat Tak Terkirim".into(),
-            description: "Proses emosi ke orang lain/masa lalu".into(),
-            icon: "mail".into(),
-        },
-        TemplateInfo {
-            id: "self_compassion".into(),
-            name: "Surat Welas Asih".into(),
-            description: "Berdamai dengan diri sendiri".into(),
-            icon: "favorite".into(),
+            category: "Dasar & Keseharian".into(),
         },
         TemplateInfo {
             id: "success_journal".into(),
             name: "Success Journal".into(),
             description: "Catat kemenangan kecil & besar".into(),
             icon: "emoji_events".into(),
-        },
-        TemplateInfo {
-            id: "pattern_analysis".into(),
-            name: "Analisis Pola Mingguan".into(),
-            description: "Hubungan mood, tidur, & energi".into(),
-            icon: "timeline".into(),
+            category: "Dasar & Keseharian".into(),
         },
 
-        // --- Produktivitas ---
+        // ======================================================
+        // 2. Regulasi Emosi (Emotion Regulation & Therapy)
+        // ======================================================
         TemplateInfo {
-            id: "eisenhower".into(),
-            name: "Eisenhower Matrix".into(),
-            description: "Prioritas tugas berdasarkan urgensi".into(),
-            icon: "grid_view".into(),
+            id: "stop_technique".into(),
+            name: "Teknik STOP".into(),
+            description: "Stop, Take breath, Observe, Proceed".into(),
+            icon: "pan_tool".into(),
+            category: "Regulasi Emosi".into(),
         },
         TemplateInfo {
-            id: "weekly_review".into(),
-            name: "Weekly Review".into(),
-            description: "Evaluasi mingguan & rencana depan".into(),
-            icon: "next_week".into(),
+            id: "body_scan".into(),
+            name: "Body Scan & Emotion".into(),
+            description: "Sadari letak emosi di tubuh".into(),
+            icon: "accessibility_new".into(),
+            category: "Regulasi Emosi".into(),
         },
         TemplateInfo {
-            id: "smart_goals".into(),
-            name: "SMART Goals".into(),
-            description: "Tujuan Spesifik, Terukur, & Realistis".into(),
-            icon: "flag".into(),
+            id: "cbt_thought_record".into(),
+            name: "Rekam Pikiran (CBT)".into(),
+            description: "Identifikasi & tantang pikiran negatif".into(),
+            icon: "psychology".into(),
+            category: "Regulasi Emosi".into(),
         },
         TemplateInfo {
-            id: "pomodoro_log".into(),
-            name: "Pomodoro Log".into(),
-            description: "Lacak sesi fokus & istirahat".into(),
-            icon: "timer".into(),
-        },
-
-        // --- Keputusan & Problem Solving ---
-        TemplateInfo {
-            id: "pro_cons".into(),
-            name: "Pro & Cons List".into(),
-            description: "Bandingkan keuntungan & kerugian".into(),
-            icon: "thumbs_up_down".into(),
+            id: "worry_time".into(),
+            name: "Kotak Kecemasan (Worry Time)".into(),
+            description: "Tunda & kelola cemas di waktu khusus".into(),
+            icon: "inventory_2".into(),
+            category: "Regulasi Emosi".into(),
         },
         TemplateInfo {
-            id: "rule_101010".into(),
-            name: "Rule 10-10-10".into(),
-            description: "Dampak dalam 10 menit, bulan, tahun".into(),
-            icon: "schedule".into(),
-        },
-        TemplateInfo {
-            id: "5_whys".into(),
-            name: "5 Whys (Akar Masalah)".into(),
-            description: "Tanya 'Kenapa' 5x untuk solusi".into(),
-            icon: "help_center".into(),
-        },
-
-        // --- Kreativitas & Belajar ---
-        TemplateInfo {
-            id: "scamper".into(),
-            name: "SCAMPER (Ideasi)".into(),
-            description: "Teknik brainstorming kreatif".into(),
-            icon: "lightbulb".into(),
-        },
-        TemplateInfo {
-            id: "cornell_notes".into(),
-            name: "Cornell Notes".into(),
-            description: "Catatan studi terstruktur & efektif".into(),
-            icon: "school".into(),
-        },
-        TemplateInfo {
-            id: "nvc_reflection".into(),
-            name: "Refleksi NVC".into(),
-            description: "Bedah konflik hubungan dengan Komunikasi Tanpa Kekerasan".into(),
-            icon: "forum".into(),
-        },
-        TemplateInfo {
-            id: "habit_loop".into(),
-            name: "Analisis Kebiasaan".into(),
-            description: "Pahami pemicu dan strategi pengubah kebiasaan".into(),
-            icon: "loop".into(),
+            id: "trigger_identification".into(),
+            name: "Identifikasi Pemicu".into(),
+            description: "Pahami pola emosi & trigger-nya".into(),
+            icon: "warning".into(),
+            category: "Regulasi Emosi".into(),
         },
         TemplateInfo {
             id: "radical_acceptance".into(),
             name: "Penerimaan Radikal".into(),
             description: "DBT: Terima proses kenyataan yang menyakitkan".into(),
             icon: "psychiatry".into(),
+            category: "Regulasi Emosi".into(),
+        },
+
+        // ====================================================
+        // 3. Refleksi & Hubungan (Reflection & Relationships)
+        // ====================================================
+        TemplateInfo {
+            id: "brain_dump".into(),
+            name: "Brain Dump".into(),
+            description: "Tulis bebas untuk lepas beban mental".into(),
+            icon: "delete_sweep".into(),
+            category: "Refleksi & Hubungan".into(),
+        },
+        TemplateInfo {
+            id: "unsent_letter".into(),
+            name: "Surat Tak Terkirim".into(),
+            description: "Proses emosi ke orang lain/masa lalu".into(),
+            icon: "mail".into(),
+            category: "Refleksi & Hubungan".into(),
+        },
+        TemplateInfo {
+            id: "self_compassion".into(),
+            name: "Surat Welas Asih".into(),
+            description: "Berdamai dengan diri sendiri".into(),
+            icon: "favorite".into(),
+            category: "Refleksi & Hubungan".into(),
+        },
+        TemplateInfo {
+            id: "nvc_reflection".into(),
+            name: "Refleksi NVC".into(),
+            description: "Bedah konflik hubungan dengan Komunikasi Tanpa Kekerasan".into(),
+            icon: "forum".into(),
+            category: "Refleksi & Hubungan".into(),
+        },
+        TemplateInfo {
+            id: "habit_loop".into(),
+            name: "Analisis Kebiasaan".into(),
+            description: "Membedah pola perilaku".into(),
+            icon: "loop".into(),
+            category: "Refleksi & Hubungan".into(),
+        },
+        TemplateInfo {
+            id: "value_alignment".into(),
+            name: "Value-Action Alignment".into(),
+            description: "Cek keselarasan tindakan & nilai diri".into(),
+            icon: "balance".into(),
+            category: "Refleksi & Hubungan".into(),
         },
         TemplateInfo {
             id: "dream_log".into(),
             name: "Jurnal Mimpi".into(),
-            description: "Catat dan analisis makna alam bawah sadar".into(),
+            description: "Mencatat pesan bawah sadar".into(),
             icon: "cloud_moon".into(),
+            category: "Refleksi & Hubungan".into(),
+        },
+
+        // ==============================================
+        // 4. Fokus & Perencanaan (Focus & Planning)
+        // ==============================================
+        TemplateInfo {
+            id: "smart_goals".into(),
+            name: "SMART Goals".into(),
+            description: "Tujuan Spesifik, Terukur, & Realistis".into(),
+            icon: "flag".into(),
+            category: "Fokus & Perencanaan".into(),
+        },
+        TemplateInfo {
+            id: "eisenhower".into(),
+            name: "Eisenhower Matrix".into(),
+            description: "Prioritas tugas berdasarkan urgensi".into(),
+            icon: "grid_view".into(),
+            category: "Fokus & Perencanaan".into(),
+        },
+        TemplateInfo {
+            id: "pomodoro_log".into(),
+            name: "Pomodoro Log".into(),
+            description: "Lacak sesi fokus & istirahat".into(),
+            icon: "timer".into(),
+            category: "Fokus & Perencanaan".into(),
+        },
+        TemplateInfo {
+            id: "session_log".into(), // Or whatever ID exists
+            name: "Log Sesi".into(),
+            description: "Rekap sesi kerja atau belajar".into(),
+            icon: "assignment".into(),
+            category: "Fokus & Perencanaan".into(),
+        },
+        TemplateInfo {
+            id: "pattern_analysis".into(),
+            name: "Analisis Pola Mingguan".into(),
+            description: "Hubungan mood, tidur, & energi".into(),
+            icon: "timeline".into(),
+            category: "Fokus & Perencanaan".into(),
+        },
+        TemplateInfo {
+            id: "weekly_review".into(),
+            name: "Weekly Review".into(),
+            description: "Evaluasi mingguan & rencana depan".into(),
+            icon: "next_week".into(),
+            category: "Fokus & Perencanaan".into(),
+        },
+
+        // ==============================================================
+        // 5. Analisis & Pemecahan Masalah (Problem Solving & Ideation)
+        // ==============================================================
+        TemplateInfo {
+            id: "pro_cons".into(),
+            name: "Pro & Cons List".into(),
+            description: "Bandingkan keuntungan & kerugian".into(),
+            icon: "thumbs_up_down".into(),
+            category: "Analisis & Pemecahan Masalah".into(),
+        },
+        TemplateInfo {
+            id: "rule_101010".into(),
+            name: "Rule 10-10-10".into(),
+            description: "Dampak dalam 10 menit, bulan, tahun".into(),
+            icon: "schedule".into(),
+            category: "Analisis & Pemecahan Masalah".into(),
+        },
+        TemplateInfo {
+            id: "swot".into(),
+            name: "Analisis SWOT".into(),
+            description: "Strengths, Weaknesses, Opportunities, Threats".into(),
+            icon: "target".into(),
+            category: "Analisis & Pemecahan Masalah".into(),
+        },
+        TemplateInfo {
+            id: "5_whys".into(),
+            name: "5 Whys / Akar Masalah".into(),
+            description: "Tanya 'Kenapa' 5x untuk solusi".into(),
+            icon: "help_center".into(),
+            category: "Analisis & Pemecahan Masalah".into(),
+        },
+        TemplateInfo {
+            id: "scamper".into(),
+            name: "SCAMPER / Ideasi".into(),
+            description: "Teknik brainstorming kreatif".into(),
+            icon: "lightbulb".into(),
+            category: "Analisis & Pemecahan Masalah".into(),
+        },
+        TemplateInfo {
+            id: "cornell_notes".into(),
+            name: "Cornell Notes".into(),
+            description: "Catatan studi terstruktur & efektif".into(),
+            icon: "school".into(),
+            category: "Analisis & Pemecahan Masalah".into(),
         },
     ]
 }

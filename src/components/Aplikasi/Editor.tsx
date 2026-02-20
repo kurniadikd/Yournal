@@ -81,6 +81,7 @@ interface EditorProps {
 
 export default function Editor(props: EditorProps) {
   let titleRef!: HTMLTextAreaElement;
+  let scrollContainerRef!: HTMLDivElement;
   const [tableBtnRef, setTableBtnRef] = createSignal<HTMLButtonElement>();
   const [insertTableBtnRef, setInsertTableBtnRef] = createSignal<HTMLButtonElement>();
   const [emojiBtnRef, setEmojiBtnRef] = createSignal<HTMLButtonElement>();
@@ -126,6 +127,18 @@ export default function Editor(props: EditorProps) {
   const [shouldRenderEditor, setShouldRenderEditor] = createSignal(false);
   const [isEditorVisible, setIsEditorVisible] = createSignal(false);
   let editorTransitionTimer: number;
+
+  const resetEditorState = () => {
+    setTitle("");
+    setEntryDate(new Date());
+    setLocation(null);
+    setWeather(null);
+    setTags([]);
+    setTagInput("");
+    setMood("");
+    setBaseHTML("");
+    editor()?.commands.clearContent();
+  };
 
   const handleSave = () => {
     const html = editor()?.getHTML() || '';
@@ -482,7 +495,10 @@ export default function Editor(props: EditorProps) {
           commands.setContent(content);
           migrateMathStrings(editor()!);
           setBaseHTML(editor()?.getHTML() || "");
-          commands.focus();
+          commands.focus('start'); 
+          if (scrollContainerRef) {
+            scrollContainerRef.scrollTop = 0;
+          }
         }
       }, 0);
     }
@@ -730,6 +746,7 @@ export default function Editor(props: EditorProps) {
       requestAnimationFrame(() => requestAnimationFrame(() => setIsEditorVisible(true)));
     } else {
       setIsEditorVisible(false);
+      resetEditorState(); // Reset data fully to prevent stale content leaks
       editorTransitionTimer = setTimeout(() => setShouldRenderEditor(false), 300);
     }
   });
@@ -1000,6 +1017,7 @@ export default function Editor(props: EditorProps) {
 
         {/* --- 2. MAIN SCROLLABLE AREA --- */}
         <div 
+          ref={scrollContainerRef}
           class="flex-1 overflow-y-auto bg-[var(--color-background)] cursor-text"
           onClick={() => editor()?.commands.focus()}
         >

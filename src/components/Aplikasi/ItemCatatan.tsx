@@ -27,11 +27,41 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
     } catch (e) { return []; }
   });
 
+  const images = createMemo(() => {
+    const content = props.note.content || "";
+    // Regex to match src attribute of img tags
+    const _images: string[] = [];
+    const regex = /<img[^>]+src="([^">]+)"/g;
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      if (match[1]) {
+        _images.push(match[1]);
+      }
+    }
+    return _images;
+  });
+
   return (
     <div 
       onClick={props.onClick}
       class="p-6 rounded-[24px] bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] transition-colors cursor-pointer group hover:shadow-elevation-1"
     >
+      {/* Image Gallery */}
+      <Show when={images().length > 0}>
+        <div class="flex items-center gap-2 mb-4 overflow-x-auto custom-scrollbar pb-2 z-10 relative">
+          <For each={images()}>
+            {(src) => (
+              <img 
+                src={src} 
+                alt="Catatan Gambar" 
+                class="w-16 h-16 rounded-xl object-cover shrink-0 border border-[var(--color-outline-variant)]/50 bg-[var(--color-surface-container)]"
+                loading="lazy"
+              />
+            )}
+          </For>
+        </div>
+      </Show>
+
       <div class="flex items-start justify-between mb-2">
         <h3 class="text-xl font-medium inherit line-clamp-1">{props.note.title}</h3>
         <span class="text-2xl font-emoji">{props.note.mood}</span>

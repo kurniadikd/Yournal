@@ -1,3 +1,4 @@
+```
 import { Component, createSignal, createEffect, For, Show, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { Portal } from "solid-js/web";
@@ -8,6 +9,7 @@ interface TemplateInfo {
   name: string;
   description: string;
   icon: string;
+  category: string;
 }
 
 interface CatatanBaruProps {
@@ -108,11 +110,23 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
           {/* Scrollable Content */}
           <div class="flex-1 overflow-y-auto px-6 md:px-12 py-8">
             
-            {/* Grid of template previews */}
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-[1200px] mx-auto">
-              
-              {/* Blank Page */}
-              <button
+            {/* Grouped template previews */}
+            <div class="flex flex-col gap-10 max-w-[1200px] mx-auto pb-12">
+              <For each={["Dasar & Keseharian", "Regulasi Emosi", "Refleksi & Hubungan", "Fokus & Perencanaan", "Analisis & Pemecahan Masalah"]}>
+                {(category) => (
+                  <div class="flex flex-col gap-4">
+                    <h2 class="text-xl font-semibold text-[var(--color-on-surface)] border-b border-[var(--color-outline-variant)]/30 pb-2 mb-2">
+                        {category}
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                      
+                      {/* Special injection for Halaman Kosong in the first category */}
+                      <Show when={category === "Dasar & Keseharian"}>
+                        <button
+                          onClick={handleBlank}
+                          class="group flex flex-col items-center gap-3 text-center"
+                        >
                 onClick={handleBlank}
                 class="group flex flex-col items-center gap-3 text-center"
               >
@@ -128,40 +142,44 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                 </span>
               </button>
 
-              {/* Template Cards */}
-              <For each={templates()}>
-                {(template) => (
-                  <button
-                    onClick={() => handleTemplate(template)}
-                    disabled={loading()}
-                    class="group flex flex-col items-center gap-3 text-center disabled:opacity-50"
-                  >
-                    {/* Preview thumbnail — render HTML preview */}
-                    <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white overflow-hidden transition-all group-hover:border-[var(--color-tertiary)] group-hover:shadow-lg group-hover:shadow-[var(--color-tertiary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
-                      <Show 
-                        when={previews()[template.id]}
-                        fallback={
-                          <div class="w-full h-full flex items-center justify-center">
-                            <span 
-                              class="material-symbols-rounded text-[40px] text-gray-300"
-                              style={{ "font-variation-settings": "'FILL' 1" }}
-                            >
-                              {template.icon}
+                      {/* Template Cards for this category */}
+                      <For each={templates().filter(t => t.category === category)}>
+                        {(template) => (
+                          <button
+                            onClick={() => handleTemplate(template)}
+                            disabled={loading()}
+                            class="group flex flex-col items-center gap-3 text-center disabled:opacity-50"
+                          >
+                            {/* Preview thumbnail — render HTML preview */}
+                            <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white overflow-hidden transition-all group-hover:border-[var(--color-tertiary)] group-hover:shadow-lg group-hover:shadow-[var(--color-tertiary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
+                              <Show 
+                                when={previews()[template.id]}
+                                fallback={
+                                  <div class="w-full h-full flex items-center justify-center">
+                                    <span 
+                                      class="material-symbols-rounded text-[40px] text-gray-300"
+                                      style={{ "font-variation-settings": "'FILL' 1" }}
+                                    >
+                                      {template.icon}
+                                    </span>
+                                  </div>
+                                }
+                              >
+                                <div 
+                                  class="w-[200%] h-[200%] origin-top-left scale-50 p-6 text-left pointer-events-none bg-white text-gray-800"
+                                  style={{ "font-size": "16px", "line-height": "1.6" }}
+                                  innerHTML={previews()[template.id]}
+                                ></div>
+                              </Show>
+                            </div>
+                            <span class="text-sm font-medium text-[var(--color-tertiary)] group-hover:bg-[var(--color-tertiary)]/10 px-2 py-0.5 rounded transition-all">
+                              {template.name}
                             </span>
-                          </div>
-                        }
-                      >
-                        <div 
-                          class="w-[200%] h-[200%] origin-top-left scale-50 p-6 text-left pointer-events-none bg-white text-gray-800"
-                          style={{ "font-size": "16px", "line-height": "1.6" }}
-                          innerHTML={previews()[template.id]}
-                        ></div>
-                      </Show>
+                          </button>
+                        )}
+                      </For>
                     </div>
-                    <span class="text-sm font-medium text-[var(--color-tertiary)] group-hover:bg-[var(--color-tertiary)]/10 px-2 py-0.5 rounded transition-all">
-                      {template.name}
-                    </span>
-                  </button>
+                  </div>
                 )}
               </For>
             </div>
