@@ -1,3 +1,4 @@
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { fetch } from '@tauri-apps/plugin-http';
 import { createSignal, onMount, onCleanup, Show } from 'solid-js';
 
@@ -27,6 +28,14 @@ export default function LinkCardComponent(props: {
     return `https://wsrv.nl/?url=${encodeURIComponent(url)}${width ? `&w=${width}` : ''}&output=webp`;
   };
 
+  const handleOpenLink = async (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (data().href) {
+      await openUrl(data().href);
+    }
+  };
+
   onMount(async () => {
     // Skip fetch if we already have metadata
     if (data().title && data().favicon) {
@@ -40,11 +49,14 @@ export default function LinkCardComponent(props: {
     const url = data().href;
     let domain = data().domain || '';
 
-    // Update domain
+    // Update domain immediately
     try {
       domain = new URL(url).hostname.replace(/^www\./, '');
-      props.updateAttributes({ domain });
-      setData(prev => ({ ...prev, domain }));
+      setData(prev => {
+        const updated = { ...prev, domain };
+        props.updateAttributes({ domain: updated.domain });
+        return updated;
+      });
     } catch (e) { /* ignore */ }
 
     try {
@@ -64,17 +76,21 @@ export default function LinkCardComponent(props: {
         const image = result.image?.url || '';
         const favicon = result.logo?.url || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
 
-        const newData = { ...data(), title, description, image, favicon };
-        setData(newData);
-        props.updateAttributes(newData);
+        setData(prev => {
+           const updated = { ...prev, title, description, image, favicon };
+           props.updateAttributes(updated);
+           return updated;
+        });
       }
     } catch (err) {
       console.warn("LinkCard fetch fail (Microlink):", err);
       if (isMounted) {
-         const favicon = data().favicon || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : '');
-         const newData = { ...data(), title: data().title || url, description: '', image: '', favicon };
-         setData(newData);
-         props.updateAttributes(newData);
+         const fallbackFavicon = data().favicon || (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : '');
+         setData(prev => {
+            const updated = { ...prev, title: prev.title || url, description: '', image: '', favicon: fallbackFavicon };
+            props.updateAttributes(updated);
+            return updated;
+         });
       }
     } finally {
       if (isMounted) setLoading(false);
@@ -90,21 +106,20 @@ export default function LinkCardComponent(props: {
     >
       
       <Show when={loading()}>
-        <div class="w-full flex flex-col md:flex-row bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl overflow-hidden animate-pulse min-h-[200px]">
+        <div class="w-full flex flex-col sm:flex-row bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl overflow-hidden animate-pulse sm:h-[180px]">
             {/* Image Skeleton */}
-            <div class="w-full md:w-72 h-40 md:h-auto bg-[var(--color-surface-container-highest)] flex items-center justify-center shrink-0 self-stretch">
+            <div class="w-full sm:w-[320px] aspect-video sm:aspect-auto sm:h-full bg-[var(--color-surface-container-highest)] flex items-center justify-center shrink-0">
                <span class="material-symbols-rounded text-3xl text-[var(--color-primary)]/10">image</span>
             </div>
             {/* Content Skeleton */}
-            <div class="flex-1 p-6 flex flex-col items-start">
-               <div class="flex items-center gap-2 mb-3">
-                  <div class="w-4 h-4 rounded-full bg-[var(--color-primary)]/10"></div>
-                  <div class="h-2 bg-[var(--color-primary)]/10 rounded w-24"></div>
+            <div class="p-4 sm:p-5 flex flex-col items-start w-full justify-center">
+               <div class="flex items-center gap-2 mb-2">
+                  <div class="w-[18px] h-[18px] rounded-full bg-[var(--color-primary)]/10"></div>
+                  <div class="h-2.5 bg-[var(--color-primary)]/10 rounded w-24"></div>
                </div>
-               <div class="h-6 bg-[var(--color-on-surface)]/10 rounded w-4/5 mb-3"></div>
-               <div class="h-4 bg-[var(--color-on-surface-variant)]/10 rounded w-full mb-2"></div>
-               <div class="h-4 bg-[var(--color-on-surface-variant)]/10 rounded w-full mb-2"></div>
-               <div class="h-4 bg-[var(--color-on-surface-variant)]/10 rounded w-2/3"></div>
+               <div class="h-5 bg-[var(--color-on-surface)]/10 rounded w-4/5 mb-2"></div>
+               <div class="h-3 bg-[var(--color-on-surface-variant)]/10 rounded w-full mb-1"></div>
+               <div class="h-3 bg-[var(--color-on-surface-variant)]/10 rounded w-2/3"></div>
             </div>
         </div>
       </Show>
@@ -112,7 +127,7 @@ export default function LinkCardComponent(props: {
       <Show when={!loading()}>
         <div 
           class={`
-            flex flex-col md:flex-row items-stretch
+            flex flex-col sm:flex-row items-stretch
             bg-[var(--color-surface-container-low)] 
             border border-[var(--color-outline-variant)]/30
             rounded-2xl overflow-hidden 
@@ -120,11 +135,11 @@ export default function LinkCardComponent(props: {
             hover:bg-[var(--color-surface-container)] 
             hover:border-[var(--color-outline-variant)]/60
             hover:shadow-lg
-            min-h-[200px]
+            sm:min-h-[160px] sm:max-h-[220px]
           `}
         >
           <Show when={data().image}>
-            <div class="w-full md:w-72 min-h-[200px] md:min-h-0 shrink-0 overflow-hidden relative self-stretch">
+            <div class="w-full sm:w-[320px] aspect-video sm:aspect-auto shrink-0 overflow-hidden relative border-r border-[var(--color-outline-variant)]/10">
                <img 
                  src={getProxyUrl(data().image || '', 600)} 
                  alt="" 
@@ -135,34 +150,33 @@ export default function LinkCardComponent(props: {
             </div>
           </Show>
 
-          <div class="flex-1 p-6 flex flex-col items-start min-w-0">
-            <div class="text-[11px] font-bold tracking-[0.05em] text-[var(--color-primary)] mb-2 flex items-center gap-2">
-               <Show when={data().favicon} fallback={<span class="material-symbols-rounded text-[16px] icon-fill shrink-0">public</span>}>
+          <div class="p-4 sm:p-5 flex flex-col items-start min-w-0 w-full justify-center overflow-hidden">
+            <div class="text-[12px] font-bold tracking-[0.03em] text-[var(--color-primary)] mb-1 flex items-center gap-2">
+               <Show when={data().favicon} fallback={<span class="material-symbols-rounded text-[18px] icon-fill shrink-0">public</span>}>
                   <img 
                     src={getProxyUrl(data().favicon || '', 32)} 
                     alt="" 
                     class="shrink-0 object-contain rounded-sm no-ring" 
-                    style={{ "width": "16px !important", "height": "16px !important", "max-width": "16px", "max-height": "16px" }}
+                    style={{ "width": "18px !important", "height": "18px !important", "max-width": "18px", "max-height": "18px" }}
                   />
                </Show>
-               <span class="opacity-90">{data().domain || 'link'}</span>
+               <span class="opacity-80">{data().domain || 'link'}</span>
             </div>
             
             <a 
               href={data().href} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              class="block no-underline group/link"
+              class="block no-underline group/link w-full cursor-pointer"
               contentEditable={false}
               onMouseDown={(e) => e.stopPropagation()}
+              onClick={handleOpenLink}
             >
-              <h3 class="text-lg font-semibold text-[var(--color-on-surface)] line-clamp-2 leading-snug mb-2 group-hover/link:text-[var(--color-primary)] transition-colors">
+              <h3 class="text-base sm:text-lg font-semibold text-[var(--color-on-surface)] line-clamp-2 leading-tight mb-1 group-hover/link:text-[var(--color-primary)] group-hover/link:underline transition-all">
                 {data().title || data().href}
               </h3>
             </a>
             
             <Show when={data().description}>
-              <p class="text-sm text-[var(--color-on-surface-variant)] line-clamp-3 leading-relaxed">
+              <p class="text-xs sm:text-sm text-[var(--color-on-surface-variant)] line-clamp-2 leading-relaxed opacity-90">
                 {data().description}
               </p>
             </Show>

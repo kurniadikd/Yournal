@@ -179,6 +179,30 @@ fn get_template_list() -> Vec<TemplateInfo> {
             description: "Catatan studi terstruktur & efektif".into(),
             icon: "school".into(),
         },
+        TemplateInfo {
+            id: "nvc_reflection".into(),
+            name: "Refleksi NVC".into(),
+            description: "Bedah konflik hubungan dengan Komunikasi Tanpa Kekerasan".into(),
+            icon: "forum".into(),
+        },
+        TemplateInfo {
+            id: "habit_loop".into(),
+            name: "Analisis Kebiasaan".into(),
+            description: "Pahami pemicu dan strategi pengubah kebiasaan".into(),
+            icon: "loop".into(),
+        },
+        TemplateInfo {
+            id: "radical_acceptance".into(),
+            name: "Penerimaan Radikal".into(),
+            description: "DBT: Terima proses kenyataan yang menyakitkan".into(),
+            icon: "psychiatry".into(),
+        },
+        TemplateInfo {
+            id: "dream_log".into(),
+            name: "Jurnal Mimpi".into(),
+            description: "Catat dan analisis makna alam bawah sadar".into(),
+            icon: "cloud_moon".into(),
+        },
     ]
 }
 

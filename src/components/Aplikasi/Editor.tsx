@@ -111,7 +111,10 @@ export default function Editor(props: EditorProps) {
   const [mood, setMood] = createSignal("");
 
   const handleAddTag = () => {
-    const val = tagInput().trim();
+    let val = tagInput().trim();
+    // Final sanitization: ensure no lingering invalid characters
+    val = val.replace(/[^a-zA-Z0-9_]/g, '');
+    
     if (val && !tags().includes(val)) {
        setTags([...tags(), val]);
        setTagInput("");
@@ -253,7 +256,7 @@ export default function Editor(props: EditorProps) {
       // Dropcursor, // Already in StarterKit or we configure it there
       // Underline, // Warning says duplicate?
       Link.configure({
-        openOnClick: false,
+        openOnClick: true,
         HTMLAttributes: {
           class: 'text-[var(--color-primary)] underline cursor-pointer',
         },
@@ -449,6 +452,7 @@ export default function Editor(props: EditorProps) {
       setTitle(props.initialTitle || "");
       setMood(props.initialMood || "");
       setEntryDate(props.initialDate || new Date());
+      setTags(props.initialTags || []); // Fix: Ensure tags are synchronized
       
       if (props.initialLocation) {
         try {
@@ -1121,8 +1125,20 @@ export default function Editor(props: EditorProps) {
                      <input
                         type="text"
                         value={tagInput()}
-                        onInput={(e) => setTagInput(e.currentTarget.value)}
+                        onInput={(e) => {
+                           const value = e.currentTarget.value;
+                           // Sanitasi real-time: Izinkan hanya alfanumerik & underscore
+                           // Langsung ubah spasi menjadi underscore
+                           const sanitized = value.replace(/[^a-zA-Z0-9\s_]/g, '').replace(/\s+/g, '_');
+                           setTagInput(sanitized);
+                        }}
                         onKeyDown={(e) => {
+                           // Block specific invalid symbols from the keyboard
+                           if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !/^[a-zA-Z0-9\s_]$/.test(e.key)) {
+                               e.preventDefault();
+                               return;
+                           }
+                           
                            if (e.key === 'Enter') {
                               e.preventDefault();
                               handleAddTag();
