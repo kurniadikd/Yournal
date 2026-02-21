@@ -40,6 +40,7 @@ const LocationModal: Component<LocationModalProps> = (props) => {
       const cSurface = getColor('--color-surface', '#ffffff');
       const cSurfaceVar = getColor('--color-surface-variant', '#eeeeee');
       const cOnSurface = getColor('--color-on-surface', '#000000');
+      const cOnTertiary = getColor('--color-on-tertiary', '#ffffff');
       const cOutline = getColor('--color-outline', '#e0e0e0');
 
       console.log("Applying Map Theme:", { cPrimary, cSurface });
@@ -112,11 +113,14 @@ const LocationModal: Component<LocationModalProps> = (props) => {
           const el = currentMarker.getElement();
           const svgPaths = el.querySelectorAll('path, circle');
           svgPaths.forEach((path) => {
-               if (path.getAttribute('fill') !== '#FFFFFF' && path.getAttribute('fill') !== 'white') {
-                   (path as SVGElement).style.fill = cTertiary;
-                   (path as SVGElement).style.fillOpacity = "1";
-                   (path as SVGElement).style.strokeOpacity = "1";
+               const isInner = path.getAttribute('fill') === '#FFFFFF' || path.getAttribute('fill') === 'white';
+               if (isInner) {
+                    (path as SVGElement).style.fill = cOnTertiary;
+               } else {
+                    (path as SVGElement).style.fill = cTertiary;
                }
+               (path as SVGElement).style.fillOpacity = "1";
+               (path as SVGElement).style.strokeOpacity = "1";
           });
       }
   };
