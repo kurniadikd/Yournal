@@ -40,8 +40,8 @@ jobs:
         run: bun tauri android init
 
       - name: Build APK (Debug)
-        # builds a debug APK. For release, signing is needed but debug is "working" for basic testing.
-        run: bun tauri android build --apk --target aarch64
+        # builds debug APKs for both common architectures
+        run: bun tauri android build --apk --target aarch64,armv7
         env:
           NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
 
