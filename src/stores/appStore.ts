@@ -9,6 +9,7 @@ interface AppState {
     isAiLogOpen: boolean;
     showVirtualKeyboard: boolean;
     hideNativeKeyboard: boolean;
+    isBackupSettingsOpen: boolean;
   };
 }
 
@@ -20,6 +21,7 @@ const [state, setState] = createStore<AppState>({
     isAiLogOpen: false,
     showVirtualKeyboard: false,
     hideNativeKeyboard: false,
+    isBackupSettingsOpen: false,
   },
 });
 
@@ -45,6 +47,15 @@ export const appStore = {
   closePersonalisasi: () => {
     console.log("Store: Closing Personalisasi");
     setState("ui", "isPersonalisasiOpen", false);
+  },
+
+  openBackupSettings: () => {
+    console.log("Store: Opening Backup Settings");
+    setState("ui", "isBackupSettingsOpen", true);
+  },
+  closeBackupSettings: () => {
+    console.log("Store: Closing Backup Settings");
+    setState("ui", "isBackupSettingsOpen", false);
   },
 
   toggleColorPalette: () => {

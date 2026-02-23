@@ -270,8 +270,6 @@ export default function Editor(props: EditorProps) {
           draggable: 'true',
         },
       }),
-      // Dropcursor, // Already in StarterKit or we configure it there
-      // Underline, // Warning says duplicate?
       Link.configure({
         openOnClick: true,
         HTMLAttributes: {
@@ -307,7 +305,6 @@ export default function Editor(props: EditorProps) {
       }),
       Table, 
       AudioPlayer,
-      VideoPlayer,
       Mathematics.configure({
         inlineOptions: {
           onClick: (node, pos) => {
@@ -517,6 +514,9 @@ export default function Editor(props: EditorProps) {
           setPreviewImageUrl(e.detail.src);
         }
       };
+      
+      el.addEventListener('preview-image', handlePreview);
+      
       onCleanup(() => {
         el.removeEventListener('preview-image', handlePreview);
       });

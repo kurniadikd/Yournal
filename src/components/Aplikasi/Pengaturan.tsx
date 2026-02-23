@@ -39,6 +39,24 @@ const Pengaturan = () => {
         <section>
           <div 
             class="flex items-center justify-between p-4 bg-[var(--color-surface-container-low)] rounded-2xl cursor-pointer hover:bg-[var(--color-surface-container-high)] transition-colors group"
+            onClick={() => { appStore.closePengaturan(); setTimeout(() => appStore.openBackupSettings(), 50); }}
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-[var(--color-primary-container)] flex items-center justify-center text-[var(--color-primary)]">
+                <span class="material-symbols-rounded">cloud_sync</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-medium text-[var(--color-on-surface)]">Pencadangan Cloud</span>
+                <span class="text-xs text-[var(--color-on-surface-variant)]">Google Drive tersinkronisasi</span>
+              </div>
+            </div>
+            <span class="material-symbols-rounded text-[var(--color-on-surface-variant)] group-hover:translate-x-1 transition-transform">chevron_right</span>
+          </div>
+        </section>
+
+        <section>
+          <div 
+            class="flex items-center justify-between p-4 bg-[var(--color-surface-container-low)] rounded-2xl cursor-pointer hover:bg-[var(--color-surface-container-high)] transition-colors group"
             onClick={() => { appStore.closePengaturan(); setTimeout(() => appStore.toggleColorPalette(), 50); }}
           >
             <div class="flex items-center gap-4">

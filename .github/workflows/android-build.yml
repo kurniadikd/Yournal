@@ -40,8 +40,8 @@ jobs:
         run: bun tauri android init
 
       - name: Build APK (Debug)
-        # builds debug APKs for both common architectures
-        run: bun tauri android build --apk --target aarch64,armv7
+        # builds debug APKs for both common architectures, automatically signed with debug key
+        run: bun tauri android build --debug --apk --target aarch64,armv7
         env:
           NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
 

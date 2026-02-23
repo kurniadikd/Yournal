@@ -1,5 +1,5 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { onMount, onCleanup, createSignal } from 'solid-js';
+import { onMount, onCleanup, createSignal, Show } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -25,11 +25,9 @@ export default function MapAttachmentComponent(props: {
 
     const cPrimary = getColor('--color-primary', '#6200ee');
     const cSecondary = getColor('--color-secondary', '#03dac6');
-    const cTertiary = getColor('--color-tertiary', '#018786');
     const cSurface = getColor('--color-surface', '#ffffff');
     const cSurfaceVar = getColor('--color-surface-variant', '#eeeeee');
     const cOnSurface = getColor('--color-on-surface', '#000000');
-    const cOnTertiary = getColor('--color-on-tertiary', '#ffffff');
     const cOutline = getColor('--color-outline', '#e0e0e0');
 
     if (!m.getLayer('background')) {
@@ -43,7 +41,7 @@ export default function MapAttachmentComponent(props: {
     }
 
     m.getStyle().layers.forEach(layer => {
-      const sourceLayer = layer['source-layer'];
+      const sourceLayer = (layer as any)['source-layer'];
       if (layer.id === 'water' || sourceLayer === 'water' || sourceLayer === 'waterway') {
         if (layer.type === 'fill') {
           m.setPaintProperty(layer.id, 'fill-color', cSecondary);
@@ -73,23 +71,6 @@ export default function MapAttachmentComponent(props: {
         m.setPaintProperty(layer.id, 'text-halo-color', cSurface);
       }
     });
-
-    // Create marker
-    const marker = new maplibregl.Marker()
-      .setLngLat([lng, lat])
-      .addTo(m);
-    
-    const el = marker.getElement();
-    el.querySelectorAll('path, circle').forEach((path) => {
-      const isInner = path.getAttribute('fill') === '#FFFFFF' || path.getAttribute('fill') === 'white';
-      if (isInner) {
-        (path as SVGElement).style.fill = cOnTertiary;
-      } else {
-        (path as SVGElement).style.fill = cTertiary;
-      }
-      (path as SVGElement).style.fillOpacity = "1";
-      (path as SVGElement).style.strokeOpacity = "1";
-    });
   };
 
   onMount(() => {
@@ -101,10 +82,30 @@ export default function MapAttachmentComponent(props: {
       center: [lng, lat],
       zoom: 13,
       attributionControl: false,
-      interactive: false // Static preview
+      interactive: false
     });
 
     m.on('style.load', () => applyMapTheme(m));
+
+    // Add marker only after map is fully idle to prevent disappearing pins
+    m.once('idle', () => {
+      const s = getComputedStyle(document.documentElement);
+      const cTertiary = s.getPropertyValue('--color-tertiary').trim() || '#018786';
+      const cOnTertiary = s.getPropertyValue('--color-on-tertiary').trim() || '#ffffff';
+
+      const markerInstance = new maplibregl.Marker()
+        .setLngLat([lng, lat])
+        .addTo(m);
+      
+      const svgEl = markerInstance.getElement();
+      svgEl.querySelectorAll('path, circle').forEach((path) => {
+        const isInner = path.getAttribute('fill') === '#FFFFFF' || path.getAttribute('fill') === 'white';
+        (path as SVGElement).style.fill = isInner ? cOnTertiary : cTertiary;
+        (path as SVGElement).style.fillOpacity = "1";
+        (path as SVGElement).style.strokeOpacity = "1";
+      });
+    });
+
     setMap(m);
   });
 
@@ -112,10 +113,16 @@ export default function MapAttachmentComponent(props: {
     map()?.remove();
   });
 
+  let wasSelectedOnMousedown = false;
+
+  const handleMouseDown = () => {
+    wasSelectedOnMousedown = props.selected;
+  };
+
   const handleOpenMap = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (lat && lng) {
+    if (wasSelectedOnMousedown && props.selected && lat && lng) {
       await openUrl(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
     }
   };
@@ -123,13 +130,14 @@ export default function MapAttachmentComponent(props: {
   return (
     <div 
       class={`
-        my-4 rounded-xl border overflow-hidden transition-all select-none
+        selectable-image-wrapper my-4 rounded-xl border overflow-hidden transition-all select-none w-full
         bg-[var(--color-surface-container)] 
         ${props.selected 
-          ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20 shadow-elevation-2' 
+          ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-secondary)] border-[var(--color-secondary)]' 
           : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-outline)] cursor-pointer'
         }
       `}
+      onMouseDown={handleMouseDown}
       onClick={handleOpenMap}
       title="Buka di Google Maps"
     >
@@ -150,20 +158,23 @@ export default function MapAttachmentComponent(props: {
           <p class="text-sm text-[var(--color-on-surface-variant)] font-mono">
             {lat?.toFixed(5)}, {lng?.toFixed(5)}
           </p>
-
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              props.deleteNode();
-            }}
-            title="Hapus Lokasi"
-            class="absolute top-1/2 -translate-y-1/2 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--color-error-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors"
-          >
-            <span class="material-symbols-rounded text-[20px]">close</span>
-          </button>
         </div>
       </div>
+      
+      <Show when={props.selected}>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            props.deleteNode();
+          }}
+          title="Hapus Lokasi"
+          class="image-delete-btn"
+          style={{ display: 'flex' }}
+        >
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </Show>
     </div>
   );
 }

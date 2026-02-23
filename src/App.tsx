@@ -12,7 +12,9 @@ import DaftarCatatan from "./components/Aplikasi/DaftarCatatan";
 import Kalender from "./components/Aplikasi/Kalender";
 import CatatanBaru from "./components/Aplikasi/CatatanBaru";
 import ConfirmationModal from "./components/ui/m3e/ConfirmationModal";
+import BackupSettings from "./components/Aplikasi/BackupSettings";
 import { getNotes, saveNote, deleteNote, Note } from "./services/db";
+import { appStore } from "./stores/appStore";
 
 function App() {
   const [time, setTime] = createSignal(new Date());
@@ -52,24 +54,11 @@ function App() {
     };
 
     const success = await performFetch();
+    setIsLoading(false);
     
-    if (!success) {
-      // Start retry loop if first attempt failed to find notes
-      const retry = async () => {
-        if (attempts < maxAttempts) {
-          const delay = retryDelays[attempts];
-          attempts++;
-          console.log(`App: Retrying in ${delay}ms... (${attempts}/${maxAttempts})`);
-          await new Promise(r => setTimeout(r, delay));
-          const retrySuccess = await performFetch();
-          if (!retrySuccess) await retry();
-        } else {
-          console.log("App: Max fetch attempts reached. Showing empty state.");
-          setNotes([]);
-          setIsLoading(false);
-        }
-      };
-      await retry();
+    if (!success && attempts < maxAttempts) {
+       // Only retry on actual errors, not on 0 notes
+       // For now, getNotes() should only 'fail' on error, so performFetch handles it.
     }
   };
 
@@ -203,6 +192,10 @@ function App() {
       <Pengaturan />
       <Personalisasi />
       <PaletWarna />
+      
+      {appStore.state.ui.isBackupSettingsOpen && (
+        <BackupSettings onClose={() => appStore.closeBackupSettings()} />
+      )}
       
       <ConfirmationModal
         show={showDeleteConfirm()}

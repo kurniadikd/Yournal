@@ -12,7 +12,12 @@ interface MathBlockProps {
 
 const MathBlockComponent: Component<MathBlockProps> = (props) => {
   const latex = () => props.node.attrs.latex || '';
-  
+  let wasSelectedOnMousedown = false;
+
+  const handleMouseDown = () => {
+    wasSelectedOnMousedown = props.selected;
+  };
+
   return (
     <div 
       class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} select-none relative w-full cursor-pointer transition-all duration-300 rounded-[12px] ${
@@ -20,12 +25,16 @@ const MathBlockComponent: Component<MathBlockProps> = (props) => {
           ? 'bg-transparent shadow-[0_0_0_3px_var(--color-secondary)]' 
           : 'bg-transparent hover:bg-[var(--color-surface-container)]/30'
       }`}
+      onMouseDown={handleMouseDown}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        const pos = props.getPos();
-        if (typeof pos === 'number' && props.extension?.options?.onClick) {
-          props.extension.options.onClick(props.node, pos);
+        
+        if (wasSelectedOnMousedown && props.selected) {
+          const pos = props.getPos();
+          if (typeof pos === 'number' && props.extension?.options?.onClick) {
+            props.extension.options.onClick(props.node, pos);
+          }
         }
       }}
     >

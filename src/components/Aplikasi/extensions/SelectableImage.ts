@@ -18,9 +18,15 @@ export const SelectableImage = Image.extend({
       img.alt = node.attrs.alt || ''
       img.title = node.attrs.title || ''
       
-      img.addEventListener('dblclick', (e) => {
-        // Only trigger preview if it's already selected
-        if (container.classList.contains('ProseMirror-selectednode')) {
+      let wasSelectedOnMousedown = false;
+
+      img.addEventListener('mousedown', () => {
+        wasSelectedOnMousedown = container.classList.contains('ProseMirror-selectednode')
+      })
+
+      img.addEventListener('click', (e) => {
+        // Only trigger preview if it was already selected before the click started
+        if (wasSelectedOnMousedown && container.classList.contains('ProseMirror-selectednode')) {
           e.preventDefault()
           e.stopPropagation()
           const event = new CustomEvent('preview-image', { 

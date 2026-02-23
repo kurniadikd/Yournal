@@ -12,6 +12,11 @@ interface MathInlineProps {
 
 const MathInlineComponent: Component<MathInlineProps> = (props) => {
   const latex = () => props.node.attrs.latex || '';
+  let wasSelectedOnMousedown = false;
+
+  const handleMouseDown = () => {
+    wasSelectedOnMousedown = props.selected;
+  };
 
   return (
     <span 
@@ -20,12 +25,16 @@ const MathInlineComponent: Component<MathInlineProps> = (props) => {
           ? 'bg-[var(--color-secondary-container)]/30 shadow-[0_0_0_2px_var(--color-secondary)] rounded-[4px]' 
           : 'bg-transparent hover:bg-[var(--color-surface-container)]/30 rounded-[4px]'
       }`}
+      onMouseDown={handleMouseDown}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        const pos = props.getPos();
-        if (typeof pos === 'number' && props.extension?.options?.onClick) {
-          props.extension.options.onClick(props.node, pos);
+        
+        if (wasSelectedOnMousedown && props.selected) {
+          const pos = props.getPos();
+          if (typeof pos === 'number' && props.extension?.options?.onClick) {
+            props.extension.options.onClick(props.node, pos);
+          }
         }
       }}
     >

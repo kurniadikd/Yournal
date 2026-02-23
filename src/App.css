@@ -476,8 +476,8 @@ ul[data-type="taskList"] li > div > p {
   position: absolute;
   top: 12px;
   right: 12px;
-  background-color: var(--color-primary, #6200ee) !important;
-  color: var(--color-on-primary, #ffffff) !important;
+  background-color: var(--color-secondary, #006a6a) !important;
+  color: var(--color-on-secondary, #ffffff) !important;
   border: none;
   border-radius: 50%;
   width: 24px;

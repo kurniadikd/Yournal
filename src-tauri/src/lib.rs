@@ -4,6 +4,9 @@ use tauri::{Manager, path::BaseDirectory};
 use base64::{Engine as _, engine::general_purpose};
 use rgb::RGBA8;
 
+mod oauth;
+mod drive_api;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -321,6 +324,36 @@ fn convert_to_avif(base64_data: String) -> Result<String, String> {
     Ok(format!("data:image/avif;base64,{}", avif_b64))
 }
 
+#[tauri::command]
+async fn connect_google_drive(app: tauri::AppHandle, client_id: String) -> Result<String, String> {
+    oauth::start_oauth_flow(app, client_id)
+}
+
+#[tauri::command]
+async fn exchange_google_token(client_id: String, client_secret: String, code: String) -> Result<oauth::AuthState, String> {
+    oauth::exchange_code_for_token(client_id, client_secret, code).await
+}
+
+#[tauri::command]
+async fn upload_database_to_drive(app: tauri::AppHandle, access_token: String) -> Result<String, String> {
+    // 1. Get database path
+    let db_path = app.path().app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?
+        .join("yournal.db");
+
+    if !db_path.exists() {
+        return Err("Database file not found".to_string());
+    }
+
+    // 2. Get or create backup folder
+    let folder_id = drive_api::get_or_create_backup_folder(&access_token).await?;
+
+    // 3. Upload database
+    let file_id = drive_api::upload_database(&access_token, &folder_id, db_path).await?;
+    
+    Ok(file_id)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -378,7 +411,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, get_templates, get_template_content, convert_to_avif])
+        .invoke_handler(tauri::generate_handler![greet, get_templates, get_template_content, convert_to_avif, connect_google_drive, exchange_google_token, upload_database_to_drive])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
