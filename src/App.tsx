@@ -11,6 +11,7 @@ import Editor from "./components/Aplikasi/Editor.tsx";
 import DaftarCatatan from "./components/Aplikasi/DaftarCatatan";
 import Kalender from "./components/Aplikasi/Kalender";
 import CatatanBaru from "./components/Aplikasi/CatatanBaru";
+import PetaDunia from "./components/Aplikasi/PetaDunia";
 import ConfirmationModal from "./components/ui/m3e/ConfirmationModal";
 import BackupSettings from "./components/Aplikasi/BackupSettings";
 import { getNotes, saveNote, deleteNote, Note } from "./services/db";
@@ -30,7 +31,6 @@ function App() {
   const fetchNotes = async () => {
     let attempts = 0;
     const maxAttempts = 3;
-    const retryDelays = [1000, 2000, 3000];
 
     const performFetch = async () => {
       setIsLoading(true);
@@ -143,7 +143,10 @@ function App() {
         <Kalender notes={notes()} />
       </div>
 
-
+      {/* World Map Heatmap (Rectangle between Clock and Calendar) */}
+      <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10">
+        <PetaDunia notes={notes()} />
+      </div>
 
       <div class="flex-1 flex flex-col items-center p-4 pt-40 md:pt-0 overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30">
         <DaftarCatatan 

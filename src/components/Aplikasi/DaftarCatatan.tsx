@@ -7,6 +7,7 @@ interface DaftarCatatanProps {
   notes: Note[];
   onOpenNote: (note: Note) => void;
   isLoading: boolean;
+  onRefresh?: () => void;
 }
 
 const getGroupLabel = (dateString: string) => {

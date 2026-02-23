@@ -9,6 +9,11 @@ const AudioPlayerComponent: Component<{
   extension: any;
   getPos: () => number;
 }> = (props) => {
+  let wasSelectedOnMousedown = false;
+
+  const handleMouseDown = () => {
+    wasSelectedOnMousedown = props.selected;
+  };
   const src = () => props.node.attrs.src;
   const duration = () => props.node.attrs.duration; // in ms
   const waveform = () => {
@@ -92,9 +97,6 @@ const AudioPlayerComponent: Component<{
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
   
-  const handleDelete = () => {
-      props.deleteNode();
-  };
   
 
   // Use passed duration (steps) as fallback, but prefer audio element duration
@@ -108,7 +110,10 @@ const AudioPlayerComponent: Component<{
       props.selected 
         ? 'shadow-[0_0_0_3px_var(--color-secondary)]' 
         : 'shadow-[0_0_0_0_var(--color-secondary)]'
-    }`} data-audio-player>
+    }`} 
+    data-audio-player
+    onMouseDown={handleMouseDown}
+    >
       {/* Container: M3 Expressive style */}
       <div class="flex items-center gap-4 bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] rounded-[32px] pl-2 pr-4 py-2 w-full shadow-sm border border-[var(--color-outline-variant)]/20 h-[80px] relative transition-colors hover:bg-[var(--color-surface-container-highest)]">
         
@@ -121,22 +126,27 @@ const AudioPlayerComponent: Component<{
             onEnded={handleEnded}
             onPause={() => setIsPlaying(false)}
             onPlay={() => setIsPlaying(true)}
-            onError={(e) => {
-                const target = e.target as HTMLAudioElement;
-                console.error("Audio playback error:", e, target.error);
+            onError={() => {
+                const a = audio();
+                console.error("Audio playback error:", a?.error);
             }}
             class="hidden"
         />
 
         {/* Play/Pause Button - Prominent Circle */}
         <button 
-            onClick={togglePlay}
-            class={`group/play-btn flex items-center justify-center w-14 h-14 rounded-full bg-[var(--color-primary)] hover:brightness-110 active:brightness-90 active:scale-95 transition-all shrink-0 shadow-md z-10`}
+            onClick={(e) => {
+                if (wasSelectedOnMousedown && props.selected) {
+                    togglePlay();
+                }
+            }}
+            class={`group/play-btn flex items-center justify-center w-14 h-14 rounded-full bg-[var(--color-primary)] active:scale-95 transition-transform shrink-0 z-10`}
         >
             <span 
-                class="material-symbols-rounded text-[32px] !text-[var(--color-on-primary)] fill-current transition-all duration-200"
+                class="material-symbols-rounded text-[32px] !text-[var(--color-on-primary)] fill-current"
                 style={{
-                "font-variation-settings": "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 48"
+                  "font-variation-settings": "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 48",
+                  "display": "block"
                 }}
             >
                 {isPlaying() ? 'pause' : 'play_arrow'}
@@ -153,7 +163,11 @@ const AudioPlayerComponent: Component<{
                 max={displayDuration()} 
                 step="0.1"
                 value={currentTime()} 
-                onInput={handleSeek}
+                onInput={(e) => {
+                    if (wasSelectedOnMousedown && props.selected) {
+                        handleSeek(e);
+                    }
+                }}
                 class="absolute inset-x-0 top-0 bottom-0 w-full h-full opacity-0 z-30 cursor-pointer"
                 title="Seek"
             />
@@ -221,7 +235,10 @@ const AudioPlayerComponent: Component<{
       {/* Persis tombol hapus SelectableImage */}
       <button 
         class="image-delete-btn"
-        style={{ display: props.selected ? 'flex' : 'none' }}
+        style={{ 
+            display: props.selected ? 'flex' : 'none',
+            "z-index": "40" 
+        }}
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); props.deleteNode(); }}
       >
         <span class="material-symbols-rounded">close</span>
