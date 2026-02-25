@@ -41,9 +41,7 @@ jobs:
 
       - name: Build APK (Debug)
         # builds debug APKs for both common architectures, automatically signed with debug key
-        run: bun tauri android build --debug --apk --target aarch64,armv7
-        env:
-          NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+        run: bun tauri android build --debug --apk --target aarch64 --target armv7
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
