@@ -30,7 +30,7 @@ base64 = "0.22"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif", "bmp"] }
 ravif = { version = "0.11", default-features = false, features = ["threading"] }
 rgb = "0.8"
-reqwest = { version = "0.12", default-features = false, features = ["native-tls", "json", "multipart", "stream"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "multipart", "stream"] }
 tokio = "1.49.0"
 url = "2.5.8"
 mime = "0.3.17"
