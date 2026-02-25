@@ -90,10 +90,12 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
       </div>
       
       <Show when={tags().length > 0}>
-        <div class="flex flex-wrap gap-2 mt-3">
+        <div class="flex flex-wrap gap-1.5 mt-3">
             <For each={tags()}>
                 {(tag) => (
-                    <span class="text-xs bg-[var(--color-surface)]/20 px-2 py-1 rounded-md font-medium">#{tag}</span>
+                    <span class="inline-flex items-center gap-0.5 h-6 px-2.5 rounded-full text-[11px] font-medium bg-[var(--color-on-primary-container)] text-[var(--color-primary-container)]">
+                      <span class="opacity-70">#</span>{tag}
+                    </span>
                 )}
             </For>
         </div>

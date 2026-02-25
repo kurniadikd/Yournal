@@ -1,4 +1,4 @@
-import { Component, For, Show } from 'solid-js';
+import { Component, For, Show, createSignal } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
 import LoadingSpinner from '../ui/m3e/LoadingSpinner';
@@ -57,6 +57,19 @@ const groupNotes = (notes: Note[]) => {
 };
 
 const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
+  // Store IDs (dates) of collapsed groups
+  const [collapsedGroups, setCollapsedGroups] = createSignal<Set<string>>(new Set());
+
+  const toggleGroup = (id: string) => {
+    const newSet = new Set(collapsedGroups());
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setCollapsedGroups(newSet);
+  };
+
   return (
     <div class="w-full flex flex-col gap-6 pb-24">
       <Show when={props.notes.length === 0 && !props.isLoading}>
@@ -87,23 +100,46 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
       </Show>
 
       <For each={groupNotes(props.notes)}>
-        {(group) => (
-          <div class="flex flex-col gap-3" id={`section-${group.id}`}>
-            <h3 class="text-xl text-[var(--color-secondary)] ml-2">
-              {group.label}
-            </h3>
-            <div class="flex flex-col gap-3">
-              <For each={group.notes}>
-                {(note) => (
-                  <ItemCatatan 
-                    note={note} 
-                    onClick={() => props.onOpenNote(note)} 
-                  />
-                )}
-              </For>
+        {(group) => {
+          const isCollapsed = () => collapsedGroups().has(group.id);
+          
+          return (
+            <div class="flex flex-col gap-3" id={`section-${group.id}`}>
+              <div 
+                class="flex items-center justify-between cursor-pointer group/label w-full px-2 pr-4"
+                onClick={() => toggleGroup(group.id)}
+              >
+                <h3 class="text-xl text-[var(--color-secondary)] group-hover/label:text-[var(--color-secondary)] transition-colors">
+                  {group.label}
+                </h3>
+                
+                <div class="flex items-center justify-center gap-2 px-3.5 pr-3 py-1.5 rounded-full bg-[var(--color-secondary)] transition-all active:scale-95 min-w-[56px]">
+                  <span class="text-[13px] font-medium leading-none text-[var(--color-on-secondary)]">
+                    {group.notes.length}
+                  </span>
+                  <span 
+                    class={`material-symbols-rounded text-[13px] leading-none text-[var(--color-on-secondary)] transition-all duration-300 ${isCollapsed() ? 'rotate-180' : 'rotate-0'}`}
+                  >
+                    expand_less
+                  </span>
+                </div>
+              </div>
+              
+              <div 
+                class={`flex flex-col gap-3 transition-all duration-300 origin-top overflow-hidden ${isCollapsed() ? 'max-h-0 opacity-0 scale-y-95 pointer-events-none' : 'max-h-[5000px] opacity-100 scale-y-100'}`}
+              >
+                <For each={group.notes}>
+                  {(note) => (
+                    <ItemCatatan 
+                      note={note} 
+                      onClick={() => props.onOpenNote(note)} 
+                    />
+                  )}
+                </For>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        }}
       </For>
     </div>
   );

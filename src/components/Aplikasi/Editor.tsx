@@ -458,48 +458,44 @@ export default function Editor(props: EditorProps) {
     }
   };
 
+  // Sync editor state ONLY when it opens
   createEffect(() => {
     if (props.show) {
+      // Untrack props to prevent re-triggering if parent state updates while editor is open
+      const initialTitle = props.initialTitle || "";
+      const initialMood = props.initialMood || "";
+      const initialDate = props.initialDate || new Date();
+      const initialTags = props.initialTags || [];
+      const initialLocation = props.initialLocation;
+      const initialWeather = props.initialWeather;
+      const initialContent = props.initialContent || "";
+
       if (titleRef) setTimeout(resizeTitle, 0);
       
-      // Sync state with props when editor opens
-      setTitle(props.initialTitle || "");
-      setMood(props.initialMood || "");
-      setEntryDate(props.initialDate || new Date());
-      setTags(props.initialTags || []); // Fix: Ensure tags are synchronized
+      setTitle(initialTitle);
+      setMood(initialMood);
+      setEntryDate(initialDate);
+      setTags([...initialTags]);
       
-      if (props.initialLocation) {
-        try {
-            setLocation(JSON.parse(props.initialLocation));
-        } catch (e) {
-            console.error("Failed to parse location", e);
-            setLocation(null);
-        }
-      } else {
-        setLocation(null);
-      }
+      if (initialLocation) {
+        try { setLocation(JSON.parse(initialLocation)); } 
+        catch (e) { setLocation(null); }
+      } else { setLocation(null); }
       
-      if (props.initialWeather) {
-        try {
-            setWeather(JSON.parse(props.initialWeather));
-        } catch (e) { setWeather(null); }
-      } else {
-        setWeather(null);
-      }
+      if (initialWeather) {
+        try { setWeather(JSON.parse(initialWeather)); } 
+        catch (e) { setWeather(null); }
+      } else { setWeather(null); }
       
-      // Defer editor commands outside Solid's reactive batch
-      // to prevent ProseMirror "mismatched transaction" error
-      const content = props.initialContent || "";
+      // Use setTimeout to ensure TiapTap is ready and outside Solid's synchronous batch
       setTimeout(() => {
-        const commands = editor()?.commands;
-        if (commands) {
-          commands.setContent(content);
-          migrateMathStrings(editor()!);
-          setBaseHTML(editor()?.getHTML() || "");
-          commands.focus('start'); 
-          if (scrollContainerRef) {
-            scrollContainerRef.scrollTop = 0;
-          }
+        const e = editor();
+        if (e) {
+          e.commands.setContent(initialContent, { emitUpdate: false }); // Disable update event to prevent feedback loop
+          migrateMathStrings(e);
+          setBaseHTML(e.getHTML());
+          e.commands.focus('start'); 
+          if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
         }
       }, 0);
     }

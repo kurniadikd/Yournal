@@ -85,10 +85,12 @@ export default function MapAttachmentComponent(props: {
       interactive: false
     });
 
-    m.on('style.load', () => applyMapTheme(m));
+    let markerAdded = false;
 
-    // Add marker only after map is fully idle to prevent disappearing pins
-    m.once('idle', () => {
+    const addMarker = () => {
+      if (markerAdded) return;
+      markerAdded = true;
+
       const s = getComputedStyle(document.documentElement);
       const cTertiary = s.getPropertyValue('--color-tertiary').trim() || '#018786';
       const cOnTertiary = s.getPropertyValue('--color-on-tertiary').trim() || '#ffffff';
@@ -104,7 +106,18 @@ export default function MapAttachmentComponent(props: {
         (path as SVGElement).style.fillOpacity = "1";
         (path as SVGElement).style.strokeOpacity = "1";
       });
+    };
+
+    m.on('style.load', () => {
+      applyMapTheme(m);
+      // Try adding marker right after style loads
+      addMarker();
     });
+
+    // Fallback: ensure marker is added even if style.load fires before mount completes
+    m.once('idle', () => addMarker());
+    // Double fallback with setTimeout in case idle doesn't fire for non-interactive maps
+    setTimeout(() => addMarker(), 1000);
 
     setMap(m);
   });

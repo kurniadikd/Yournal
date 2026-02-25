@@ -29,7 +29,7 @@ export default function TopAppBar(props: TopAppBarProps) {
   return (
     <header 
       class={`
-        sticky top-0 left-0 right-0 z-50 flex flex-col w-full transition-colors duration-200
+        fixed top-0 left-0 right-0 z-50 flex flex-col w-full transition-colors duration-200
         bg-[var(--color-surface-container)]
         ${heights[merged.variant]}
         ${merged.class || ''}

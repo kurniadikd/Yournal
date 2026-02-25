@@ -7,18 +7,31 @@ import devtools from "solid-devtools/vite";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig({
   plugins: [
     devtools({
       autoname: true,
       locator: {
-        targetSVG: true,
         key: 'Alt',
       },
     }),
     solid(),
     tailwindcss()
   ],
+
+  // Fix MapLibre GL v5 __publicField error in Web Workers
+  // by preventing esbuild from transpiling class fields
+  build: {
+    target: 'esnext',
+  },
+  worker: {
+    format: 'es' as const,
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -46,4 +59,5 @@ export default defineConfig(async () => ({
       "Cross-Origin-Resource-Policy": "same-origin",
     },
   },
-}));
+});
+
