@@ -2,6 +2,7 @@ import { createSignal, Show, createEffect, onCleanup, For } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
 import { NodeSelection } from "@tiptap/pm/state";
+import { invoke } from "@tauri-apps/api/core";
 import { appStore } from "../../stores/appStore";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";

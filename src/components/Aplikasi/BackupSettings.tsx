@@ -1,4 +1,4 @@
-import { createSignal, createEffect, Show } from "solid-js";
+import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -8,7 +8,6 @@ import Button from "../ui/m3e/Button";
 import Input from "../ui/m3e/Input";
 import Snackbar from "../ui/m3e/Snackbar";
 import { appStore } from "../../stores/appStore";
-import { onCleanup } from "solid-js";
 
 export default function BackupSettings(props: { onClose: () => void }) {
   const [clientId, setClientId] = createSignal(localStorage.getItem('gdrive_client_id') || '');

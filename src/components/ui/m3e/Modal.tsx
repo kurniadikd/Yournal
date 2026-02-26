@@ -1,4 +1,4 @@
-import { JSX, Show, createSignal, createEffect } from "solid-js";
+import { JSX, Show, createSignal, createEffect, onCleanup } from "solid-js";
 import { Portal } from "solid-js/web";
 import { appStore } from "../../../stores/appStore";
 

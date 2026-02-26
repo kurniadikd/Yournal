@@ -1,5 +1,5 @@
 import { onMount, onCleanup } from "solid-js";
-import { onBackButtonClicked } from "@tauri-apps/api/window";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 import { themeStore } from "./theme";
 import Header from "./components/Header";
@@ -15,13 +15,13 @@ function App() {
     themeStore.init();
 
     // Handle Android System Back Button
-    const unlisten = await onBackButtonClicked((event) => {
+    const unlisten = await getCurrentWindow().onBackButtonClicked((_event) => {
       console.log("App: System back button clicked");
       const handled = appStore.handleBack();
       if (handled) {
         // Prevent default (closing the app)
-        // In Tauri v2, if we don't call anything to allow it, we might need to block it.
-        // Actually, the event itself might need to be inhibited if possible.
+        // In Tauri v2, if handled, we don't need to do anything specific here 
+        // as the event listener itself intercepts it if we don't call exit.
       }
     });
 
