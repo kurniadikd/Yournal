@@ -64,3 +64,4 @@ tauri-plugin-biometric = "2"
 tauri-plugin-haptics = "2"
 
 
+# Dummy change to trigger build
