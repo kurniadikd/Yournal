@@ -10,7 +10,6 @@
   "permissions": [
     "biometric:default",
     "haptics:default",
-    "network:default",
     "share:default",
     "barcode-scanner:default",
     "device:default"
