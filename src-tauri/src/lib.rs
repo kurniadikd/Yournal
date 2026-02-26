@@ -142,19 +142,26 @@ pub fn run() {
         },
     ];
 
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_biometric::init())
+        .plugin(tauri_plugin_dialog::init());
+
+    #[cfg(mobile)]
+    {
+        builder = builder
+            .plugin(tauri_plugin_biometric::init())
+            .plugin(tauri_plugin_barcode_scanner::init())
+            .plugin(tauri_plugin_haptics::init());
+    }
+
+    builder
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_geolocation::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_share::init())
-        .plugin(tauri_plugin_barcode_scanner::init())
         .plugin(tauri_plugin_device::init())
-        .plugin(tauri_plugin_haptics::init())
         .plugin(tauri_plugin_network::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
