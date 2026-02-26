@@ -151,6 +151,11 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_geolocation::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_share::init())
+        .plugin(tauri_plugin_barcode_scanner::init())
+        .plugin(tauri_plugin_device::init())
+        .plugin(tauri_plugin_haptics::init())
+        .plugin(tauri_plugin_network::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:yournal.db", migrations)
@@ -170,8 +175,6 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet,
-            get_templates,
-            get_template_content,
             convert_to_avif,
             connect_google_drive,
             exchange_google_token,

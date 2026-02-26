@@ -8,6 +8,8 @@
     "main"
   ],
   "permissions": [
-    "biometric:default"
+    "biometric:default",
+    "haptics:default",
+    "network:default"
   ]
 }

@@ -25,6 +25,7 @@
     "@tauri-apps/plugin-dialog": "~2",
     "@tauri-apps/plugin-fs": "~2",
     "@tauri-apps/plugin-geolocation": "~2",
+    "@tauri-apps/plugin-haptics": "~2",
     "@tauri-apps/plugin-http": "^2.5.7",
     "@tauri-apps/plugin-notification": "~2",
     "@tauri-apps/plugin-opener": "^2",
@@ -62,7 +63,8 @@
     "material-symbols": "^0.40.2",
     "mathjs": "^15.1.1",
     "solid-js": "^1.9.3",
-    "solid-tiptap": "^0.8.0"
+    "solid-tiptap": "^0.8.0",
+    "tauri-plugin-network-api": "^2.0.5"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.18",

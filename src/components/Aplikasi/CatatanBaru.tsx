@@ -1,5 +1,4 @@
-import { Component, createSignal, createEffect, For, Show, onMount, onCleanup } from "solid-js";
-import { invoke } from "@tauri-apps/api/core";
+import { Component, createSignal, createEffect, For, Show, onCleanup } from "solid-js";
 import { Portal } from "solid-js/web";
 import { appStore } from "../../stores/appStore";
 import LoadingSpinner from "../ui/m3e/LoadingSpinner";
