@@ -784,7 +784,10 @@ export default function Editor(props: EditorProps) {
       `}>
         
         {/* --- 1. STICKY HEADER & TOOLBAR --- */}
-        <div class="sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10">
+        <div 
+          class="sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10"
+          style={{ "padding-top": "env(safe-area-inset-top, 0px)" }}
+        >
           
           {/* Row 1: Action Buttons (Top) */}
           <div class="flex items-center justify-between px-4 py-2 border-b border-[var(--color-outline-variant)]/10">
@@ -1047,6 +1050,7 @@ export default function Editor(props: EditorProps) {
         >
           <div 
             class="max-w-4xl mx-auto px-6 py-12 md:py-16 min-h-full flex flex-col"
+            style={{ "padding-bottom": "env(safe-area-inset-bottom, 2rem)" }}
             onClick={(e) => e.stopPropagation()} 
           >
             

@@ -118,7 +118,10 @@ export default function BackupSettings(props: { onClose: () => void }) {
         variant="center-aligned"
       />
       
-      <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full">
+      <div 
+        class="flex-1 overflow-y-auto p-4 pb-8 flex flex-col gap-4 max-w-2xl mx-auto w-full"
+        style={{ "padding-bottom": "env(safe-area-inset-bottom, 2rem)" }}
+      >
         
         <Card variant="elevated" class="p-4 flex flex-col gap-4">
           <div class="flex items-center gap-3">

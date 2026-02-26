@@ -15,7 +15,7 @@ function App() {
   });
 
   return (
-    <main class="min-h-screen flex flex-col relative overflow-hidden bg-[var(--color-surface)]">
+    <main class="app-container bg-[var(--color-surface)]">
       <Header />
       
       <HalamanUtama />

@@ -6,7 +6,9 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow: hidden; /* App container will handle scrolling */
+  height: 100%;
+  width: 100%;
 }
 
 :root {
@@ -20,11 +22,27 @@ html, body {
   color: var(--color-on-surface);
   background: var(--color-background);
   min-height: 100vh;
+  min-height: 100dvh;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Robust Mobile Container */
+.app-container {
+  height: 100dvh;
+  width: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Standardized Material Symbols Rounded component */
