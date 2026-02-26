@@ -39,8 +39,16 @@ jobs:
         # This generates src-tauri/gen/android which is needed for build
         run: bun tauri android init
 
-      - name: Build APK (Debug)
-        # builds debug APKs for both common architectures, automatically signed with debug key
+      - name: Setup Signing
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > src-tauri/gen/android/release.keystore
+          echo "STORE_PASSWORD=${{ secrets.ANDROID_STORE_PASSWORD }}" > src-tauri/gen/android/app/signing.properties
+          echo "KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> src-tauri/gen/android/app/signing.properties
+          echo "KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> src-tauri/gen/android/app/signing.properties
+          echo "STORE_FILE=../release.keystore" >> src-tauri/gen/android/app/signing.properties
+
+      - name: Build APK (Signed)
+        # builds signed APKs using the configuration in build.gradle.kts
         run: bun tauri android build --debug --apk --target aarch64 --target armv7
 
       - name: Upload APK Artifacts

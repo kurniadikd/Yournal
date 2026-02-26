@@ -4,13 +4,7 @@ import { Portal } from "solid-js/web";
 import { appStore } from "../../stores/appStore";
 import LoadingSpinner from "../ui/m3e/LoadingSpinner";
 
-interface TemplateInfo {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  category: string;
-}
+import { NOTE_TEMPLATES, TemplateInfo } from "../../data/noteTemplates";
 
 interface CatatanBaruProps {
   show: boolean;
@@ -19,9 +13,7 @@ interface CatatanBaruProps {
 }
 
 const CatatanBaru: Component<CatatanBaruProps> = (props) => {
-  const [templates, setTemplates] = createSignal<TemplateInfo[]>([]);
   const [loading, setLoading] = createSignal(false);
-  const [previews, setPreviews] = createSignal<Record<string, string>>({});
   const [shouldRender, setShouldRender] = createSignal(false);
   const [isVisible, setIsVisible] = createSignal(false);
   let timer: number;
@@ -45,40 +37,15 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
     }
   });
 
-  onMount(async () => {
-    try {
-      const data = await invoke<TemplateInfo[]>("get_templates");
-      setTemplates(data);
-
-      // Preload template content for previews
-      for (const t of data) {
-        try {
-          const content = await invoke<string>("get_template_content", { id: t.id });
-          setPreviews(prev => ({ ...prev, [t.id]: content }));
-        } catch (err) {
-          console.warn(`Preview failed for ${t.id}:`, err);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to load templates:", err);
-    }
-  });
-
   const handleBlank = () => {
     props.onSelect({ content: '', title: "" });
   };
 
-  const handleTemplate = async (template: TemplateInfo) => {
+  const handleTemplate = (template: TemplateInfo) => {
     setLoading(true);
     try {
-      // Use cached preview if available, otherwise fetch
-      const cached = previews()[template.id];
-      if (cached) {
-        props.onSelect({ content: cached, title: template.name });
-      } else {
-        const content = await invoke<string>("get_template_content", { id: template.id });
-        props.onSelect({ content, title: template.name });
-      }
+      // Content is now directly available and robust
+      props.onSelect({ content: template.content, title: template.name });
     } catch (err) {
       console.error("Failed to load template:", err);
     } finally {
@@ -155,7 +122,7 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                       </Show>
 
                       {/* Template Cards for this category */}
-                      <For each={templates().filter(t => t.category === category)}>
+                      <For each={NOTE_TEMPLATES.filter(t => t.category === category)}>
                         {(template) => (
                           <button
                             onClick={() => handleTemplate(template)}
@@ -165,7 +132,7 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                             {/* Preview thumbnail — render HTML preview */}
                             <div class="w-full aspect-[3/4] rounded-[12px] border-2 border-[var(--color-outline-variant)]/30 bg-white overflow-hidden transition-all group-hover:border-[var(--color-tertiary)] group-hover:shadow-lg group-hover:shadow-[var(--color-tertiary)]/10 group-hover:scale-[1.03] active:scale-[0.98]">
                               <Show 
-                                when={previews()[template.id]}
+                                when={template.content}
                                 fallback={
                                   <div class="w-full h-full flex items-center justify-center">
                                     <span 
@@ -180,7 +147,7 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
                                 <div 
                                   class="w-[200%] h-[200%] origin-top-left scale-50 p-6 text-left pointer-events-none bg-white text-gray-800"
                                   style={{ "font-size": "16px", "line-height": "1.6" }}
-                                  innerHTML={previews()[template.id]}
+                                  innerHTML={template.content}
                                 ></div>
                               </Show>
                             </div>
