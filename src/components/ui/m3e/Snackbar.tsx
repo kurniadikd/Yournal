@@ -6,6 +6,7 @@ interface SnackbarProps {
   actionLabel?: string;
   onAction?: () => void;
   duration?: number;
+  isOpen?: boolean;
   onClose: () => void;
 }
 
@@ -32,24 +33,26 @@ export default function Snackbar(props: SnackbarProps) {
 
   return (
     <Portal>
-      <div class="fixed left-1/2 -translate-x-1/2 z-[200] w-full max-w-[400px] px-4" style="bottom: calc(1rem + env(safe-area-inset-bottom, 0px))">
-        <div 
-          class="flex items-center justify-between gap-4 p-4 rounded-lg bg-[var(--color-inverse-surface)] text-[var(--color-inverse-on-surface)] shadow-lg animate-in slide-in-from-bottom-4 duration-300"
-        >
-          <span class="text-sm font-medium flex-grow">
-            {props.message}
-          </span>
-          
-          <Show when={props.actionLabel}>
-            <button 
-              onClick={() => { props.onAction?.(); props.onClose(); }}
-              class="text-[var(--color-inverse-primary)] text-sm font-bold px-2 py-1 rounded hover:bg-white/10 transition-colors"
-            >
-              {props.actionLabel}
-            </button>
-          </Show>
+      <Show when={props.isOpen}>
+        <div class="fixed left-1/2 -translate-x-1/2 z-[200] w-full max-w-[400px] px-4" style="bottom: calc(1rem + env(safe-area-inset-bottom, 0px))">
+          <div 
+            class="flex items-center justify-between gap-4 p-4 rounded-lg bg-[var(--color-inverse-surface)] text-[var(--color-inverse-on-surface)] shadow-lg animate-in slide-in-from-bottom-4 duration-300"
+          >
+            <span class="text-sm font-medium flex-grow">
+              {props.message}
+            </span>
+            
+            <Show when={props.actionLabel}>
+              <button 
+                onClick={() => { props.onAction?.(); props.onClose(); }}
+                class="text-[var(--color-inverse-primary)] text-sm font-bold px-2 py-1 rounded hover:bg-white/10 transition-colors"
+              >
+                {props.actionLabel}
+              </button>
+            </Show>
+          </div>
         </div>
-      </div>
+      </Show>
     </Portal>
   );
 }

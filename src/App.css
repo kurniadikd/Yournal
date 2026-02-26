@@ -9,6 +9,12 @@ html, body {
   overflow: hidden; /* App container will handle scrolling */
   height: 100%;
   width: 100%;
+  caret-color: var(--color-primary);
+}
+
+::selection {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
 }
 
 :root {

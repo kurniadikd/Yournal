@@ -198,7 +198,7 @@ export default function BackupSettings(props: { onClose: () => void }) {
       <Snackbar 
         message={snackbarMsg()} 
         isOpen={!!snackbarMsg()} 
-        onClose={() => setSnackbarMsg("")} 
+        onClose={() => { setSnackbarMsg(""); }} 
       />
     </div>
   );

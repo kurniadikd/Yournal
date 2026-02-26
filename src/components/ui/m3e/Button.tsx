@@ -5,6 +5,7 @@ interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'small' | 'medium' | 'large' | 'extra-large';
   icon?: JSX.Element;
   iconTrailing?: JSX.Element;
+  loading?: boolean;
 }
 
 /**
@@ -18,7 +19,7 @@ interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
  * - Dynamic padding (16dp suggested for small/medium)
  */
 export default function Button(props: ButtonProps) {
-  const [local, others] = splitProps(props, ['variant', 'size', 'icon', 'iconTrailing', 'children', 'class']);
+  const [local, others] = splitProps(props, ['variant', 'size', 'icon', 'iconTrailing', 'children', 'class', 'loading']);
 
   const variantClasses = {
     filled: "bg-[var(--color-primary)] text-[var(--color-on-primary)]",
@@ -36,6 +37,7 @@ export default function Button(props: ButtonProps) {
   return (
     <button
       {...others}
+      disabled={others.disabled || local.loading}
       class={`
         relative inline-flex items-center justify-center gap-2 font-medium 
         transition-all duration-200 active:scale-[0.97] disabled:opacity-38 disabled:pointer-events-none
@@ -44,9 +46,12 @@ export default function Button(props: ButtonProps) {
         ${local.class || ''}
       `}
     >
-      {local.icon && <span class="flex items-center justify-center -ml-1">{local.icon}</span>}
+      <Show when={local.loading}>
+        <span class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+      </Show>
+      {!local.loading && local.icon && <span class="flex items-center justify-center -ml-1">{local.icon}</span>}
       {local.children}
-      {local.iconTrailing && <span class="flex items-center justify-center -mr-1">{local.iconTrailing}</span>}
+      {!local.loading && local.iconTrailing && <span class="flex items-center justify-center -mr-1">{local.iconTrailing}</span>}
       
       {/* State Layer (Overlay for hover/pressed) */}
       <div class="absolute inset-0 rounded-inherit bg-current opacity-0 hover:opacity-[0.08] active:opacity-[0.12] transition-opacity" />

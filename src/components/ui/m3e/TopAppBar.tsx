@@ -2,8 +2,9 @@ import { JSX, Show, mergeProps } from "solid-js";
 
 interface TopAppBarProps {
   title: string | JSX.Element;
-  variant?: 'small' | 'medium' | 'large';
+  variant?: 'small' | 'medium' | 'large' | 'center-aligned';
   navigationIcon?: JSX.Element;
+  onBack?: () => void;
   actions?: JSX.Element;
   class?: string;
   scrollRatio?: number; // 0 to 1 for collapsing effects
@@ -18,12 +19,13 @@ interface TopAppBarProps {
  * - Dynamic height based on variant and scroll
  */
 export default function TopAppBar(props: TopAppBarProps) {
-  const merged = mergeProps({ variant: 'small', scrollRatio: 0 }, props);
+  const merged = mergeProps({ variant: 'small' as const, scrollRatio: 0 }, props);
 
-  const heights = {
+  const heights: Record<string, string> = {
     small: "h-16",
     medium: "h-28", // Collapses to 16
-    large: "h-36"   // Collapses to 16
+    large: "h-36",   // Collapses to 16
+    "center-aligned": "h-16"
   };
 
   return (
@@ -38,15 +40,25 @@ export default function TopAppBar(props: TopAppBarProps) {
     >
       <div class="flex items-center h-16 px-4">
         {/* Navigation Icon */}
-        <Show when={merged.navigationIcon}>
+        <Show when={merged.onBack || merged.navigationIcon}>
           <div class="mr-2">
-            {merged.navigationIcon}
+            <Show when={merged.onBack} fallback={merged.navigationIcon}>
+              <button 
+                onClick={merged.onBack}
+                class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-on-surface)]/10 transition-colors"
+              >
+                <span class="material-symbols-rounded">arrow_back</span>
+              </button>
+            </Show>
           </div>
         </Show>
 
-        {/* Title (Small) */}
-        <Show when={merged.variant === 'small'}>
-          <div class="flex-grow text-[var(--color-on-surface)] text-xl font-normal truncate">
+        {/* Title (Small / Center-aligned) */}
+        <Show when={merged.variant === 'small' || merged.variant === 'center-aligned'}>
+          <div class={`
+            flex-grow text-[var(--color-on-surface)] text-xl font-normal truncate
+            ${merged.variant === 'center-aligned' ? 'text-center' : ''}
+          `}>
             {merged.title}
           </div>
         </Show>
