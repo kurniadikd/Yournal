@@ -44,7 +44,6 @@ tauri-plugin-store = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-share = "2.0.5"
 tauri-plugin-device = "1.0.0"
-tauri-plugin-network = "2.0.4"
 
 [profile.dev]
 incremental = true

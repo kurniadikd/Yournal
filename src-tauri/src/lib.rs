@@ -162,7 +162,6 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_share::init())
         .plugin(tauri_plugin_device::init())
-        .plugin(tauri_plugin_network::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:yournal.db", migrations)
