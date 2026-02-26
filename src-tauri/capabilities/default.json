@@ -32,11 +32,6 @@
     "fs:default",
     "store:default",
     "dialog:default",
-    "notification:default",
-    "share:default",
-    "barcode-scanner:default",
-    "device:default",
-    "haptics:default",
-    "network:default"
+    "notification:default"
   ]
 }
