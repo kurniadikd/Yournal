@@ -1,8 +1,8 @@
 import { createSignal, Show, createEffect, onCleanup, For } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
-import { invoke } from "@tauri-apps/api/core";
 import { NodeSelection } from "@tiptap/pm/state";
+import { appStore } from "../../stores/appStore";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 // import Underline from "@tiptap/extension-underline";
@@ -768,6 +768,14 @@ export default function Editor(props: EditorProps) {
       if (editorTransitionTimer) clearTimeout(editorTransitionTimer);
       setShouldRenderEditor(true);
       requestAnimationFrame(() => requestAnimationFrame(() => setIsEditorVisible(true)));
+
+      // Android Back Button Handler
+      const handler = () => {
+        handleClose();
+        return true;
+      };
+      appStore.pushBackHandler(handler);
+      onCleanup(() => appStore.popBackHandler(handler));
     } else {
       setIsEditorVisible(false);
       resetEditorState(); // Reset data fully to prevent stale content leaks

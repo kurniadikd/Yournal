@@ -7,6 +7,8 @@ import Card from "../ui/m3e/Card";
 import Button from "../ui/m3e/Button";
 import Input from "../ui/m3e/Input";
 import Snackbar from "../ui/m3e/Snackbar";
+import { appStore } from "../../stores/appStore";
+import { onCleanup } from "solid-js";
 
 export default function BackupSettings(props: { onClose: () => void }) {
   const [clientId, setClientId] = createSignal(localStorage.getItem('gdrive_client_id') || '');
@@ -29,6 +31,14 @@ export default function BackupSettings(props: { onClose: () => void }) {
 
   // Listen for the OAuth callback code from Rust
   createEffect(() => {
+    // Add back button handler
+    const handler = () => {
+      props.onClose();
+      return true;
+    };
+    appStore.pushBackHandler(handler);
+    onCleanup(() => appStore.popBackHandler(handler));
+
     const unlisten = listen<string>("oauth-code-received", async (event) => {
       console.log("Received OAuth code:", event.payload);
       try {

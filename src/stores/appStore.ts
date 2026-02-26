@@ -10,6 +10,7 @@ interface AppState {
     showVirtualKeyboard: boolean;
     hideNativeKeyboard: boolean;
     isBackupSettingsOpen: boolean;
+    backHandlers: (() => boolean)[];
   };
 }
 
@@ -22,6 +23,7 @@ const [state, setState] = createStore<AppState>({
     showVirtualKeyboard: false,
     hideNativeKeyboard: false,
     isBackupSettingsOpen: false,
+    backHandlers: [],
   },
 });
 
@@ -74,5 +76,22 @@ export const appStore = {
     appStore.closePengaturan();
     // Use a tiny timeout to ensure smooth transition between portals if needed
     setTimeout(() => appStore.openPersonalisasi(), 50);
+  },
+
+  // Back Button Logic
+  pushBackHandler: (handler: () => boolean) => {
+    setState("ui", "backHandlers", (prev) => [...prev, handler]);
+  },
+  popBackHandler: (handler: () => boolean) => {
+    setState("ui", "backHandlers", (prev) => prev.filter(h => h !== handler));
+  },
+  handleBack: () => {
+    const handlers = state.ui.backHandlers;
+    if (handlers.length > 0) {
+      // Execute the last handler
+      const lastHandler = handlers[handlers.length - 1];
+      return lastHandler(); // Should return true if handled
+    }
+    return false; // Not handled, let system exit app
   }
 };

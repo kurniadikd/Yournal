@@ -1,6 +1,7 @@
 import { Component, createSignal, createEffect, For, Show, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { Portal } from "solid-js/web";
+import { appStore } from "../../stores/appStore";
 import LoadingSpinner from "../ui/m3e/LoadingSpinner";
 
 interface TemplateInfo {
@@ -30,6 +31,14 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
       if (timer) clearTimeout(timer);
       setShouldRender(true);
       requestAnimationFrame(() => requestAnimationFrame(() => setIsVisible(true)));
+
+      // Android Back Button Handler
+      const handler = () => {
+        props.onClose();
+        return true;
+      };
+      appStore.pushBackHandler(handler);
+      onCleanup(() => appStore.popBackHandler(handler));
     } else {
       setIsVisible(false);
       timer = setTimeout(() => setShouldRender(false), 300);

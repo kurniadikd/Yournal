@@ -80,6 +80,16 @@ const PaletWarna = () => {
   return (
     <Portal mount={document.body}>
       <Show when={appStore.state.ui.isColorPaletteOpen}>
+        {(() => {
+          // Register back handler
+          const handler = () => {
+            appStore.toggleColorPalette();
+            return true;
+          };
+          appStore.pushBackHandler(handler);
+          onCleanup(() => appStore.popBackHandler(handler));
+          return null;
+        })()}
         <div
           style={{
             position: "fixed",

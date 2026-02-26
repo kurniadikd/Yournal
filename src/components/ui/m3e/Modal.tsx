@@ -1,5 +1,6 @@
 import { JSX, Show, createSignal, createEffect } from "solid-js";
 import { Portal } from "solid-js/web";
+import { appStore } from "../../../stores/appStore";
 
 interface ModalProps {
   show: boolean;
@@ -28,6 +29,17 @@ export default function Modal(props: ModalProps) {
       if (timer) clearTimeout(timer);
       setShouldRender(true);
       requestAnimationFrame(() => requestAnimationFrame(() => setIsVisible(true)));
+
+      // Add handler to back stack
+      const handler = () => {
+        props.onClose();
+        return true;
+      };
+      appStore.pushBackHandler(handler);
+
+      onCleanup(() => {
+        appStore.popBackHandler(handler);
+      });
     } else {
       setIsVisible(false);
       timer = setTimeout(() => setShouldRender(false), 300);
