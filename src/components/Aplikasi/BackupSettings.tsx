@@ -120,7 +120,7 @@ export default function BackupSettings(props: { onClose: () => void }) {
       
       <div 
         class="flex-1 overflow-y-auto p-4 pb-8 flex flex-col gap-4 max-w-2xl mx-auto w-full"
-        style={{ "padding-bottom": "env(safe-area-inset-bottom, 2rem)" }}
+        style={{ "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
       >
         
         <Card variant="elevated" class="p-4 flex flex-col gap-4">

@@ -87,7 +87,10 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
         `}>
           
           {/* Top Bar */}
-          <header class="flex items-center gap-4 px-6 py-4 shrink-0 bg-[var(--color-on-tertiary)] text-[var(--color-tertiary)]">
+          <header 
+            class="flex items-center gap-4 px-6 shrink-0 bg-[var(--color-on-tertiary)] text-[var(--color-tertiary)]"
+            style={{ "padding-top": "calc(1rem + env(safe-area-inset-top, 0px))", "padding-bottom": "1rem" }}
+          >
             <button
               onClick={props.onClose}
               class="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-tertiary)] hover:bg-[var(--color-tertiary)]/10 transition-colors"
@@ -107,7 +110,10 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
           </Show>
 
           {/* Scrollable Content */}
-          <div class="flex-1 overflow-y-auto px-6 md:px-12 py-8">
+          <div 
+            class="flex-1 overflow-y-auto px-6 md:px-12 py-8"
+            style={{ "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+          >
             
             {/* Grouped template previews */}
             <div class="flex flex-col gap-10 max-w-[1200px] mx-auto pb-12">

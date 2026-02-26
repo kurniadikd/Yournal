@@ -114,7 +114,11 @@ const HalamanUtama: Component = () => {
 
   return (
     <>
-      <div class="flex-1 flex flex-col items-center pt-16 md:pt-0 overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide">
+      <div class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
+           style={{ 
+             "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",
+             "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))"
+           }}>
         {/* Clock (scrollable on mobile, fixed on desktop) */}
         <div class="w-full flex justify-start md:fixed md:top-20 md:left-8 md:z-30 md:pointer-events-none p-4 pb-0 md:p-0">
           <div class="flex flex-col">

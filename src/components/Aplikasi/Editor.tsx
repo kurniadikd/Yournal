@@ -1049,8 +1049,11 @@ export default function Editor(props: EditorProps) {
           onClick={() => editor()?.commands.focus()}
         >
           <div 
-            class="max-w-4xl mx-auto px-6 py-12 md:py-16 min-h-full flex flex-col"
-            style={{ "padding-bottom": "env(safe-area-inset-bottom, 2rem)" }}
+            class="max-w-4xl mx-auto px-6 pb-12 min-h-full flex flex-col"
+            style={{ 
+              "padding-top": "calc(8rem + env(safe-area-inset-top, 0px))",
+              "padding-bottom": "env(safe-area-inset-bottom, 2rem)" 
+            }}
             onClick={(e) => e.stopPropagation()} 
           >
             

@@ -36,7 +36,10 @@ export default function TopAppBar(props: TopAppBarProps) {
         ${heights[merged.variant]}
         ${merged.class || ''}
       `}
-      style={{ "padding-top": "env(safe-area-inset-top, 0px)" }}
+      style={{ 
+        "padding-top": "env(safe-area-inset-top, 0px)",
+        "height": `calc(${merged.variant === 'small' || merged.variant === 'center-aligned' ? '4rem' : (merged.variant === 'medium' ? '7rem' : '9rem')} + env(safe-area-inset-top, 0px))`
+      }}
     >
       <div class="flex items-center h-16 px-4">
         {/* Navigation Icon */}
