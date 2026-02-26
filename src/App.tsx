@@ -1,5 +1,6 @@
 import { onMount, onCleanup } from "solid-js";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { appStore } from "./stores/appStore";
 import "./App.css";
 import { themeStore } from "./theme";
 import Header from "./components/Header";
@@ -8,25 +9,19 @@ import Personalisasi from "./components/Aplikasi/Personalisasi";
 import PaletWarna from "./components/Aplikasi/PaletWarna";
 import BackupSettings from "./components/Aplikasi/BackupSettings";
 import HalamanUtama from "./components/Aplikasi/HalamanUtama";
-import { appStore } from "./stores/appStore";
 
 function App() {
   onMount(async () => {
     themeStore.init();
 
     // Handle Android System Back Button
-    const unlisten = await getCurrentWindow().onBackButtonClicked((_event) => {
+    const unlistenPromise = getCurrentWindow().listen("tauri://back-button", () => {
       console.log("App: System back button clicked");
-      const handled = appStore.handleBack();
-      if (handled) {
-        // Prevent default (closing the app)
-        // In Tauri v2, if handled, we don't need to do anything specific here 
-        // as the event listener itself intercepts it if we don't call exit.
-      }
+      appStore.handleBack();
     });
 
     onCleanup(() => {
-      unlisten();
+      unlistenPromise.then(u => u());
     });
   });
 
