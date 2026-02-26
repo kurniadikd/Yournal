@@ -1,11 +1,11 @@
+use base64::{engine::general_purpose, Engine as _};
+use rgb::RGBA8;
 use serde::Serialize;
 use std::fs;
-use tauri::{Manager, path::BaseDirectory};
-use base64::{Engine as _, engine::general_purpose};
-use rgb::RGBA8;
+use tauri::{path::BaseDirectory, Manager};
 
-mod oauth;
 mod drive_api;
+mod oauth;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -55,7 +55,6 @@ fn get_template_list() -> Vec<TemplateInfo> {
             icon: "emoji_events".into(),
             category: "Dasar & Keseharian".into(),
         },
-
         // ======================================================
         // 2. Regulasi Emosi (Emotion Regulation & Therapy)
         // ======================================================
@@ -101,7 +100,6 @@ fn get_template_list() -> Vec<TemplateInfo> {
             icon: "psychiatry".into(),
             category: "Regulasi Emosi".into(),
         },
-
         // ====================================================
         // 3. Refleksi & Hubungan (Reflection & Relationships)
         // ====================================================
@@ -154,7 +152,6 @@ fn get_template_list() -> Vec<TemplateInfo> {
             icon: "cloud_moon".into(),
             category: "Refleksi & Hubungan".into(),
         },
-
         // ==============================================
         // 4. Fokus & Perencanaan (Focus & Planning)
         // ==============================================
@@ -200,7 +197,6 @@ fn get_template_list() -> Vec<TemplateInfo> {
             icon: "next_week".into(),
             category: "Fokus & Perencanaan".into(),
         },
-
         // ==============================================================
         // 5. Analisis & Pemecahan Masalah (Problem Solving & Ideation)
         // ==============================================================
@@ -273,8 +269,12 @@ fn get_template_content(app_handle: tauri::AppHandle, id: String) -> Result<Stri
         std::path::PathBuf::from(format!("templates/{}.html", id))
     };
 
-    fs::read_to_string(&final_path)
-        .map_err(|e| format!("Failed to read template '{}' from path '{:?}': {}", id, final_path, e))
+    fs::read_to_string(&final_path).map_err(|e| {
+        format!(
+            "Failed to read template '{}' from path '{:?}': {}",
+            id, final_path, e
+        )
+    })
 }
 
 /// Convert any image (PNG, JPG, WebP, GIF, BMP) to AVIF format.
@@ -295,8 +295,8 @@ fn convert_to_avif(base64_data: String) -> Result<String, String> {
         .map_err(|e| format!("Failed to decode base64: {}", e))?;
 
     // 3. Decode image using the `image` crate (supports PNG, JPG, WebP, GIF, BMP)
-    let img = image::load_from_memory(&bytes)
-        .map_err(|e| format!("Failed to decode image: {}", e))?;
+    let img =
+        image::load_from_memory(&bytes).map_err(|e| format!("Failed to decode image: {}", e))?;
 
     let rgba_img = img.to_rgba8();
     let width = rgba_img.width() as usize;
@@ -305,7 +305,12 @@ fn convert_to_avif(base64_data: String) -> Result<String, String> {
     // 4. Convert pixels to ravif's RGBA8 format
     let pixels: Vec<RGBA8> = rgba_img
         .pixels()
-        .map(|p| RGBA8 { r: p[0], g: p[1], b: p[2], a: p[3] })
+        .map(|p| RGBA8 {
+            r: p[0],
+            g: p[1],
+            b: p[2],
+            a: p[3],
+        })
         .collect();
 
     // 5. Encode to AVIF using ravif (pure Rust, rav1e encoder)
@@ -330,14 +335,23 @@ async fn connect_google_drive(app: tauri::AppHandle, client_id: String) -> Resul
 }
 
 #[tauri::command]
-async fn exchange_google_token(client_id: String, client_secret: String, code: String) -> Result<oauth::AuthState, String> {
+async fn exchange_google_token(
+    client_id: String,
+    client_secret: String,
+    code: String,
+) -> Result<oauth::AuthState, String> {
     oauth::exchange_code_for_token(client_id, client_secret, code).await
 }
 
 #[tauri::command]
-async fn upload_database_to_drive(app: tauri::AppHandle, access_token: String) -> Result<String, String> {
+async fn upload_database_to_drive(
+    app: tauri::AppHandle,
+    access_token: String,
+) -> Result<String, String> {
     // 1. Get database path
-    let db_path = app.path().app_data_dir()
+    let db_path = app
+        .path()
+        .app_data_dir()
         .map_err(|e| format!("Failed to get app data dir: {}", e))?
         .join("yournal.db");
 
@@ -350,7 +364,7 @@ async fn upload_database_to_drive(app: tauri::AppHandle, access_token: String) -
 
     // 3. Upload database
     let file_id = drive_api::upload_database(&access_token, &folder_id, db_path).await?;
-    
+
     Ok(file_id)
 }
 
@@ -389,15 +403,16 @@ pub fn run() {
             description: "add_tags_column",
             sql: "ALTER TABLE notes ADD COLUMN tags TEXT;",
             kind: tauri_plugin_sql::MigrationKind::Up,
-        }
+        },
     ];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_geolocation::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:yournal.db", migrations)
-                .build()
+                .build(),
         )
         .plugin(tauri_plugin_http::init())
         .setup(|_app| {
@@ -411,7 +426,15 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, get_templates, get_template_content, convert_to_avif, connect_google_drive, exchange_google_token, upload_database_to_drive])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            get_templates,
+            get_template_content,
+            convert_to_avif,
+            connect_google_drive,
+            exchange_google_token,
+            upload_database_to_drive
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

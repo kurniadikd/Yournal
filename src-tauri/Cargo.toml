@@ -36,6 +36,7 @@ url = "2.5.8"
 mime = "0.3.17"
 tiny_http = "0.12.0"
 urlencoding = "2.1.3"
+tauri-plugin-geolocation = "2"
 
 [profile.dev]
 incremental = true

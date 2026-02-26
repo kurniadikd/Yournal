@@ -11,6 +11,9 @@
     "sql:allow-select",
     "opener:default",
     "opener:allow-open-url",
+    "geolocation:default",
+    "geolocation:allow-get-current-position",
+    "geolocation:allow-watch-position",
     {
       "identifier": "http:default",
       "allow": [

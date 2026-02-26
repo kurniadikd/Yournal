@@ -1,7 +1,7 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::env;
-use tauri::{AppHandle, Manager, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -15,7 +15,7 @@ pub fn start_oauth_flow(app: AppHandle, client_id: String) -> Result<String, Str
     // We'll run this on port 8484
     let port = 8484;
     let redirect_uri = format!("http://localhost:{}/callback", port);
-    
+
     if client_id.is_empty() {
         return Err("Google Client ID is required.".to_string());
     }
@@ -30,7 +30,8 @@ pub fn start_oauth_flow(app: AppHandle, client_id: String) -> Result<String, Str
             ("access_type", "offline"),
             ("prompt", "consent"),
         ],
-    ).map_err(|e| e.to_string())?;
+    )
+    .map_err(|e| e.to_string())?;
 
     // Start local server to listen for callback
     std::thread::spawn(move || {
@@ -46,7 +47,7 @@ pub fn start_oauth_flow(app: AppHandle, client_id: String) -> Result<String, Str
                         code = parts.next().map(|s| s.to_string());
                     }
                 }
-                
+
                 // Respond to browser
                 let response_text = if code.is_some() {
                     "Authentication successful! You can close this window and return to Yournal."
@@ -67,13 +68,18 @@ pub fn start_oauth_flow(app: AppHandle, client_id: String) -> Result<String, Str
     Ok(auth_url.to_string())
 }
 
-pub async fn exchange_code_for_token(client_id: String, client_secret: String, code: String) -> Result<AuthState, String> {
+pub async fn exchange_code_for_token(
+    client_id: String,
+    client_secret: String,
+    code: String,
+) -> Result<AuthState, String> {
     if client_id.is_empty() || client_secret.is_empty() {
         return Err("Google Client ID or Secret not provided.".to_string());
     }
 
     let client = Client::new();
-    let res = client.post("https://oauth2.googleapis.com/token")
+    let res = client
+        .post("https://oauth2.googleapis.com/token")
         .form(&[
             ("client_id", client_id.as_str()),
             ("client_secret", client_secret.as_str()),
@@ -86,14 +92,20 @@ pub async fn exchange_code_for_token(client_id: String, client_secret: String, c
         .map_err(|e| e.to_string())?;
 
     let body: serde_json::Value = res.json().await.map_err(|e| e.to_string())?;
-    
+
     if let Some(err) = body.get("error") {
         return Err(format!("Token exchange failed: {}", err));
     }
 
     let auth_state = AuthState {
-        access_token: body.get("access_token").and_then(|v| v.as_str()).map(|s| s.to_string()),
-        refresh_token: body.get("refresh_token").and_then(|v| v.as_str()).map(|s| s.to_string()),
+        access_token: body
+            .get("access_token")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string()),
+        refresh_token: body
+            .get("refresh_token")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string()),
         expires_in: body.get("expires_in").and_then(|v| v.as_u64()),
     };
 
