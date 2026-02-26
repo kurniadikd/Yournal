@@ -148,7 +148,7 @@ const HalamanUtama: Component = () => {
       </div>
 
       {/* Floating Action Button */}
-      <div class="fixed bottom-6 right-6 z-40">
+      <div class="fixed right-6 z-40" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">
         <FAB 
           icon="add" 
           onClick={handleCreateNew} 

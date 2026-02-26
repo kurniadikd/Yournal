@@ -1,3 +1,27 @@
+/* --- Offline Font Imports --- */
+
+/* Material Symbols Rounded (icons) */
+@import 'material-symbols/rounded.css';
+
+/* Noto Sans */
+@import '@fontsource/noto-sans/300.css';
+@import '@fontsource/noto-sans/400.css';
+@import '@fontsource/noto-sans/600.css';
+@import '@fontsource/noto-sans/700.css';
+
+/* Noto Serif */
+@import '@fontsource/noto-serif/400.css';
+@import '@fontsource/noto-serif/700.css';
+
+/* Noto Sans Mono */
+@import '@fontsource/noto-sans-mono/400.css';
+@import '@fontsource/noto-sans-mono/700.css';
+
+/* Outfit */
+@import '@fontsource/outfit/300.css';
+@import '@fontsource/outfit/400.css';
+@import '@fontsource/outfit/600.css';
+
 /* Font family utility for emojis */
 .font-emoji {
   font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Android Emoji", "EmojiSymbols", "Symbola", sans-serif;

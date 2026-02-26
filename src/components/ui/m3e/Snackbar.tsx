@@ -1,4 +1,4 @@
-import { createSignal, Show, onMount, onCleanup } from "solid-js";
+import { Show, onMount, onCleanup } from "solid-js";
 import { Portal } from "solid-js/web";
 
 interface SnackbarProps {
@@ -32,7 +32,7 @@ export default function Snackbar(props: SnackbarProps) {
 
   return (
     <Portal>
-      <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] w-full max-w-[400px] px-4">
+      <div class="fixed left-1/2 -translate-x-1/2 z-[200] w-full max-w-[400px] px-4" style="bottom: calc(1rem + env(safe-area-inset-bottom, 0px))">
         <div 
           class="flex items-center justify-between gap-4 p-4 rounded-lg bg-[var(--color-inverse-surface)] text-[var(--color-inverse-on-surface)] shadow-lg animate-in slide-in-from-bottom-4 duration-300"
         >

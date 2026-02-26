@@ -2,6 +2,7 @@ import { createSignal, Show, createEffect, onCleanup, For } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
 import { invoke } from "@tauri-apps/api/core";
+import { NodeSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 // import Underline from "@tiptap/extension-underline";
@@ -327,7 +328,17 @@ export default function Editor(props: EditorProps) {
       setBaseHTML(currentEditor.getHTML());
     },
     onTransaction: () => setUpdateTrigger(v => v + 1),
-    onSelectionUpdate: () => setUpdateTrigger(v => v + 1),
+    onSelectionUpdate: ({ editor: ed }) => {
+      setUpdateTrigger(v => v + 1);
+      // Prevent keyboard from showing when a non-text node is selected (mobile)
+      const proseMirrorEl = ed.view.dom as HTMLElement;
+      const nonTextNodes = ['selectableImage', 'videoPlayer', 'mapAttachment', 'audioPlayer', 'inlineMath', 'mathBlock', 'linkCard'];
+      if (ed.state.selection instanceof NodeSelection && nonTextNodes.includes(ed.state.selection.node.type.name)) {
+        proseMirrorEl.setAttribute('inputmode', 'none');
+      } else {
+        proseMirrorEl.removeAttribute('inputmode');
+      }
+    },
     editorProps: {
       attributes: {
         class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',

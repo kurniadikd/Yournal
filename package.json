@@ -12,6 +12,10 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@fontsource/noto-sans": "^5.2.10",
+    "@fontsource/noto-sans-mono": "^5.2.10",
+    "@fontsource/noto-serif": "^5.2.9",
+    "@fontsource/outfit": "^5.2.8",
     "@material/material-color-utilities": "^0.4.0",
     "@shiguredo/lyra-wasm": "github:shiguredo/lyra-wasm",
     "@tailwindcss/typography": "^0.5.19",
@@ -48,6 +52,7 @@
     "daisyui": "^5.5.18",
     "katex": "^0.16.28",
     "maplibre-gl": "^5.18.0",
+    "material-symbols": "^0.40.2",
     "mathjs": "^15.1.1",
     "solid-js": "^1.9.3",
     "solid-tiptap": "^0.8.0"
