@@ -927,13 +927,15 @@ export default function Editor(props: EditorProps) {
               </Show>
             </div>
           </div>
+        </div>
 
-          {/* Row 2: Toolbar (Mobile: Bottom Fixed, Desktop: Top Static) */}
-          <div class="px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
-                      fixed sm:static bottom-0 left-0 right-0 z-[60]
-                      border-t sm:border-t-0 border-[var(--color-outline-variant)]/10
-                      shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:shadow-none
-                      pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-2">
+        {/* Row 2: Formatting Toolbar (Flex Ordered: Bottom on Mobile, Top on Desktop) */}
+        <div class="px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
+                    order-last sm:order-none
+                    border-t sm:border-y border-[var(--color-outline-variant)]/10
+                    shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:shadow-none
+                    pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-2
+                    z-40">
              <div class="flex items-center gap-1 min-w-max">
                 <ToolbarButton icon="undo" action={() => editor()?.chain().focus().undo().run()} title="Undo" disabled={!canUndo()} />
                 <ToolbarButton icon="redo" action={() => editor()?.chain().focus().redo().run()} title="Redo" disabled={!canRedo()} />
@@ -1141,11 +1143,7 @@ export default function Editor(props: EditorProps) {
           onClick={() => editor()?.commands.focus()}
         >
           <div 
-            class="max-w-4xl mx-auto px-6 min-h-full flex flex-col pb-24 sm:pb-12"
-            style={{ 
-              "padding-top": "1.5rem",
-              // Safe area padding is handled by CSS below along with the forced padding class
-            }}
+            class="max-w-4xl mx-auto px-6 py-12 min-h-full flex flex-col"
             onClick={(e) => e.stopPropagation()} 
           >
             
