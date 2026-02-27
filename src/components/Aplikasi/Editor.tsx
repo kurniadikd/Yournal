@@ -1060,7 +1060,7 @@ export default function Editor(props: EditorProps) {
           <div 
             class="max-w-4xl mx-auto px-6 pb-12 min-h-full flex flex-col"
             style={{ 
-              "padding-top": "calc(8rem + env(safe-area-inset-top, 0px))",
+              "padding-top": "1.5rem",
               "padding-bottom": "env(safe-area-inset-bottom, 2rem)" 
             }}
             onClick={(e) => e.stopPropagation()} 
