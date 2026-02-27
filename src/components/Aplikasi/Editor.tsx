@@ -98,6 +98,11 @@ export default function Editor(props: EditorProps) {
   const [weather, setWeather] = createSignal<{ temp: number; code: number; desc: string } | null>(null);
   const [tags, setTags] = createSignal<string[]>(props.initialTags || []);
   const [tagInput, setTagInput] = createSignal("");
+
+  // States for viewport fixes
+  const [viewportTop, setViewportTop] = createSignal(0);
+  const [isKeyboardOpen, setIsKeyboardOpen] = createSignal(false);
+  const [dynamicHeight, setDynamicHeight] = createSignal("100dvh");
   
   const [showDatePicker, setShowDatePicker] = createSignal(false);
   const [showTimePicker, setShowTimePicker] = createSignal(false);
@@ -530,6 +535,43 @@ export default function Editor(props: EditorProps) {
     }
   });
 
+  // Focus Management & Viewport Tracking
+  createEffect(() => {
+    if (editor() && shouldRenderEditor() && isEditorVisible()) {
+      
+      const vfix = () => {
+        if (!window.visualViewport) {
+          setDynamicHeight(`${window.innerHeight}px`);
+          return;
+        }
+        
+        // Update top offset for Safari panning
+        setViewportTop(window.visualViewport.offsetTop);
+        
+        // Update dynamic height to exactly match visible viewport
+        setDynamicHeight(`${window.visualViewport.height}px`);
+        
+        // Detect keyboard open (height is significantly smaller than usual)
+        // A typical keyboard takes up > 25% of screen height
+        const isKeyboard = window.visualViewport.height < window.innerHeight * 0.75;
+        setIsKeyboardOpen(isKeyboard);
+      };
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", vfix);
+        window.visualViewport.addEventListener("scroll", vfix);
+        vfix(); // Init
+      }
+      
+      onCleanup(() => {
+        if (window.visualViewport) {
+          window.visualViewport.removeEventListener("resize", vfix);
+          window.visualViewport.removeEventListener("scroll", vfix);
+        }
+      });
+    }
+  });
+
   // Handle custom preview-image event from SelectableImage extension
   createEffect(() => {
     const el = container();
@@ -866,11 +908,14 @@ export default function Editor(props: EditorProps) {
   return (
     <Show when={shouldRenderEditor()}>
       <div class={`
-        fixed top-0 left-0 w-full z-50 bg-[var(--color-background)] flex flex-col overflow-hidden
-        transition-all duration-300 ease-out
+        fixed left-0 w-full z-50 bg-[var(--color-background)] flex flex-col overflow-hidden
+        transition-[opacity,transform] duration-300 ease-out
         ${isEditorVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
       `}
-      style={{ height: "var(--app-height, 100dvh)" }}
+      style={{ 
+        height: dynamicHeight(),
+        top: `${viewportTop()}px`
+      }}
       >
         
         {/* --- 1. STICKY HEADER & TOOLBAR --- */}
@@ -932,12 +977,12 @@ export default function Editor(props: EditorProps) {
         </div>
 
         {/* Row 2: Formatting Toolbar (Flex Ordered: Bottom on Mobile, Top on Desktop) */}
-        <div class="shrink-0 px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
+        <div class={`shrink-0 px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
                     order-last sm:order-none
                     border-t sm:border-y border-[var(--color-outline-variant)]/10
                     shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:shadow-none
-                    pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-2
-                    z-40">
+                    ${isKeyboardOpen() ? 'pb-2' : 'pb-[max(8px,env(safe-area-inset-bottom))]'} sm:pb-2
+                    z-40`}>
              <div class="flex items-center gap-1 min-w-max">
                 <ToolbarButton icon="undo" action={() => editor()?.chain().focus().undo().run()} title="Undo" disabled={!canUndo()} />
                 <ToolbarButton icon="redo" action={() => editor()?.chain().focus().redo().run()} title="Redo" disabled={!canRedo()} />
