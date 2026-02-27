@@ -1,3 +1,7 @@
+/* 
+  Tailwind v4 directives: @plugin and @utility are standard in v4. 
+  If your IDE shows warnings, it's a false positive from the CSS linter.
+*/
 @import "tailwindcss";
 @plugin "daisyui";
 @plugin "@tailwindcss/typography";

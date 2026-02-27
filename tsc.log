@@ -1,0 +1,301 @@
+src/components/Aplikasi/editor/TableGrid.tsx(1,29): error TS6133: 'Show' is declared but its value is never read.
+src/components/Aplikasi/extensions/AudioPlayerComponent.tsx(138,23): error TS6133: 'e' is declared but its value is never read.
+src/components/Aplikasi/extensions/LinkCard.ts(49,3): error TS2322: Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: (() => Partial<RawCommands>) | undefined; }) => { setLinkCard: (attributes: any) => ({ commands }: { ...; }) => any; }' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: (() => Partial<RawCommands>) | undefined; }) => Partial<RawCommands>'.
+  Type '{ setLinkCard: (attributes: any) => ({ commands }: { commands: any; }) => any; }' has no properties in common with type 'Partial<RawCommands>'.
+src/components/Aplikasi/extensions/LinkCard.ts(51,21): error TS7006: Parameter 'attributes' implicitly has an 'any' type.
+src/components/Aplikasi/extensions/LinkCard.ts(51,39): error TS7031: Binding element 'commands' implicitly has an 'any' type.
+src/components/Aplikasi/extensions/MapAttachment.ts(48,3): error TS2322: Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: (() => Partial<RawCommands>) | undefined; }) => { insertMapAttachment: (attributes: any) => ({ commands }: { ...; }) => any; }' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: (() => Partial<RawCommands>) | undefined; }) => Partial<RawCommands>'.
+  Type '{ insertMapAttachment: (attributes: any) => ({ commands }: { commands: any; }) => any; }' has no properties in common with type 'Partial<RawCommands>'.
+src/components/Aplikasi/extensions/MapAttachment.ts(50,29): error TS7006: Parameter 'attributes' implicitly has an 'any' type.
+src/components/Aplikasi/extensions/MapAttachment.ts(50,47): error TS7031: Binding element 'commands' implicitly has an 'any' type.
+src/components/Aplikasi/extensions/Table.ts(7,3): error TS2322: Type '(this: { name: string; parent: (() => TableOptions) | undefined; }) => { resizable: true; HTMLAttributes: { class: string; }; renderWrapper?: boolean | undefined; handleWidth?: number | undefined; cellMinWidth?: number | undefined; View?: (new (node: Node, cellMinWidth: number, view: EditorView) => NodeView) | ... 1...' is not assignable to type '(this: { name: string; parent: (() => TableOptions) | undefined; }) => TableOptions'.
+  Call signature return types '{ resizable: true; HTMLAttributes: { class: string; }; renderWrapper?: boolean | undefined; handleWidth?: number | undefined; cellMinWidth?: number | undefined; View?: (new (node: Node, cellMinWidth: number, view: EditorView) => NodeView) | null | undefined; lastColumnResizable?: boolean | undefined; allowTableNodeS...' and 'TableOptions' are incompatible.
+    The types of 'renderWrapper' are incompatible between these types.
+      Type 'boolean | undefined' is not assignable to type 'boolean'.
+        Type 'undefined' is not assignable to type 'boolean'.
+src/components/Aplikasi/HalamanUtama.tsx(8,1): error TS6133: 'PetaDunia' is declared but its value is never read.
+src/components/Aplikasi/Pengaturan.tsx(1,1): error TS6133: 'Show' is declared but its value is never read.
+src/components/Aplikasi/Pengaturan.tsx(3,1): error TS6133: 'Switch' is declared but its value is never read.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/extensions/preview.ts(1,37): error TS2307: Cannot find module 'vuetify-pro-tiptap' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/extensions/preview.ts(4,33): error TS2307: Cannot find module '../components/PreviewActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/extensions/preview.ts(6,13): error TS2456: Type alias 'PreviewOptions' circularly references itself.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/extensions/preview.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/main.ts(1,27): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/main.ts(3,31): error TS2307: Cannot find module 'vuetify' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/main.ts(4,17): error TS2307: Cannot find module './App.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/tiptap.ts(1,25): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/tiptap.ts(35,8): error TS2307: Cannot find module 'vuetify-pro-tiptap' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/tiptap.ts(36,32): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/tiptap.ts(37,24): error TS2307: Cannot find module './components/LinkDialog.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/tiptap.ts(39,25): error TS2307: Cannot find module './components/SelectImage.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/examples/tiptap.ts(65,29): error TS7006: Parameter 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/constants/define.ts(1,35): error TS2307: Cannot find module '@/extensions/components/bubble' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/constants/icons.ts(67,8): error TS2307: Cannot find module '@mdi/js' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/constants/xss-rules.ts(1,33): error TS2307: Cannot find module 'xss' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/base-kit.ts(19,32): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/blockquote.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/blockquote.ts(17,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/blockquote.ts(17,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/bold.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/bold.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/bold.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/bullet-list.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/bullet-list.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/bullet-list.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/clear.ts(1,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/clear.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/clear.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/code-block.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/code-block.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/code-block.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/code.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/code.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/code.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/color.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/color.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/color.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(1,51): error TS2307: Cannot find module './exts/BlockquoteActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(2,45): error TS2307: Cannot find module './exts/BoldActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(3,51): error TS2307: Cannot find module './exts/BulletListActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(4,46): error TS2307: Cannot find module './exts/ClearActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(5,45): error TS2307: Cannot find module './exts/CodeActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(6,50): error TS2307: Cannot find module './exts/CodeBlockActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(7,46): error TS2307: Cannot find module './exts/ColorActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(8,51): error TS2307: Cannot find module './exts/FullscreenActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(9,50): error TS2307: Cannot find module './exts/HighlightActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(10,48): error TS2307: Cannot find module './exts/HistoryActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(11,55): error TS2307: Cannot find module './exts/HorizontalRuleActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(12,46): error TS2307: Cannot find module './exts/ImageActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(13,47): error TS2307: Cannot find module './exts/IndentActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(14,47): error TS2307: Cannot find module './exts/ItalicActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(15,45): error TS2307: Cannot find module './exts/LinkActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(16,52): error TS2307: Cannot find module './exts/OrderedListActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(17,47): error TS2307: Cannot find module './exts/StrikeActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(18,50): error TS2307: Cannot find module './exts/SubscriptActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(19,46): error TS2307: Cannot find module './exts/TableActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(20,49): error TS2307: Cannot find module './exts/TaskListActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(21,50): error TS2307: Cannot find module './exts/UnderlineActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(22,46): error TS2307: Cannot find module './exts/VideoActionButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/index.ts(24,41): error TS2307: Cannot find module './src/index.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/src/props.ts(1,29): error TS2307: Cannot find module '@tiptap/vue-3' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/src/props.ts(2,31): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/src/props.ts(3,35): error TS2307: Cannot find module '@/constants/icons' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionButton/src/props.ts(4,53): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/index.ts(1,55): error TS2307: Cannot find module './exts/FontFamilyActionMenuButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/index.ts(2,53): error TS2307: Cannot find module './exts/FontSizeActionMenuButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/index.ts(3,52): error TS2307: Cannot find module './exts/HeadingActionMenuButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/index.ts(4,58): error TS2307: Cannot find module './exts/MarkdownThemeActionMenuButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/index.ts(5,54): error TS2307: Cannot find module './exts/TextAlignActionMenuButton.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/index.ts(7,45): error TS2307: Cannot find module './src/index.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/src/props.ts(3,31): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/src/props.ts(6,57): error TS2307: Cannot find module '@/extensions/components/ActionButton' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/src/props.ts(7,22): error TS2307: Cannot find module '@/utils/utils' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/src/types.ts(1,33): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/src/types.ts(2,35): error TS2307: Cannot find module '@/constants/icons' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/ActionMenuButton/src/types.ts(4,53): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(1,29): error TS2307: Cannot find module '@tiptap/vue-3' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(4,76): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(7,40): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(8,26): error TS2307: Cannot find module '@/utils/utils' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(137,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(147,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(157,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(167,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(177,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(187,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(197,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(207,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(226,7): error TS2322: Type 'BubbleMenuItem | { type: string; component: any; componentProps: { tooltip: string; icon: string; action: () => void; isActive: () => any; }; } | { type: string; component: any; componentProps: { ...; }; } | { ...; } | { ...; }' is not assignable to type 'BubbleMenuItem'.
+  Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(226,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(242,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(255,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(269,7): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(290,110): error TS6133: 'extension' is declared but its value is never read.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(310,11): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(320,11): error TS2353: Object literal may only specify known properties, and 'componentProps' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(321,21): error TS2339: Property 'componentProps' does not exist on type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(322,27): error TS2339: Property 'componentProps' does not exist on type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(322,59): error TS2339: Property 'componentProps' does not exist on type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(324,32): error TS2339: Property 'componentSlots' does not exist on type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(329,39): error TS7006: Parameter 'k' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/components/bubble.ts(336,11): error TS2353: Object literal may only specify known properties, and 'component' does not exist in type 'BubbleMenuItem'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-family.ts(2,38): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-family.ts(4,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-family.ts(7,42): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-family.ts(27,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-family.ts(27,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-family.ts(27,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-size.ts(1,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-size.ts(5,40): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-size.ts(6,39): error TS2307: Cannot find module '@/utils/utils' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-size.ts(45,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-size.ts(45,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/font-size.ts(45,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/fullscreen.ts(1,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/fullscreen.ts(25,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/fullscreen.ts(25,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/fullscreen.ts(25,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/heading.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/heading.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/heading.ts(14,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/heading.ts(14,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/highlight.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/highlight.ts(15,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/highlight.ts(15,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/history.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/history.ts(15,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/history.ts(15,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/horizontal-rule.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/horizontal-rule.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/horizontal-rule.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(3,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(6,37): error TS2307: Cannot find module '@tiptap/vue-3' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(7,28): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(10,25): error TS2307: Cannot find module './components/image/ImageDialog.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(11,23): error TS2307: Cannot find module './components/image/ImageView.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(119,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(119,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/image.ts(119,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/indent.ts(1,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/indent.ts(15,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/indent.ts(15,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/italic.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/italic.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/italic.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/link.ts(3,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/link.ts(10,24): error TS2307: Cannot find module './components/link/LinkDialog.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/link.ts(26,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/link.ts(26,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/link.ts(26,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/markdown-theme.ts(1,41): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/markdown-theme.ts(3,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/markdown-theme.ts(6,45): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/markdown-theme.ts(28,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/markdown-theme.ts(28,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/markdown-theme.ts(28,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/ordered-list.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/ordered-list.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/ordered-list.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/strike.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/strike.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/strike.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/subscript.ts(4,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/subscript.ts(36,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/subscript.ts(36,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/subscript.ts(36,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/table.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/table.ts(27,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/table.ts(27,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/task-list.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/task-list.ts(27,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/task-list.ts(27,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/text-align.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/text-align.ts(28,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/text-align.ts(28,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/text-align.ts(28,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/underline.ts(2,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/underline.ts(14,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/underline.ts(14,26): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/video.ts(1,37): error TS2307: Cannot find module '@/type' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/video.ts(4,28): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/video.ts(6,39): error TS2307: Cannot find module '@/utils/utils' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/video.ts(8,25): error TS2307: Cannot find module './components/video/VideoDialog.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/video.ts(185,18): error TS7031: Binding element 'editor' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/video.ts(185,26): error TS7031: Binding element 'extension' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/extensions/video.ts(185,37): error TS7031: Binding element 't' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-context.ts(2,26): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-markdown-theme.ts(1,34): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-markdown-theme.ts(2,40): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-markdown-theme.ts(4,46): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-markdown-theme.ts(6,37): error TS2307: Cannot find module '@/utils/utils' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-markdown-theme.ts(34,24): error TS7006: Parameter 'val' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-markdown-theme.ts(36,17): error TS7006: Parameter 'val' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-store.ts(2,38): error TS2307: Cannot find module '@vueuse/core' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-store.ts(3,49): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/hooks/use-store.ts(5,66): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/index.ts(1,42): error TS2307: Cannot find module './components/VuetifyTiptap.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/index.ts(2,42): error TS2307: Cannot find module './components/VuetifyViewer.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/index.ts(12,16): error TS2664: Invalid module name in augmentation, module 'vue' cannot be found.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/index.ts(14,34): error TS2307: Cannot find module './components/VuetifyTiptap.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/index.ts(15,34): error TS2307: Cannot find module './components/VuetifyViewer.vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/install.ts(2,34): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/locales/index.ts(1,32): error TS2307: Cannot find module '@/utils/mitt' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/locales/index.ts(3,51): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/locales/index.ts(4,36): error TS2307: Cannot find module '@/constants/define' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/locales/index.ts(5,20): error TS2307: Cannot find module '@/utils/logger' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/locales/index.ts(6,18): error TS2307: Cannot find module '@/utils/mitt' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/locales/index.ts(230,16): error TS7006: Parameter 'onCleanup' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/type.ts(2,29): error TS2307: Cannot find module '@tiptap/vue-3' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/src/utils/utils.ts(90,55): error TS2307: Cannot find module 'es-toolkit/compat' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite-example.config.ts(7,25): error TS2307: Cannot find module 'node:path' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite-example.config.ts(9,17): error TS2307: Cannot find module '@vitejs/plugin-vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite-example.config.ts(10,34): error TS2307: Cannot find module 'unplugin-vue-components/resolvers' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite-example.config.ts(11,24): error TS2307: Cannot find module 'unplugin-vue-components/vite' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite-example.config.ts(27,20): error TS2304: Cannot find name '__dirname'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(2,16): error TS2307: Cannot find module 'node:fs' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(4,25): error TS2307: Cannot find module 'node:path' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(5,17): error TS2307: Cannot find module '@vitejs/plugin-vue' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(6,28): error TS2307: Cannot find module 'rollup-plugin-pure' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(7,23): error TS2307: Cannot find module 'sass' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(8,34): error TS2307: Cannot find module 'unplugin-vue-components/resolvers' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(9,24): error TS2307: Cannot find module 'unplugin-vue-components/vite' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(11,17): error TS2307: Cannot find module 'vite-plugin-dts' or its corresponding type declarations.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(35,35): error TS2304: Cannot find name '__dirname'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(39,38): error TS2304: Cannot find name '__dirname'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(41,19): error TS7006: Parameter 'file' implicitly has an 'any' type.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(72,20): error TS2304: Cannot find name '__dirname'.
+src/components/Aplikasi/vuetify-pro-tiptap-2.8.2/vite.config.ts(78,22): error TS2304: Cannot find name '__dirname'.
+src/components/ui/m3e/BottomSheet.tsx(1,21): error TS6133: 'createSignal' is declared but its value is never read.
+src/components/ui/m3e/BottomSheet.tsx(1,35): error TS6133: 'onMount' is declared but its value is never read.
+src/components/ui/m3e/Card.tsx(36,8): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Card.tsx(38,9): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Carousel.tsx(1,20): error TS6133: 'createSignal' is declared but its value is never read.
+src/components/ui/m3e/Carousel.tsx(58,14): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Carousel.tsx(64,15): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Carousel.tsx(66,14): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Carousel.tsx(70,15): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Carousel.tsx(73,14): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Carousel.tsx(77,15): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Checkbox.tsx(1,16): error TS6133: 'createSignal' is declared but its value is never read.
+src/components/ui/m3e/Chip.tsx(23,9): error TS6133: 'variantClasses' is declared but its value is never read.
+src/components/ui/m3e/Divider.tsx(1,1): error TS6133: 'JSX' is declared but its value is never read.
+src/components/ui/m3e/Input.tsx(59,58): error TS2349: This expression is not callable.
+  Not all constituents of type 'FocusEventHandlerUnion<HTMLInputElement, FocusEvent>' are callable.
+    Type 'BoundEventHandler<HTMLInputElement, FocusEvent, FocusEventHandler<HTMLInputElement, FocusEvent>>' has no call signatures.
+src/components/ui/m3e/Input.tsx(60,58): error TS2349: This expression is not callable.
+  Not all constituents of type 'FocusEventHandlerUnion<HTMLInputElement, FocusEvent>' are callable.
+    Type 'BoundEventHandler<HTMLInputElement, FocusEvent, FocusEventHandler<HTMLInputElement, FocusEvent>>' has no call signatures.
+src/components/ui/m3e/LocationModal.tsx(62,31): error TS7053: Element implicitly has an 'any' type because expression of type '"source-layer"' can't be used to index type 'LayerSpecification'.
+  Property 'source-layer' does not exist on type 'LayerSpecification'.
+src/components/ui/m3e/LocationModal.tsx(315,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { when: boolean | null | undefined; keyed?: false | undefined; fallback?: Element; children: Element | ((item: Accessor<true>) => Element); }): Element', gave the following error.
+    Type '{ when: boolean; }' is not assignable to type 'IntrinsicAttributes & { when: boolean | null | undefined; keyed?: false | undefined; fallback?: Element; children: Element | ((item: Accessor<true>) => Element); }'.
+      Property 'children' is missing in type '{ when: boolean; }' but required in type '{ when: boolean | null | undefined; keyed?: false | undefined; fallback?: Element; children: Element | ((item: Accessor<true>) => Element); }'.
+  Overload 2 of 2, '(props: { when: boolean | null | undefined; keyed: true; fallback?: Element; children: Element | ((item: true) => Element); }): Element', gave the following error.
+    Type '{ when: boolean; }' is not assignable to type 'IntrinsicAttributes & { when: boolean | null | undefined; keyed: true; fallback?: Element; children: Element | ((item: true) => Element); }'.
+      Type '{ when: boolean; }' is missing the following properties from type '{ when: boolean | null | undefined; keyed: true; fallback?: Element; children: Element | ((item: true) => Element); }': keyed, children
+src/components/ui/m3e/RadioButton.tsx(1,1): error TS6133: 'Show' is declared but its value is never read.
+src/components/ui/m3e/Slider.tsx(1,36): error TS6133: 'onMount' is declared but its value is never read.
+src/components/ui/m3e/Slider.tsx(1,45): error TS6133: 'onCleanup' is declared but its value is never read.
+src/components/ui/m3e/Slider.tsx(95,24): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+src/components/ui/m3e/Slider.tsx(102,95): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+src/components/ui/m3e/Slider.tsx(102,128): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+src/components/ui/m3e/Slider.tsx(105,10): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Slider.tsx(110,11): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Slider.tsx(118,21): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+src/components/ui/m3e/Slider.tsx(122,10): error TS2304: Cannot find name 'Show'.
+src/components/ui/m3e/Slider.tsx(127,32): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+src/components/ui/m3e/Slider.tsx(132,116): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ small: { track: string; handle: string; thumb: string; radius: string; }; medium: { track: string; handle: string; thumb: string; radius: string; }; large: { track: string; handle: string; thumb: string; radius: string; }; "extra-large": { ...; }; }'.
+src/components/ui/m3e/Slider.tsx(134,11): error TS2304: Cannot find name 'Show'.
+src/utils/latexEvaluator.ts(9,7): error TS6133: 'LATEX_COMMANDS' is declared but its value is never read.
+src/utils/latexEvaluator.ts(125,32): error TS6133: 'v' is declared but its value is never read.
+src/utils/latexEvaluator.ts(143,10): error TS6133: 'isAfterIntegral' is declared but its value is never read.
+src/utils/latexEvaluator.ts(196,7): error TS6133: 'fracMatch' is declared but its value is never read.
+src/utils/latexEvaluator.ts(304,11): error TS6133: 'safePattern' is declared but its value is never read.

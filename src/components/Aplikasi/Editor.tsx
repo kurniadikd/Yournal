@@ -866,14 +866,16 @@ export default function Editor(props: EditorProps) {
   return (
     <Show when={shouldRenderEditor()}>
       <div class={`
-        fixed inset-0 z-50 bg-[var(--color-background)] flex flex-col overflow-hidden
+        fixed top-0 left-0 w-full z-50 bg-[var(--color-background)] flex flex-col overflow-hidden
         transition-all duration-300 ease-out
         ${isEditorVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
-      `}>
+      `}
+      style={{ height: "var(--app-height, 100dvh)" }}
+      >
         
         {/* --- 1. STICKY HEADER & TOOLBAR --- */}
         <div 
-          class="sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10"
+          class="shrink-0 sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10"
           style={{ "padding-top": "env(safe-area-inset-top, 0px)" }}
         >
           
@@ -930,7 +932,7 @@ export default function Editor(props: EditorProps) {
         </div>
 
         {/* Row 2: Formatting Toolbar (Flex Ordered: Bottom on Mobile, Top on Desktop) */}
-        <div class="px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
+        <div class="shrink-0 px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
                     order-last sm:order-none
                     border-t sm:border-y border-[var(--color-outline-variant)]/10
                     shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:shadow-none

@@ -5,31 +5,6 @@
  * mathematical expressions with user-provided variable values.
  */
 
-// Known LaTeX commands/constants that should NOT be treated as variables
-const LATEX_COMMANDS = new Set([
-  'frac', 'sqrt', 'sum', 'prod', 'int', 'lim', 'log', 'ln', 'exp',
-  'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
-  'arcsin', 'arccos', 'arctan',
-  'sinh', 'cosh', 'tanh',
-  'text', 'mathrm', 'mathbf', 'mathit', 'vec', 'hat', 'bar', 'dot',
-  'left', 'right', 'big', 'Big', 'bigg', 'Bigg',
-  'begin', 'end', 'pmatrix', 'bmatrix', 'vmatrix',
-  'cdot', 'cdots', 'ldots', 'times', 'div', 'pm', 'mp',
-  'leq', 'geq', 'neq', 'approx', 'equiv', 'sim',
-  'infty', 'partial', 'nabla', 'forall', 'exists',
-  'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta',
-  'theta', 'iota', 'kappa', 'lambda', 'mu', 'nu', 'xi',
-  'omicron', 'rho', 'sigma', 'tau', 'upsilon',
-  'phi', 'chi', 'psi', 'omega',
-  'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta',
-  'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi',
-  'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon',
-  'Phi', 'Chi', 'Psi', 'Omega',
-  'hbar', 'ell',
-  'to', 'rightarrow', 'leftarrow', 'Rightarrow', 'Leftarrow',
-  'quad', 'qquad', 'space',
-]);
-
 // Greek letters that CAN be variables (commonly used as physics/math vars)
 const GREEK_VARIABLES = new Set([
   'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta',
@@ -121,12 +96,6 @@ export function extractVariables(latex: string): string[] {
     variables.delete('\\' + c);
   }
 
-  // Common physics/math constants and non-variables
-  ['d', 'f', 'g', 'h'].forEach(v => {
-    // These are often functions (f(x)) or constants (g = 9.8)
-    // For now, keep them but they might be tricky
-  });
-  
   variables.delete('d'); // usually differential
 
   // Don't include the target variable (LHS) in the required inputs
@@ -138,11 +107,6 @@ export function extractVariables(latex: string): string[] {
   }
 
   return Array.from(variables).sort();
-}
-
-function isAfterIntegral(latex: string, pos: number): boolean {
-  const before = latex.substring(Math.max(0, pos - 10), pos);
-  return /\\int|\\,/.test(before);
 }
 
 /**
@@ -193,9 +157,8 @@ export function latexToJS(latex: string): string {
 
   // 7. Handle Fractions recursively
   const fracPattern = /\\frac\{([^{}]+)\}\{([^{}]+)\}/;
-  let fracMatch;
   let iterations = 0;
-  while ((fracMatch = js.match(fracPattern)) && iterations < 10) {
+  while (fracPattern.test(js) && iterations < 10) {
     js = js.replace(fracPattern, '(($1)/($2))');
     iterations++;
   }
@@ -301,7 +264,6 @@ export function evaluateLatex(
     }
 
     // Safety check: only allow math operations
-    const safePattern = /^[0-9+\-*/().,%\s]*$|Math\./;
     // Remove Math.xxx calls for safety check
     const stripped = jsExpr.replace(/Math\.\w+/g, '').replace(/[0-9+\-*/().,%\s]/g, '');
     if (stripped.length > 0) {
