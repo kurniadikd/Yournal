@@ -364,7 +364,7 @@ export default function Editor(props: EditorProps) {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
+        class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
       },
       handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
