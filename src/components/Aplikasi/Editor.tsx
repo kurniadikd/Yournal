@@ -1132,8 +1132,7 @@ export default function Editor(props: EditorProps) {
                         </div>
                     </div>
                 </Popover>
-             </div>
-          </div>
+           </div>
         </div>
 
         {/* --- 2. MAIN SCROLLABLE AREA --- */}

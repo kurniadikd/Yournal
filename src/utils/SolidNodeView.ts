@@ -1,4 +1,6 @@
 import { NodeView, Editor, NodeViewRendererProps } from '@tiptap/core';
+import { Node } from '@tiptap/pm/model';
+import { Decoration, DecorationSource } from '@tiptap/pm/view';
 import { Component, createComponent, createSignal } from 'solid-js';
 import { render } from 'solid-js/web';
 
@@ -6,7 +8,7 @@ export interface SolidNodeViewProps {
   component: Component<any>;
 }
 
-export class SolidNodeView implements NodeView {
+export class SolidNodeView implements NodeView<any, any, any> {
   component: Component<any>;
   editor: Editor;
   extension: any;
@@ -85,7 +87,7 @@ export class SolidNodeView implements NodeView {
     this.contentDOM = null;
   }
 
-  update(node: any, decorations: any[]): boolean {
+  update(node: Node, decorations: readonly Decoration[], innerDecorations: DecorationSource): boolean {
     if (node.type !== this.nodeSignal().type) {
       return false;
     }
