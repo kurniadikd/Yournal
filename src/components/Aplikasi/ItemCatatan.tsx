@@ -55,7 +55,8 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
                 src={src} 
                 alt="Catatan Gambar" 
                 class="w-16 h-16 rounded-xl object-cover shrink-0 border border-[var(--color-outline-variant)]/50 bg-[var(--color-surface-container)]"
-                loading="lazy"
+                width="64"
+                height="64"
               />
             )}
           </For>
@@ -82,9 +83,9 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
         <Show when={weather()}>
             <span class="flex items-center gap-1" title={weather()?.desc}>
               <span class="material-symbols-rounded text-[18px]">
-                {getWeatherDescription(weather()!.code).icon}
+                {getWeatherDescription(weather()?.code ?? 0).icon}
               </span>
-              {weather()?.temp}°C
+              {weather()?.temp ?? '--'}°C
             </span>
         </Show>
       </div>

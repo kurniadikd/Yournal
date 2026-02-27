@@ -104,9 +104,9 @@ export const themeStyles = [
 ];
 
 export const availableFonts = [
-  { name: 'Noto Sans', family: "'Noto Sans', sans-serif" },
-  { name: 'Noto Sans Mono', family: "'Noto Sans Mono', monospace" },
-  { name: 'Serif', family: "'Noto Serif', serif" },
+  { name: 'Noto Sans', family: "'Noto Sans', 'Noto Color Emoji', sans-serif" },
+  { name: 'Noto Sans Mono', family: "'Noto Sans Mono', 'Noto Color Emoji', monospace" },
+  { name: 'Serif', family: "'Noto Serif', 'Noto Color Emoji', serif" },
 ];
 
 export const themeStore = {

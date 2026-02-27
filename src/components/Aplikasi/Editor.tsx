@@ -1,4 +1,4 @@
-import { createSignal, Show, createEffect, onCleanup, For } from "solid-js";
+import { createSignal, Show, createEffect, on, onCleanup, For } from "solid-js";
 import { createTiptapEditor } from "solid-tiptap";
 import { Portal } from "solid-js/web";
 import { NodeSelection } from "@tiptap/pm/state";
@@ -141,7 +141,10 @@ export default function Editor(props: EditorProps) {
     setTagInput("");
     setMood("");
     setBaseHTML("");
-    editor()?.commands.clearContent();
+    const ed = editor();
+    if (ed && !ed.isDestroyed) {
+      ed.commands.clearContent();
+    }
   };
 
   const handleSave = () => {
@@ -328,16 +331,30 @@ export default function Editor(props: EditorProps) {
       migrateMathStrings(currentEditor);
       setBaseHTML(currentEditor.getHTML());
     },
-    onTransaction: () => setUpdateTrigger(v => v + 1),
+    onTransaction: () => {
+      const ed = editor();
+      if (ed && !ed.isDestroyed) {
+        setUpdateTrigger(v => v + 1);
+      }
+    },
     onSelectionUpdate: ({ editor: ed }) => {
+      if (ed.isDestroyed) return;
+      
       setUpdateTrigger(v => v + 1);
+      
       // Prevent keyboard from showing when a non-text node is selected (mobile)
-      const proseMirrorEl = ed.view.dom as HTMLElement;
-      const nonTextNodes = ['selectableImage', 'videoPlayer', 'mapAttachment', 'audioPlayer', 'inlineMath', 'mathBlock', 'linkCard'];
-      if (ed.state.selection instanceof NodeSelection && nonTextNodes.includes(ed.state.selection.node.type.name)) {
-        proseMirrorEl.setAttribute('inputmode', 'none');
-      } else {
-        proseMirrorEl.removeAttribute('inputmode');
+      try {
+        const proseMirrorEl = ed.view?.dom as HTMLElement;
+        if (!proseMirrorEl) return;
+
+        const nonTextNodes = ['selectableImage', 'videoPlayer', 'mapAttachment', 'audioPlayer', 'inlineMath', 'mathBlock', 'linkCard'];
+        if (ed.state.selection instanceof NodeSelection && nonTextNodes.includes(ed.state.selection.node.type.name)) {
+          proseMirrorEl.setAttribute('inputmode', 'none');
+        } else {
+          proseMirrorEl.removeAttribute('inputmode');
+        }
+      } catch (e) {
+        // Safe fallback if view is still inaccessible
       }
     },
     editorProps: {
@@ -763,12 +780,33 @@ export default function Editor(props: EditorProps) {
     }
   };
 
-  // Transition effect for editor open/close
-  createEffect(() => {
-    if (props.show) {
+  // Unified editor lifecycle effect.
+  // Uses `on()` to ONLY track `props.show` — no other reactive deps.
+  // When props.show becomes true: animate in + load content.
+  // When props.show becomes false: animate out + reset state.
+  createEffect(on(() => props.show, (show) => {
+    if (show) {
+      // --- OPEN ---
       if (editorTransitionTimer) clearTimeout(editorTransitionTimer);
       setShouldRenderEditor(true);
       requestAnimationFrame(() => requestAnimationFrame(() => setIsEditorVisible(true)));
+
+      // Load data into editor after a short delay to ensure Tiptap is mounted.
+      // Props are read imperatively here (not tracked) — intentional.
+      setTimeout(() => {
+        const ed = editor();
+        if (!ed || ed.isDestroyed) {
+          console.warn("Editor: Tiptap not ready after open, retrying...");
+          // Retry once more after another tick
+          setTimeout(() => {
+            const ed2 = editor();
+            if (!ed2 || ed2.isDestroyed) return;
+            loadPropsIntoEditor(ed2);
+          }, 100);
+          return;
+        }
+        loadPropsIntoEditor(ed);
+      }, 30);
 
       // Android Back Button Handler
       const handler = () => {
@@ -778,11 +816,52 @@ export default function Editor(props: EditorProps) {
       appStore.pushBackHandler(handler);
       onCleanup(() => appStore.popBackHandler(handler));
     } else {
+      // --- CLOSE ---
       setIsEditorVisible(false);
-      resetEditorState(); // Reset data fully to prevent stale content leaks
+      resetEditorState();
       editorTransitionTimer = setTimeout(() => setShouldRenderEditor(false), 300);
     }
-  });
+  }));
+
+  // Helper: Load all props into the editor imperatively (no reactivity).
+  const loadPropsIntoEditor = (ed: any) => {
+    console.log("Editor: Loading props →", {
+      title: props.initialTitle,
+      hasContent: !!props.initialContent,
+      mood: props.initialMood,
+    });
+
+    setTitle(props.initialTitle || "");
+
+    if (props.initialContent) {
+      ed.commands.setContent(props.initialContent);
+    } else {
+      ed.commands.clearContent();
+    }
+
+    setMood(props.initialMood || "");
+    setEntryDate(props.initialDate || new Date());
+
+    let loc = null;
+    if (props.initialLocation) {
+      try { loc = typeof props.initialLocation === 'string' ? JSON.parse(props.initialLocation) : props.initialLocation; } catch(e) {}
+    }
+    setLocation(loc);
+
+    let w = null;
+    if (props.initialWeather) {
+      try { w = typeof props.initialWeather === 'string' ? JSON.parse(props.initialWeather) : props.initialWeather; } catch(e) {}
+    }
+    setWeather(w);
+
+    setTags(props.initialTags || []);
+    setBaseHTML(props.initialContent || "");
+
+    // Focus the editor
+    setTimeout(() => {
+      if (!ed.isDestroyed) ed.commands.focus('start');
+    }, 50);
+  };
 
   return (
     <Show when={shouldRenderEditor()}>
@@ -849,8 +928,12 @@ export default function Editor(props: EditorProps) {
             </div>
           </div>
 
-          {/* Row 2: Toolbar (Bottom) */}
-          <div class="px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)]">
+          {/* Row 2: Toolbar (Mobile: Bottom Fixed, Desktop: Top Static) */}
+          <div class="px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
+                      fixed sm:static bottom-0 left-0 right-0 z-[60]
+                      border-t sm:border-t-0 border-[var(--color-outline-variant)]/10
+                      shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:shadow-none
+                      pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-2">
              <div class="flex items-center gap-1 min-w-max">
                 <ToolbarButton icon="undo" action={() => editor()?.chain().focus().undo().run()} title="Undo" disabled={!canUndo()} />
                 <ToolbarButton icon="redo" action={() => editor()?.chain().focus().redo().run()} title="Redo" disabled={!canRedo()} />
@@ -1058,10 +1141,10 @@ export default function Editor(props: EditorProps) {
           onClick={() => editor()?.commands.focus()}
         >
           <div 
-            class="max-w-4xl mx-auto px-6 pb-12 min-h-full flex flex-col"
+            class="max-w-4xl mx-auto px-6 min-h-full flex flex-col pb-24 sm:pb-12"
             style={{ 
               "padding-top": "1.5rem",
-              "padding-bottom": "env(safe-area-inset-bottom, 2rem)" 
+              // Safe area padding is handled by CSS below along with the forced padding class
             }}
             onClick={(e) => e.stopPropagation()} 
           >

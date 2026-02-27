@@ -22,6 +22,9 @@
 @import '@fontsource/outfit/400.css';
 @import '@fontsource/outfit/600.css';
 
+/* Noto Color Emoji — single complete file, no unicode-range subsetting */
+@import '@fontsource/noto-color-emoji/emoji.css';
+
 /* Font family utility for emojis */
 .font-emoji {
   font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Android Emoji", "EmojiSymbols", "Symbola", sans-serif;

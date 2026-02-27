@@ -14,10 +14,12 @@ function App() {
   onMount(async () => {
     themeStore.init();
 
-    // Handle Android System Back Button
-    const unlistenPromise = getCurrentWindow().listen("tauri://back-button", () => {
-      console.log("App: System back button clicked");
-      appStore.handleBack();
+    // Handle Android System Back Button and Window Close Requests
+    const unlistenPromise = getCurrentWindow().onCloseRequested((event) => {
+      console.log("App: Close requested (System back button clicked)");
+      if (appStore.handleBack()) {
+        event.preventDefault();
+      }
     });
 
     onCleanup(() => {

@@ -72,8 +72,14 @@ export const initDB = async () => {
 export const getNotes = async (): Promise<Note[]> => {
   try {
     const db = await initDB();
-    const notes = await db.select<Note[]>("SELECT * FROM notes ORDER BY created_at DESC");
-    console.log(`Database: getNotes() success, found ${notes.length} notes`);
+    const notes = await db.select<Note[]>("SELECT id, COALESCE(title, '') as title, content, COALESCE(mood, '') as mood, date, time, location, weather, tags, created_at, updated_at FROM notes ORDER BY created_at DESC");
+    if (notes && notes.length > 0) {
+      console.log(`Database: getNotes() success, found ${notes.length} notes. First note ID: ${notes[0].id}`);
+      // Detect potential nulls in TEXT columns that might cause issues if interpreted as numbers elsewhere
+      notes.forEach(n => {
+        if (n.id === null) console.warn("Database: Found note with NULL ID!");
+      });
+    }
     return notes;
   } catch (err) {
     console.error("Database: getNotes() query failed", err);

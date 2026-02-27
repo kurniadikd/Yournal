@@ -140,6 +140,12 @@ const LocationModal: Component<LocationModalProps> = (props) => {
       attributionControl: false // Custom attribution if needed
     });
 
+    // Suppress non-fatal tile parsing errors (null values in vector tile data)
+    mapInstance.on('error', (e) => {
+      if (e?.error?.message?.includes('null')) return;
+      console.warn('LocationModal map error:', e?.error?.message);
+    });
+
     mapInstance.on('style.load', () => {
         applyMapTheme(mapInstance); 
     });

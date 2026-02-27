@@ -146,10 +146,10 @@ const HalamanUtama: Component = () => {
         <Kalender notes={notes()} />
       </div>
 
-      {/* World Map Heatmap */}
-      <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10">
+      {/* World Map Heatmap — TEMPORARILY DISABLED to isolate tile error */}
+      {/* <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10">
         <PetaDunia notes={notes()} />
-      </div>
+      </div> */}
 
       {/* Floating Action Button */}
       <div class="fixed right-6 z-40" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">

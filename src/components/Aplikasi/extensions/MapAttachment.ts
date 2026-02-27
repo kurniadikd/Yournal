@@ -18,9 +18,17 @@ export const MapAttachment = Node.create({
       },
       lat: {
         default: null,
+        parseHTML: (element: HTMLElement) => {
+          const val = element.getAttribute('lat');
+          return val !== null ? parseFloat(val) : null;
+        },
       },
       lng: {
         default: null,
+        parseHTML: (element: HTMLElement) => {
+          const val = element.getAttribute('lng');
+          return val !== null ? parseFloat(val) : null;
+        },
       },
     };
   },

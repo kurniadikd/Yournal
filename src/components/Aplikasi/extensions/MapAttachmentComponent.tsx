@@ -76,6 +76,12 @@ export default function MapAttachmentComponent(props: {
   onMount(() => {
     if (!mapContainer) return;
 
+    // Guard: Do NOT create MapLibre if coordinates are invalid
+    if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+      console.warn('MapAttachment: Skipping map — invalid coordinates:', { lat, lng });
+      return;
+    }
+
     const m = new maplibregl.Map({
       container: mapContainer,
       style: 'https://tiles.openfreemap.org/styles/liberty',
@@ -83,6 +89,12 @@ export default function MapAttachmentComponent(props: {
       zoom: 13,
       attributionControl: false,
       interactive: false
+    });
+
+    // Suppress non-fatal tile parsing errors (null values in vector tile data)
+    m.on('error', (e) => {
+      if (e?.error?.message?.includes('null')) return;
+      console.warn('MapAttachment map error:', e?.error?.message);
     });
 
     let markerAdded = false;

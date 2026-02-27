@@ -12,6 +12,7 @@
   },
   "license": "GPL-3.0-only",
   "dependencies": {
+    "@fontsource/noto-color-emoji": "^5.2.12",
     "@fontsource/noto-sans": "^5.2.10",
     "@fontsource/noto-sans-mono": "^5.2.10",
     "@fontsource/noto-serif": "^5.2.9",

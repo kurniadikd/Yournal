@@ -201,6 +201,12 @@ const PetaDuniaInner: Component<PetaDuniaProps> = (props) => {
       interactive: true,
     });
 
+    // Suppress non-fatal tile parsing errors (null values in vector tile data)
+    m.on('error', (e) => {
+      if (e?.error?.message?.includes('null')) return;
+      console.warn('PetaDunia map error:', e?.error?.message);
+    });
+
     m.on("style.load", () => {
       setTimeout(() => {
         applyMapTheme(m);
