@@ -114,53 +114,55 @@ const HalamanUtama: Component = () => {
 
   return (
     <>
-      <div class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
-           style={{ 
-             "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",
-             "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))"
-           }}>
-        {/* Clock (scrollable on mobile, fixed on desktop) */}
-        <div class="w-full flex justify-start md:fixed md:top-20 md:left-8 md:z-30 md:pointer-events-none p-4 pb-0 md:p-0">
-          <div class="flex flex-col">
-            <span class="text-xl text-[var(--color-secondary)] mb-1">
-              {formatDate(time())}
-            </span>
-            <span class="text-3xl md:text-5xl  text-[var(--color-on-surface)] leading-none tracking-tighter">
-              {formatTime(time())}
-            </span>
+      <Show when={!isEditorOpen() && !isTemplatePickerOpen()}>
+        <div class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
+             style={{ 
+               "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",
+               "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))"
+             }}>
+          {/* Clock (scrollable on mobile, fixed on desktop) */}
+          <div class="w-full flex justify-start md:fixed md:top-20 md:left-8 md:z-30 md:pointer-events-none p-4 pb-0 md:p-0">
+            <div class="flex flex-col">
+              <span class="text-xl text-[var(--color-secondary)] mb-1">
+                {formatDate(time())}
+              </span>
+              <span class="text-3xl md:text-5xl  text-[var(--color-on-surface)] leading-none tracking-tighter">
+                {formatTime(time())}
+              </span>
+            </div>
+          </div>
+
+          <div class="w-full p-4 md:p-0">
+            <DaftarCatatan 
+              notes={notes()} 
+              isLoading={isLoading()}
+              onOpenNote={handleOpenNote}
+              onRefresh={fetchNotes}
+            />
           </div>
         </div>
 
-        <div class="w-full p-4 md:p-0">
-          <DaftarCatatan 
-            notes={notes()} 
-            isLoading={isLoading()}
-            onOpenNote={handleOpenNote}
-            onRefresh={fetchNotes}
+        {/* Calendar (Bottom-Left) */}
+        <div class="hidden md:block fixed bottom-10 left-8 z-30">
+          <Kalender notes={notes()} />
+        </div>
+
+        {/* World Map Heatmap — TEMPORARILY DISABLED to isolate tile error */}
+        {/* <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10">
+          <PetaDunia notes={notes()} />
+        </div> */}
+
+        {/* Floating Action Button */}
+        <div class="fixed right-6 z-40" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">
+          <FAB 
+            icon="add" 
+            onClick={handleCreateNew} 
+            variant="tertiary"
+            size="large"
+            class="shadow-xl shadow-black/20"
           />
         </div>
-      </div>
-
-      {/* Calendar (Bottom-Left) */}
-      <div class="hidden md:block fixed bottom-10 left-8 z-30">
-        <Kalender notes={notes()} />
-      </div>
-
-      {/* World Map Heatmap — TEMPORARILY DISABLED to isolate tile error */}
-      {/* <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10">
-        <PetaDunia notes={notes()} />
-      </div> */}
-
-      {/* Floating Action Button */}
-      <div class="fixed right-6 z-40" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">
-        <FAB 
-          icon="add" 
-          onClick={handleCreateNew} 
-          variant="tertiary"
-          size="large"
-          class="shadow-xl shadow-black/20"
-        />
-      </div>
+      </Show>
 
       <CatatanBaru
         show={isTemplatePickerOpen()}
