@@ -27,6 +27,30 @@ const [state, setState] = createStore<AppState>({
   },
 });
 
+// --- Robust Android Back Button via history.pushState / popstate ---
+// Each pushBackHandler adds a fake history entry. The Android back button
+// triggers `popstate`, which we intercept to run the handler instead of
+// exiting the app.
+let _popstateListenerActive = false;
+
+function _onPopState(_event: PopStateEvent) {
+  const handlers = state.ui.backHandlers;
+  if (handlers.length > 0) {
+    const lastHandler = handlers[handlers.length - 1];
+    // Remove handler from our stack (the history entry is already consumed)
+    setState("ui", "backHandlers", (prev) => prev.slice(0, -1));
+    lastHandler();
+  }
+  // If no handlers left, the browser will naturally go back (which may exit app — correct behavior)
+}
+
+function _ensurePopstateListener() {
+  if (!_popstateListenerActive) {
+    window.addEventListener('popstate', _onPopState);
+    _popstateListenerActive = true;
+  }
+}
+
 // Actions
 export const appStore = {
   state,
@@ -34,37 +58,28 @@ export const appStore = {
   
   // UI Actions
   openPengaturan: () => {
-    console.log("Store: Opening Pengaturan");
     setState("ui", "isPengaturanOpen", true);
   },
   closePengaturan: () => {
-    console.log("Store: Closing Pengaturan");
     setState("ui", "isPengaturanOpen", false);
   },
   
   openPersonalisasi: () => {
-    console.log("Store: Opening Personalisasi");
     setState("ui", "isPersonalisasiOpen", true);
   },
   closePersonalisasi: () => {
-    console.log("Store: Closing Personalisasi");
     setState("ui", "isPersonalisasiOpen", false);
   },
 
   openBackupSettings: () => {
-    console.log("Store: Opening Backup Settings");
     setState("ui", "isBackupSettingsOpen", true);
   },
   closeBackupSettings: () => {
-    console.log("Store: Closing Backup Settings");
     setState("ui", "isBackupSettingsOpen", false);
   },
 
   toggleColorPalette: () => {
-    setState("ui", "isColorPaletteOpen", (p) => {
-      console.log("Store: Toggling Color Palette to", !p);
-      return !p;
-    });
+    setState("ui", "isColorPaletteOpen", (p) => !p);
   },
   toggleAiLog: () => setState("ui", "isAiLogOpen", (p) => !p),
   openAiLog: () => setState("ui", "isAiLogOpen", true),
@@ -74,24 +89,40 @@ export const appStore = {
   // Navigation Logic
   goToPersonalisasi: () => {
     appStore.closePengaturan();
-    // Use a tiny timeout to ensure smooth transition between portals if needed
     setTimeout(() => appStore.openPersonalisasi(), 50);
   },
 
-  // Back Button Logic
+  // Back Button Logic (history-based)
   pushBackHandler: (handler: () => boolean) => {
+    _ensurePopstateListener();
     setState("ui", "backHandlers", (prev) => [...prev, handler]);
+    // Push a fake history entry so the Android back button triggers popstate
+    // instead of exiting the app
+    history.pushState({ backHandler: true }, '');
   },
   popBackHandler: (handler: () => boolean) => {
-    setState("ui", "backHandlers", (prev) => prev.filter(h => h !== handler));
+    const handlers = state.ui.backHandlers;
+    const idx = handlers.lastIndexOf(handler);
+    if (idx !== -1) {
+      setState("ui", "backHandlers", (prev) => prev.filter((_, i) => i !== idx));
+      // Silently go back to consume the matching history entry without triggering popstate
+      // We temporarily remove the listener to avoid a recursive call
+      window.removeEventListener('popstate', _onPopState);
+      history.back();
+      // Re-add listener on next tick after the back() settles
+      setTimeout(() => {
+        window.addEventListener('popstate', _onPopState);
+      }, 0);
+    }
   },
   handleBack: () => {
     const handlers = state.ui.backHandlers;
     if (handlers.length > 0) {
-      // Execute the last handler
       const lastHandler = handlers[handlers.length - 1];
-      return lastHandler(); // Should return true if handled
+      setState("ui", "backHandlers", (prev) => prev.slice(0, -1));
+      return lastHandler();
     }
-    return false; // Not handled, let system exit app
+    return false;
   }
 };
+
