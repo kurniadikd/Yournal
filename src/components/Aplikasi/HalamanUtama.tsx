@@ -78,8 +78,7 @@ const HalamanUtama: Component = () => {
     
     await saveNote(noteToSave);
     await fetchNotes();
-    setIsEditorOpen(false);
-    setSelectedNote(null);
+    setSelectedNote(noteToSave);
   };
 
   const handleDeleteNote = () => {

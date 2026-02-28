@@ -165,7 +165,8 @@ export default function Editor(props: EditorProps) {
         tags: tags().length > 0 ? tags() : undefined
       });
     }
-    props.onClose();
+    // Update base HTML so isDirty() reflects that changes are saved
+    setBaseHTML(html);
   };
 
   // ... (Tiptap initialization omitted)
