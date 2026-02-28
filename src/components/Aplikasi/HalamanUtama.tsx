@@ -112,9 +112,23 @@ const HalamanUtama: Component = () => {
     setIsEditorOpen(true);
   };
 
+  const [showBackground, setShowBackground] = createSignal(true);
+  
+  // Coordinate background visibility for smooth transitions
+  createEffect(() => {
+    if (isEditorOpen() || isTemplatePickerOpen()) {
+      // Delay unmount to let Editor animation finish (300ms)
+      const timer = setTimeout(() => setShowBackground(false), 300);
+      onCleanup(() => clearTimeout(timer));
+    } else {
+      // Instantly remount when editor is closed so the fade-out has a background
+      setShowBackground(true);
+    }
+  });
+
   return (
     <>
-      <Show when={!isEditorOpen() && !isTemplatePickerOpen()}>
+      <Show when={showBackground()}>
         <div class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
              style={{ 
                "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",

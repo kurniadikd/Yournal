@@ -860,8 +860,12 @@ export default function Editor(props: EditorProps) {
     } else {
       // --- CLOSE ---
       setIsEditorVisible(false);
-      resetEditorState();
-      editorTransitionTimer = setTimeout(() => setShouldRenderEditor(false), 300);
+      
+      // Delay state reset until after the fade-out animation (300ms)
+      editorTransitionTimer = setTimeout(() => {
+        resetEditorState();
+        setShouldRenderEditor(false);
+      }, 300);
     }
   }));
 
