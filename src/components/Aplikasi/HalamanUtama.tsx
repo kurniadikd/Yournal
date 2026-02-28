@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, onCleanup } from "solid-js";
+import { Component, createSignal, onMount, onCleanup, Show, createEffect } from "solid-js";
 import { formatDate, formatTime } from "../../utils/date";
 import FAB from "../ui/m3e/FAB";
 import Editor from "./Editor";
