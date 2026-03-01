@@ -1,60 +1,60 @@
-// @ts-ignore
+
 import five_whys from '../assets/templates/5_whys.html?raw';
-// @ts-ignore
+
 import body_scan from '../assets/templates/body_scan.html?raw';
-// @ts-ignore
+
 import brain_dump from '../assets/templates/brain_dump.html?raw';
-// @ts-ignore
+
 import cbt_thought_record from '../assets/templates/cbt_thought_record.html?raw';
-// @ts-ignore
+
 import cornell_notes from '../assets/templates/cornell_notes.html?raw';
-// @ts-ignore
+
 import daily_checkin from '../assets/templates/daily_checkin.html?raw';
-// @ts-ignore
+
 import dream_log from '../assets/templates/dream_log.html?raw';
-// @ts-ignore
+
 import eisenhower from '../assets/templates/eisenhower.html?raw';
-// @ts-ignore
+
 import gratitude from '../assets/templates/gratitude.html?raw';
-// @ts-ignore
+
 import habit_loop from '../assets/templates/habit_loop.html?raw';
-// @ts-ignore
+
 import nvc_reflection from '../assets/templates/nvc_reflection.html?raw';
-// @ts-ignore
+
 import pattern_analysis from '../assets/templates/pattern_analysis.html?raw';
-// @ts-ignore
+
 import pomodoro_log from '../assets/templates/pomodoro_log.html?raw';
-// @ts-ignore
+
 import pro_cons from '../assets/templates/pro_cons.html?raw';
-// @ts-ignore
+
 import radical_acceptance from '../assets/templates/radical_acceptance.html?raw';
-// @ts-ignore
+
 import rule_101010 from '../assets/templates/rule_101010.html?raw';
-// @ts-ignore
+
 import scamper from '../assets/templates/scamper.html?raw';
-// @ts-ignore
+
 import self_compassion from '../assets/templates/self_compassion.html?raw';
-// @ts-ignore
+
 import session_log from '../assets/templates/session_log.html?raw';
-// @ts-ignore
+
 import smart_goals from '../assets/templates/smart_goals.html?raw';
-// @ts-ignore
+
 import stop_technique from '../assets/templates/stop_technique.html?raw';
-// @ts-ignore
+
 import success_journal from '../assets/templates/success_journal.html?raw';
-// @ts-ignore
+
 import swot from '../assets/templates/swot.html?raw';
-// @ts-ignore
+
 import three_good_things from '../assets/templates/three_good_things.html?raw';
-// @ts-ignore
+
 import trigger_identification from '../assets/templates/trigger_identification.html?raw';
-// @ts-ignore
+
 import unsent_letter from '../assets/templates/unsent_letter.html?raw';
-// @ts-ignore
+
 import value_alignment from '../assets/templates/value_alignment.html?raw';
-// @ts-ignore
+
 import weekly_review from '../assets/templates/weekly_review.html?raw';
-// @ts-ignore
+
 import worry_time from '../assets/templates/worry_time.html?raw';
 
 export interface TemplateInfo {
