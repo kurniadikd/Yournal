@@ -39,6 +39,9 @@ import { formatTime, formatDate } from "../../utils/date";
 
 import ImageModal from "../ui/m3e/ImageModal";
 import { MapAttachment } from "./extensions/MapAttachment";
+import { FileAttachment } from "./extensions/FileAttachment";
+import FileModal from "../ui/m3e/FileModal";
+import { processFileAttachment } from "../../utils/file";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
@@ -115,6 +118,7 @@ export default function Editor(props: EditorProps) {
   const [showVideoModal, setShowVideoModal] = createSignal(false);
   const [showExportModal, setShowExportModal] = createSignal(false);
   const [showMapAttachmentModal, setShowMapAttachmentModal] = createSignal(false);
+  const [showFileModal, setShowFileModal] = createSignal(false);
   
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
@@ -330,6 +334,7 @@ export default function Editor(props: EditorProps) {
       }),
       VideoPlayer,
       MapAttachment,
+      FileAttachment,
       SelectableImage.configure({
         inline: true,
         allowBase64: true,
@@ -423,7 +428,7 @@ export default function Editor(props: EditorProps) {
       attributes: {
         class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
       },
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
 
@@ -679,6 +684,18 @@ export default function Editor(props: EditorProps) {
       processImageFile(file);
     } else {
       editor()?.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  const handleFileConfirm = async (filePath: string) => {
+    try {
+      const fileInfo = await processFileAttachment(filePath);
+      editor()?.chain().focus().insertContent({
+        type: 'fileAttachment',
+        attrs: fileInfo
+      }).run();
+    } catch (err) {
+      console.error("Failed to attach file:", err);
     }
   };
 
@@ -1079,6 +1096,7 @@ export default function Editor(props: EditorProps) {
 
                 <ToolbarButton icon="format_quote" action={() => editor()?.chain().focus().toggleBlockquote().run()} active={isActive('blockquote')} title="Blockquote" />
                 <ToolbarButton icon="horizontal_rule" action={() => editor()?.chain().focus().setHorizontalRule().run()} title="Garis Mendatar" />
+                <ToolbarButton icon="attach_file" action={() => setShowFileModal(true)} title="Lampirkan File" />
                 <ToolbarButton icon="image" action={addImage} title="Sisipkan Gambar" />
                 <ToolbarButton icon="movie" action={addVideo} title="Sisipkan Video" />
                 <ToolbarButton icon="add_location_alt" action={addMapAttachment} title="Sisipkan Peta Lokasi" />
@@ -1429,10 +1447,16 @@ export default function Editor(props: EditorProps) {
             onConfirm={handleImageConfirm}
         />
 
-        <VideoModal // Added VideoModal rendering
+        <VideoModal
             show={showVideoModal()}
             onClose={() => setShowVideoModal(false)}
             onConfirm={handleVideoConfirm}
+        />
+
+        <FileModal
+          show={showFileModal()}
+          onClose={() => setShowFileModal(false)}
+          onConfirm={handleFileConfirm}
         />
 
         <ExportModal
