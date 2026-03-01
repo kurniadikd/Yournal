@@ -2,7 +2,6 @@ use base64::{engine::general_purpose, Engine as _};
 use rgb::RGBA8;
 use serde::Serialize;
 use std::fs;
-use std::path::{Path, PathBuf};
 use tauri::{path::BaseDirectory, Manager};
 
 mod drive_api;
@@ -105,48 +104,6 @@ async fn upload_database_to_drive(
     Ok(file_id)
 }
 
-#[derive(Serialize)]
-pub struct FileInfo {
-    name: String,
-    size: u64,
-    mime_type: String,
-}
-
-#[tauri::command]
-async fn get_file_info(path: String) -> Result<FileInfo, String> {
-    let p = Path::new(&path);
-    if !p.exists() {
-        return Err("File not found".to_string());
-    }
-
-    let metadata = fs::metadata(p).map_err(|e| e.to_string())?;
-    let name = p
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("unknown")
-        .to_string();
-    
-    let mime_type = mime_guess::from_path(p)
-        .first_or_octet_stream()
-        .to_string();
-
-    Ok(FileInfo {
-        name,
-        size: metadata.len(),
-        mime_type,
-    })
-}
-
-#[tauri::command]
-async fn read_file_base64(path: String) -> Result<String, String> {
-    let p = Path::new(&path);
-    if !p.exists() {
-        return Err("File not found".to_string());
-    }
-
-    let buf = std::fs::read(p).map_err(|e| e.to_string())?;
-    Ok(general_purpose::STANDARD.encode(buf))
-}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -157,7 +114,7 @@ pub fn run() {
                 id TEXT PRIMARY KEY,
                 title TEXT,
                 content TEXT,
-                 mood TEXT,
+                mood TEXT,
                 date TEXT,
                 time TEXT,
                 created_at TEXT,
@@ -185,7 +142,6 @@ pub fn run() {
         },
     ];
 
-    #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init());
@@ -228,9 +184,7 @@ pub fn run() {
             convert_to_avif,
             connect_google_drive,
             exchange_google_token,
-            upload_database_to_drive,
-            get_file_info,
-            read_file_base64
+            upload_database_to_drive
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

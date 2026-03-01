@@ -1,6 +1,6 @@
 import { mergeAttributes, Node } from '@tiptap/core';
 import { createSolidNodeView } from '../../../utils/SolidNodeView';
-import FileAttachmentComponent from './FileAttachmentComponent';
+import FileAttachmentComponent from './FileAttachmentComponent.tsx';
 
 export const FileAttachment = Node.create({
   name: 'fileAttachment',

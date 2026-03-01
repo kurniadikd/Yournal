@@ -1,0 +1,84 @@
+    Checking yournal v0.1.0 (C:\Folder_D\DANU\situs\Yournal\src-tauri)
+error[E0432]: unresolved import `viuer`
+ --> src\lib.rs:8:5
+  |
+8 | use viuer::{print_from_file, Config};
+  |     ^^^^^ use of unresolved module or unlinked crate `viuer`
+  |
+  = help: if you wanted to use a crate named `viuer`, use `cargo add viuer` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `uuid`
+  --> src\lib.rs:12:5
+   |
+12 | use uuid::Uuid;
+   |     ^^^^ use of unresolved module or unlinked crate `uuid`
+   |
+   = help: if you wanted to use a crate named `uuid`, use `cargo add uuid` to add it to your `Cargo.toml`
+
+warning: unused import: `PathBuf`
+ --> src\lib.rs:5:23
+  |
+5 | use std::path::{Path, PathBuf};
+  |                       ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `path::BaseDirectory`
+ --> src\lib.rs:6:13
+  |
+6 | use tauri::{path::BaseDirectory, Manager};
+  |             ^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `MigrationKind` and `Migration`
+ --> src\lib.rs:7:24
+  |
+7 | use tauri_plugin_sql::{Migration, MigrationKind};
+  |                        ^^^^^^^^^  ^^^^^^^^^^^^^
+
+warning: unused imports: `ImageFormat`, `imageops::FilterType`, and `io::Reader as ImageReader`
+ --> src\lib.rs:9:13
+  |
+9 | use image::{imageops::FilterType, io::Reader as ImageReader, ImageFormat};
+  |             ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused import: `reqwest::Client`
+  --> src\lib.rs:10:5
+   |
+10 | use reqwest::Client;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::io::Cursor`
+  --> src\lib.rs:11:5
+   |
+11 | use std::io::Cursor;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `Serialize`
+ --> src\drive_api.rs:3:26
+  |
+3 | use serde::{Deserialize, Serialize};
+  |                          ^^^^^^^^^
+
+warning: unused import: `std::env`
+ --> src\oauth.rs:3:5
+  |
+3 | use std::env;
+  |     ^^^^^^^^
+
+warning: unused import: `Manager`
+ --> src\oauth.rs:4:33
+  |
+4 | use tauri::{AppHandle, Emitter, Manager};
+  |                                 ^^^^^^^
+
+warning: use of deprecated type alias `image::io::Reader`: this type has been moved and renamed to image::ImageReader
+ --> src\lib.rs:9:39
+  |
+9 | use image::{imageops::FilterType, io::Reader as ImageReader, ImageFormat};
+  |                                       ^^^^^^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
+For more information about this error, try `rustc --explain E0432`.
+warning: `yournal` (lib) generated 10 warnings
+error: could not compile `yournal` (lib) due to 2 previous errors; 10 warnings emitted
