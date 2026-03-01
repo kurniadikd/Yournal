@@ -254,7 +254,7 @@ export default function BackupSettings(props: { onClose: () => void }) {
               
               <div class="grid grid-cols-2 gap-3 mt-4">
                 <Button 
-                  variant="outlined" 
+                  variant="tonal" 
                   onClick={() => setShowRestoreConfirm(true)} 
                   disabled={isBackingUp() || isRestoring() || !remoteBackupInfo()}
                   loading={isRestoring()}
