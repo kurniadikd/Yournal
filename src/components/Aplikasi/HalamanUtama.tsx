@@ -112,16 +112,22 @@ const HalamanUtama: Component = () => {
   };
 
   const [showBackground, setShowBackground] = createSignal(true);
+  const [showContent, setShowContent] = createSignal(true);
   
   // Coordinate background visibility for smooth transitions
   createEffect(() => {
     if (isEditorOpen() || isTemplatePickerOpen()) {
-      // Delay unmount to let Editor animation finish (300ms)
+      // Unmount content instantly to free RAM
+      setShowContent(false);
+      // Delay background shell unmount to let Editor animation finish (300ms)
       const timer = setTimeout(() => setShowBackground(false), 300);
       onCleanup(() => clearTimeout(timer));
     } else {
-      // Instantly remount when editor is closed so the fade-out has a background
+      // Instantly remount background shell so the fade-out has a floor
       setShowBackground(true);
+      // Delay heavy content by 50ms so CSS animations start on GPU first
+      const timer = setTimeout(() => setShowContent(true), 50);
+      onCleanup(() => clearTimeout(timer));
     }
   });
 
@@ -145,36 +151,40 @@ const HalamanUtama: Component = () => {
             </div>
           </div>
 
-          <div class="w-full p-4 md:p-0">
-            <DaftarCatatan 
-              notes={notes()} 
-              isLoading={isLoading()}
-              onOpenNote={handleOpenNote}
-              onRefresh={fetchNotes}
+          <Show when={showContent()}>
+            <div class="w-full p-4 md:p-0 animate-in fade-in duration-300">
+              <DaftarCatatan 
+                notes={notes()} 
+                isLoading={isLoading()}
+                onOpenNote={handleOpenNote}
+                onRefresh={fetchNotes}
+              />
+            </div>
+          </Show>
+        </div>
+
+        <Show when={showContent()}>
+          {/* Calendar (Bottom-Left) */}
+          <div class="hidden md:block fixed bottom-10 left-8 z-30 animate-in fade-in duration-300">
+            <Kalender notes={notes()} />
+          </div>
+
+          {/* World Map Heatmap — TEMPORARILY DISABLED to isolate tile error */}
+          {/* <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10 animate-in fade-in duration-300">
+            <PetaDunia notes={notes()} />
+          </div> */}
+
+          {/* Floating Action Button */}
+          <div class="fixed right-6 z-40 animate-in fade-in zoom-in duration-300" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">
+            <FAB 
+              icon="add" 
+              onClick={handleCreateNew} 
+              variant="tertiary"
+              size="large"
+              class="shadow-xl shadow-black/20"
             />
           </div>
-        </div>
-
-        {/* Calendar (Bottom-Left) */}
-        <div class="hidden md:block fixed bottom-10 left-8 z-30">
-          <Kalender notes={notes()} />
-        </div>
-
-        {/* World Map Heatmap — TEMPORARILY DISABLED to isolate tile error */}
-        {/* <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10">
-          <PetaDunia notes={notes()} />
-        </div> */}
-
-        {/* Floating Action Button */}
-        <div class="fixed right-6 z-40" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">
-          <FAB 
-            icon="add" 
-            onClick={handleCreateNew} 
-            variant="tertiary"
-            size="large"
-            class="shadow-xl shadow-black/20"
-          />
-        </div>
+        </Show>
       </Show>
 
       <CatatanBaru
