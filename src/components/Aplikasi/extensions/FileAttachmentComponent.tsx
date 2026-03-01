@@ -19,17 +19,24 @@ const FileAttachmentComponent: Component<{
   selected: boolean,
   deleteNode: () => void
 }> = (props) => {
-  const { name, size, mimeType, src, isLoading } = props.node.attrs;
+  let wasSelectedOnMousedown = false;
+
+  const handleMouseDown = () => {
+    wasSelectedOnMousedown = props.selected;
+  };
 
   const handleOpenFile = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Only open the file if the component was already selected on mousedown
+    if (!wasSelectedOnMousedown) return;
     
-    if (isLoading) return; // Don't try to open if it's still loading
+    if (props.node.attrs.isLoading) return; // Don't try to open if it's still loading
     
-    if (src && src.startsWith('data:')) {
+    if (props.node.attrs.src && props.node.attrs.src.startsWith('data:')) {
       try {
-        const base64Data = src.split(',')[1];
+        const base64Data = props.node.attrs.src.split(',')[1];
         if (!base64Data) return;
         
         // Convert base64 to Uint8Array
@@ -46,7 +53,7 @@ const FileAttachmentComponent: Component<{
             await mkdir(appTempDir, { recursive: true });
         }
         
-        const safeName = name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const safeName = props.node.attrs.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
         const tempFilePath = await join(appTempDir, safeName);
         
         await writeFile(tempFilePath, bytes);
@@ -76,41 +83,42 @@ const FileAttachmentComponent: Component<{
         group relative my-4 p-4 rounded-2xl border transition-all select-none w-full flex items-center gap-4
         bg-[var(--color-surface-container)] 
         ${props.selected 
-          ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-primary)] border-[var(--color-primary)] cursor-default' 
+          ? 'ProseMirror-selectednode shadow-[0_0_0_2px_var(--color-primary)] border-[var(--color-primary)] ring-2 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-surface)] cursor-default' 
           : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-primary)] cursor-pointer'
         }
-        ${isLoading ? 'opacity-70 pointer-events-none' : ''}
+        ${props.node.attrs.isLoading ? 'opacity-70 pointer-events-none' : ''}
       `}
+      onMouseDown={handleMouseDown}
       onClick={handleOpenFile}
     >
       {/* File Icon with Spinner Overlay */}
       <div class="relative w-12 h-12 rounded-xl bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] flex items-center justify-center shrink-0 overflow-hidden">
-        <Show when={isLoading} fallback={
+        <Show when={props.node.attrs.isLoading} fallback={
           <span class="material-symbols-rounded text-2xl">
-            {getFileIcon(mimeType)}
+            {getFileIcon(props.node.attrs.mimeType)}
           </span>
         }>
           <div class="absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
              <span class="loading loading-spinner loading-sm text-[var(--color-primary)]"></span>
           </div>
           <span class="material-symbols-rounded text-2xl opacity-30">
-            {getFileIcon(mimeType)}
+            {getFileIcon(props.node.attrs.mimeType)}
           </span>
         </Show>
       </div>
 
       {/* File Info */}
       <div class="flex-1 min-w-0 pr-8">
-        <h3 class="text-sm font-semibold text-[var(--color-on-surface)] truncate" title={name}>
-          {name}
-        </h3>
-        <p class="text-xs text-[var(--color-on-surface-variant)] mt-0.5">
-          {isLoading ? 'Melampirkan...' : `${formatFileSize(size)} • ${mimeType.split('/').pop()?.toUpperCase() || 'FILE'}`}
-        </p>
+        <div class="font-medium text-[var(--color-on-surface)] truncate w-full" title={props.node.attrs.name}>
+          {props.node.attrs.name}
+        </div>
+        <div class="text-xs text-[var(--color-on-surface-variant)] mt-1 opacity-80">
+          {formatFileSize(props.node.attrs.size)} • {props.node.attrs.mimeType.split('/')[1] || 'File'}
+        </div>
       </div>
 
       {/* Delete Button */}
-      <Show when={props.selected && !isLoading}>
+      <Show when={props.selected && !props.node.attrs.isLoading}>
         <button
           onClick={(e) => {
             e.preventDefault();
