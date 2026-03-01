@@ -20,7 +20,7 @@ export default function TableGrid(props: TableGridProps) {
 
   return (
     <div class="flex flex-col">
-        <div class="mb-2 px-1">
+        <div class="mb-2 px-1" onClick={(e) => e.stopPropagation()}>
             <Checkbox 
                 checked={withHeader()} 
                 onChange={setWithHeader} 
@@ -41,7 +41,9 @@ export default function TableGrid(props: TableGridProps) {
                                             ? 'bg-[var(--color-primary)] border-[var(--color-primary)] shadow-sm' 
                                             : 'bg-[var(--color-surface-container-high)] border-[var(--color-outline-variant)] hover:border-[var(--color-primary)]'}
                                     `}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
                                         setSelectedRow(row);
                                         setSelectedCol(col);
                                     }}
@@ -58,7 +60,11 @@ export default function TableGrid(props: TableGridProps) {
         </div>
 
         <button
-            onClick={() => props.onConfirm(selectedRow(), selectedCol(), withHeader())}
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                props.onConfirm(selectedRow(), selectedCol(), withHeader());
+            }}
             class="w-full mt-1 bg-[var(--color-primary)] text-[var(--color-on-primary)] py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
         >
             <span class="material-symbols-rounded text-[20px]">add_table</span>

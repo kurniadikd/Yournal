@@ -1189,7 +1189,7 @@ export default function Editor(props: EditorProps) {
                           placement="right-start"
                           class="p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box z-[60]"
                         >
-                           <div>
+                           <div onClick={(e) => e.stopPropagation()}>
                               <TableGrid onConfirm={(rows, cols, withHeader) => {
                                   editor()?.chain().focus().insertTable({ rows, cols, withHeaderRow: withHeader }).run();
                                   setTableMenuOpen(false);
