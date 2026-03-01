@@ -18,6 +18,11 @@ export default function BackupSettings(props: { onClose: () => void }) {
   const [isBackingUp, setIsBackingUp] = createSignal(false);
   const [lastBackup, setLastBackup] = createSignal(localStorage.getItem('gdrive_last_backup') || 'Belum pernah');
   
+  const [remoteBackupInfo, setRemoteBackupInfo] = createSignal<any>(null);
+  const [isCheckingRemote, setIsCheckingRemote] = createSignal(false);
+  const [isRestoring, setIsRestoring] = createSignal(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = createSignal(false);
+  
   const [snackbarMsg, setSnackbarMsg] = createSignal("");
 
   createEffect(() => {
@@ -26,6 +31,36 @@ export default function BackupSettings(props: { onClose: () => void }) {
 
   createEffect(() => {
     localStorage.setItem('gdrive_client_secret', clientSecret());
+  });
+
+  const checkRemoteBackup = async () => {
+    const token = localStorage.getItem('gdrive_access_token');
+    if (!token) return;
+    
+    setIsCheckingRemote(true);
+    try {
+      const info: any = await invoke("get_latest_backup_info", { accessToken: token });
+      if (info) {
+        setRemoteBackupInfo(info);
+        if (info.modifiedTime) {
+          const date = new Date(info.modifiedTime);
+          setLastBackup(date.toLocaleString('id-ID'));
+          localStorage.setItem('gdrive_last_backup', date.toLocaleString('id-ID'));
+        }
+      } else {
+        setRemoteBackupInfo(null);
+      }
+    } catch (e) {
+      console.error("Failed to check remote backup:", e);
+    } finally {
+      setIsCheckingRemote(false);
+    }
+  };
+
+  createEffect(() => {
+    if (isConnected()) {
+      checkRemoteBackup();
+    }
   });
 
   // Listen for the OAuth callback code from Rust
@@ -116,6 +151,32 @@ export default function BackupSettings(props: { onClose: () => void }) {
       setSnackbarMsg(`Gagal mencadangkan: ${e}`);
     } finally {
       setIsBackingUp(false);
+      checkRemoteBackup();
+    }
+  };
+
+  const handleRestoreConfirm = async () => {
+    const token = localStorage.getItem('gdrive_access_token');
+    const info = remoteBackupInfo();
+    if (!token || !info || !info.id) return;
+
+    setIsRestoring(true);
+    setShowRestoreConfirm(false);
+    setSnackbarMsg("Sedang memulihkan data dari Google Drive...");
+
+    try {
+      await invoke("download_database_from_drive", { 
+        accessToken: token, 
+        fileId: info.id 
+      });
+      setSnackbarMsg("Pemulihan berhasil! Memuat ulang aplikasi...");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (e) {
+      console.error("Restore failed:", e);
+      setSnackbarMsg(`Gagal memulihkan: ${e}`);
+      setIsRestoring(false);
     }
   };
 
@@ -185,24 +246,52 @@ export default function BackupSettings(props: { onClose: () => void }) {
             <div class="flex flex-col gap-2 mt-2">
               <div class="flex justify-between items-center text-body-medium">
                 <span class="text-on-surface-variant">Pencadangan Terakhir:</span>
-                <span class="font-medium">{lastBackup()}</span>
+                <span class="font-medium flex items-center gap-2">
+                   {isCheckingRemote() ? <span class="loading loading-spinner w-3 h-3"></span> : null}
+                   {lastBackup()}
+                </span>
               </div>
               
-              <Button 
-                variant="filled" 
-                onClick={handleBackupNow} 
-                disabled={isBackingUp()}
-                loading={isBackingUp()}
-                class="w-full mt-4"
-                icon="backup"
-              >
-                Cadangkan Sekarang
-              </Button>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <Button 
+                  variant="outlined" 
+                  onClick={() => setShowRestoreConfirm(true)} 
+                  disabled={isBackingUp() || isRestoring() || !remoteBackupInfo()}
+                  loading={isRestoring()}
+                  icon="download"
+                >
+                  Pulihkan Data
+                </Button>
+                <Button 
+                  variant="filled" 
+                  onClick={handleBackupNow} 
+                  disabled={isBackingUp() || isRestoring()}
+                  loading={isBackingUp()}
+                  icon="backup"
+                >
+                  Cadangkan
+                </Button>
+              </div>
             </div>
           </Show>
         </Card>
 
       </div>
+
+      <Show when={showRestoreConfirm()}>
+        <div class="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+           <Card variant="elevated" class="p-6 max-w-sm w-full flex flex-col gap-4 animate-in zoom-in-95 duration-200">
+               <h3 class="text-title-large font-medium">Konfirmasi Pemulihan</h3>
+               <p class="text-body-medium text-on-surface-variant">
+                  Apakah Anda yakin ingin memulihkan data dari Google Drive? Semua versi catatan dan tag lokal yang tidak tercadangkan akan hilang digantikan dengan versi awan. Aplikasi akan dimuat ulang.
+               </p>
+               <div class="flex justify-end gap-2 mt-2">
+                  <Button variant="text" onClick={() => setShowRestoreConfirm(false)}>Batal</Button>
+                  <Button variant="filled" onClick={handleRestoreConfirm}>Ya, Pulihkan</Button>
+               </div>
+           </Card>
+        </div>
+      </Show>
 
       <Snackbar 
         message={snackbarMsg()} 

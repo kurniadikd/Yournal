@@ -105,6 +105,28 @@ async fn upload_database_to_drive(
     Ok(file_id)
 }
 
+#[tauri::command]
+async fn get_latest_backup_info(
+    access_token: String,
+) -> Result<Option<drive_api::BackupInfo>, String> {
+    drive_api::get_latest_backup_info(&access_token).await
+}
+
+#[tauri::command]
+async fn download_database_from_drive(
+    app: tauri::AppHandle,
+    access_token: String,
+    file_id: String,
+) -> Result<(), String> {
+    let db_path = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?
+        .join("yournal.db");
+
+    drive_api::download_database(&access_token, &file_id, db_path).await
+}
+
 #[derive(Serialize)]
 pub struct FileInfo {
     name: String,
@@ -229,6 +251,8 @@ pub fn run() {
             connect_google_drive,
             exchange_google_token,
             upload_database_to_drive,
+            get_latest_backup_info,
+            download_database_from_drive,
             get_file_info,
             read_file_base64
         ])

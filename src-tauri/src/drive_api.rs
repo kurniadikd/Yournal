@@ -126,3 +126,74 @@ pub async fn upload_database(
         .map_err(|e| format!("Failed to parse upload response: {}", e))?;
     Ok(uploaded.id)
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct BackupInfo {
+    pub id: String,
+    pub name: String,
+    pub size: Option<String>,
+    #[serde(rename = "modifiedTime")]
+    pub modified_time: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+struct DriveFileListWithMeta {
+    files: Vec<BackupInfo>,
+}
+
+pub async fn get_latest_backup_info(access_token: &str) -> Result<Option<BackupInfo>, String> {
+    let client = Client::new();
+    
+    let folder_id = get_or_create_backup_folder(access_token).await?;
+
+    let query = format!("'{}' in parents and name='yournal.sqlite' and trashed=false", folder_id);
+    let url = format!(
+        "https://www.googleapis.com/drive/v3/files?q={}&spaces=drive&fields=files(id,name,size,modifiedTime)&orderBy=modifiedTime desc",
+        urlencoding::encode(&query)
+    );
+
+    let res = client
+        .get(&url)
+        .header(AUTHORIZATION, format!("Bearer {}", access_token))
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
+
+    if !res.status().is_success() {
+        return Err(format!("Google API error: {}", res.status()));
+    }
+
+    let list: DriveFileListWithMeta = res
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    Ok(list.files.into_iter().next())
+}
+
+pub async fn download_database(
+    access_token: &str,
+    file_id: &str,
+    db_path: PathBuf,
+) -> Result<(), String> {
+    let client = Client::new();
+    let url = format!("https://www.googleapis.com/drive/v3/files/{}?alt=media", file_id);
+
+    let res = client
+        .get(&url)
+        .header(AUTHORIZATION, format!("Bearer {}", access_token))
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
+
+    if !res.status().is_success() {
+        return Err(format!("Download failed: {}", res.status()));
+    }
+
+    let bytes = res.bytes().await.map_err(|e| format!("Failed to read stream: {}", e))?;
+    tokio::fs::write(db_path, bytes)
+        .await
+        .map_err(|e| format!("Failed to write DB file: {}", e))?;
+
+    Ok(())
+}
