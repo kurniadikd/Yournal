@@ -1,7 +1,7 @@
 import { openPath } from '@tauri-apps/plugin-opener';
 import { tempDir, join } from '@tauri-apps/api/path';
 import { writeFile, mkdir, exists } from '@tauri-apps/plugin-fs';
-import { Show } from 'solid-js';
+import { Component, Show } from 'solid-js';
 import { formatFileSize } from '../../../utils/file';
 
 export interface FileAttachmentAttributes {
@@ -13,12 +13,12 @@ export interface FileAttachmentAttributes {
   isLoading: boolean;
 }
 
-export default function FileAttachmentComponent(props: {
+const FileAttachmentComponent: Component<{
   node: { attrs: FileAttachmentAttributes },
   updateAttributes: (attrs: Partial<FileAttachmentAttributes>) => void,
   selected: boolean,
   deleteNode: () => void
-}) {
+}> = (props) => {
   const { name, size, mimeType, src, isLoading } = props.node.attrs;
 
   const handleOpenFile = async (e: MouseEvent) => {
@@ -125,4 +125,6 @@ export default function FileAttachmentComponent(props: {
       </Show>
     </div>
   );
-}
+};
+
+export default FileAttachmentComponent;
