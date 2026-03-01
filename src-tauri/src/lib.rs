@@ -179,7 +179,7 @@ pub fn run() {
                 id TEXT PRIMARY KEY,
                 title TEXT,
                 content TEXT,
-                 mood TEXT,
+                mood TEXT,
                 date TEXT,
                 time TEXT,
                 created_at TEXT,

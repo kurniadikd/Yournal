@@ -36,7 +36,7 @@ const Pengaturan = () => {
           </div>
         </section>
 
-        <section>
+{/* <section>
           <div 
             class="flex items-center justify-between p-4 bg-[var(--color-surface-container-low)] rounded-2xl cursor-pointer hover:bg-[var(--color-surface-container-high)] transition-colors group"
             onClick={() => { appStore.closePengaturan(); setTimeout(() => appStore.openBackupSettings(), 50); }}
@@ -52,7 +52,7 @@ const Pengaturan = () => {
             </div>
             <span class="material-symbols-rounded text-[var(--color-on-surface-variant)] group-hover:translate-x-1 transition-transform">chevron_right</span>
           </div>
-        </section>
+        </section> */}
 
         <section>
           <div 
