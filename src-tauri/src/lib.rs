@@ -106,41 +106,7 @@ async fn upload_database_to_drive(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![
-        tauri_plugin_sql::Migration {
-            version: 1,
-            description: "create_notes_table",
-            sql: "CREATE TABLE IF NOT EXISTS notes (
-                id TEXT PRIMARY KEY,
-                title TEXT,
-                content TEXT,
-                mood TEXT,
-                date TEXT,
-                time TEXT,
-                created_at TEXT,
-                updated_at TEXT
-            );",
-            kind: tauri_plugin_sql::MigrationKind::Up,
-        },
-        tauri_plugin_sql::Migration {
-            version: 2,
-            description: "add_location_column",
-            sql: "ALTER TABLE notes ADD COLUMN location TEXT;",
-            kind: tauri_plugin_sql::MigrationKind::Up,
-        },
-        tauri_plugin_sql::Migration {
-            version: 3,
-            description: "add_weather_column",
-            sql: "ALTER TABLE notes ADD COLUMN weather TEXT;",
-            kind: tauri_plugin_sql::MigrationKind::Up,
-        },
-        tauri_plugin_sql::Migration {
-            version: 4,
-            description: "add_tags_column",
-            sql: "ALTER TABLE notes ADD COLUMN tags TEXT;",
-            kind: tauri_plugin_sql::MigrationKind::Up,
-        },
-    ];
+    let migrations: Vec<tauri_plugin_sql::Migration> = vec![];
 
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())

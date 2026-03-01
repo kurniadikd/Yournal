@@ -24,38 +24,33 @@ export const initDB = async () => {
       console.log("Database: Initializing...");
       const instance = await Database.load("sqlite:yournal.db");
       
-      // Robustly wait for the 'notes' table to exist
-      // This solves the race condition with backend migrations
-      const checkTableExists = async () => {
-        const tables = await instance.select<{name: string}[]>(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='notes'"
-        );
-        return tables.length > 0;
+      // Initialize table and columns directly since we removed Rust migrations
+      await instance.execute(`
+        CREATE TABLE IF NOT EXISTS notes (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            content TEXT,
+            mood TEXT,
+            date TEXT,
+            time TEXT,
+            created_at TEXT,
+            updated_at TEXT
+        )
+      `);
+
+      // Safely add newer columns for backward compatibility
+      const addColumn = async (colDef: string) => {
+        try {
+          await instance.execute(`ALTER TABLE notes ADD COLUMN ${colDef}`);
+          console.log(`Database: Added column ${colDef}`);
+        } catch (e) {
+          // Silently ignore if column already exists
+        }
       };
 
-      let tableReady = await checkTableExists();
-      let attempts = 0;
-      const maxAttempts = 25; // 5 seconds total (25 * 200ms)
-      
-      while (!tableReady && attempts < maxAttempts) {
-        attempts++;
-        console.log(`Database: Waiting for 'notes' table... attempt ${attempts}/${maxAttempts}`);
-        await new Promise(r => setTimeout(r, 200));
-        tableReady = await checkTableExists();
-      }
-
-      if (!tableReady) {
-        console.error("Database: 'notes' table failed to appear after 5s. Continuing anyway...");
-      } else {
-        console.log("Database: 'notes' table is ready.");
-        // Failsafe: Ensure tags column exists (backward compatibility)
-        try {
-          await instance.execute("ALTER TABLE notes ADD COLUMN tags TEXT");
-          console.log("Database: tags column added via failsafe");
-        } catch (e) {
-          // Silently skip if column already exists
-        }
-      }
+      await addColumn("location TEXT");
+      await addColumn("weather TEXT");
+      await addColumn("tags TEXT");
       
       console.log("Database: Ready");
       return instance;

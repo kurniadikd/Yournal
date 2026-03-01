@@ -1,17 +1,15 @@
 import { createSignal, Show } from "solid-js";
 import Button from "./Button";
-import { invoke } from "@tauri-apps/api/core";
 
 interface ImageModalProps {
   show: boolean;
   onClose: () => void;
-  onConfirm: (url: string) => void;
+  onConfirm: (url: string, file?: File) => void;
 }
 
 export default function ImageModal(props: ImageModalProps) {
   const [tab, setTab] = createSignal<'local' | 'url'>('local');
   const [url, setUrl] = createSignal('');
-  const [isProcessing, setIsProcessing] = createSignal(false);
   let fileInputRef!: HTMLInputElement;
 
   const handleLocalUpload = () => {
@@ -21,22 +19,12 @@ export default function ImageModal(props: ImageModalProps) {
   const onFileChange = async (e: Event) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = async (readerEvent) => {
-        const content = readerEvent.target?.result as string;
-        setIsProcessing(true);
-        try {
-          // Convert to AVIF via backend libvips
-          const avifData = await invoke<string>("convert_to_avif", { base64Data: content });
-          props.onConfirm(avifData);
-        } catch (err) {
-          console.warn("AVIF conversion failed, using original:", err);
-          props.onConfirm(content); // Fallback to original
-        }
-        setIsProcessing(false);
-        props.onClose();
-      };
-      reader.readAsDataURL(file);
+      const objectUrl = URL.createObjectURL(file);
+      props.onConfirm(objectUrl, file);
+      props.onClose();
+      
+      // Reset input so the same file can be selected again
+      if (fileInputRef) fileInputRef.value = '';
     }
   };
 
@@ -87,7 +75,6 @@ export default function ImageModal(props: ImageModalProps) {
 
         <div class="min-h-[140px] flex flex-col justify-center">
           <Show when={tab() === 'local'}>
-            <Show when={isProcessing()} fallback={
               <div 
                 onClick={handleLocalUpload}
                 class="bg-[var(--color-surface-container-highest)] rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[var(--color-primary-container)]/20 transition-all group"
@@ -106,14 +93,6 @@ export default function ImageModal(props: ImageModalProps) {
                   onChange={onFileChange} 
                 />
               </div>
-            }>
-              <div class="bg-[var(--color-surface-container-highest)] rounded-2xl p-8 flex flex-col items-center justify-center gap-3">
-                <span class="loading loading-spinner loading-lg text-[var(--color-primary)]"></span>
-                <span class="text-sm font-medium text-[var(--color-on-surface-variant)]">
-                  Mengonversi ke AVIF...
-                </span>
-              </div>
-            </Show>
           </Show>
 
           <Show when={tab() === 'url'}>

@@ -8,15 +8,78 @@ export const SelectableImage = Image.extend({
   group: 'inline',
   draggable: true,
 
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      isLoading: {
+        default: false,
+        parseHTML: element => element.getAttribute('data-is-loading') === 'true',
+        renderHTML: attributes => {
+          if (!attributes.isLoading) return {}
+          return { 'data-is-loading': 'true' }
+        },
+      },
+      uploadId: {
+        default: null,
+      },
+    }
+  },
+
   addNodeView() {
     return ({ node, getPos, editor }) => {
       const container = document.createElement('span')
       container.classList.add('selectable-image-wrapper')
+      // Ensure the container clips the blurred image so edges remain sharp
+      container.style.position = 'relative'
+      container.style.display = 'inline-block'
+      container.style.overflow = 'hidden'
+      container.style.borderRadius = '8px' // Match standard image border radius typically used
       
       const img = document.createElement('img')
       img.src = node.attrs.src
       img.alt = node.attrs.alt || ''
       img.title = node.attrs.title || ''
+      // Add standard transform to fix blurring bleeding at the extreme edges by scaling it up slightly
+      img.style.transition = 'all 0.4s ease-in-out'
+      img.style.display = 'block'
+      
+      let spinner: HTMLDivElement | null = null;
+
+      const applyLoadingState = (isLoading: boolean) => {
+        if (isLoading) {
+          img.style.filter = 'blur(12px) brightness(0.7)';
+          img.style.opacity = '0.8';
+          img.style.transform = 'scale(1.05)'; // Scale up slightly to hide blur edge bleeding
+          
+          if (!spinner) {
+            spinner = document.createElement('div');
+            // Solid spinner container to ensure it stands out clearly
+            spinner.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-opacity duration-300 z-10';
+            spinner.innerHTML = `
+              <div class="bg-[var(--color-surface-container-high)]/90 backdrop-blur-md p-3 rounded-full shadow-lg border border-[var(--color-outline-variant)]/30 flex items-center justify-center">
+                <span class="loading loading-spinner loading-md text-[var(--color-primary)]"></span>
+              </div>
+            `;
+            container.appendChild(spinner);
+          }
+        } else {
+          img.style.filter = 'none';
+          img.style.opacity = '1';
+          img.style.transform = 'scale(1)';
+          
+          if (spinner) {
+            spinner.style.opacity = '0';
+            setTimeout(() => {
+              if (spinner && spinner.parentNode) {
+                spinner.parentNode.removeChild(spinner);
+              }
+              spinner = null;
+            }, 300);
+          }
+        }
+      };
+
+      applyLoadingState(node.attrs.isLoading);
       
       let wasSelectedOnMousedown = false;
 
@@ -88,6 +151,9 @@ export const SelectableImage = Image.extend({
         update: (updatedNode) => {
             if (updatedNode.type !== this.type) return false
             if (updatedNode.attrs.src !== img.src) img.src = updatedNode.attrs.src
+            
+            applyLoadingState(updatedNode.attrs.isLoading);
+            
             return true
         },
         destroy: () => {

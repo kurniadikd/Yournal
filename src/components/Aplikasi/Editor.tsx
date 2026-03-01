@@ -254,6 +254,61 @@ export default function Editor(props: EditorProps) {
     setMathModalOpen(true);
   };
 
+  const processImageFile = async (file: File, pos?: number) => {
+    const editorInstance = editor();
+    if (!editorInstance) return;
+
+    const uploadId = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const objectUrl = URL.createObjectURL(file);
+    
+    const node = editorInstance.schema.nodes.selectableImage.create({ 
+      src: objectUrl,
+      isLoading: true,
+      uploadId: uploadId 
+    });
+    
+    let tr = editorInstance.state.tr;
+    if (pos !== undefined) {
+       tr = tr.insert(pos, node);
+    } else {
+       tr = tr.replaceSelectionWith(node);
+    }
+    editorInstance.view.dispatch(tr);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target?.result as string;
+      let finalSrc = base64;
+      
+      try {
+        finalSrc = await invoke<string>('convert_to_avif', { base64Data: base64 });
+      } catch (err) {
+        console.warn('AVIF conversion failed, using original:', err);
+      }
+      
+      const currentEditor = editor();
+      if (!currentEditor) return;
+      
+      let targetPos = -1;
+      currentEditor.state.doc.descendants((node, p) => {
+        if (node.type.name === 'selectableImage' && node.attrs.uploadId === uploadId) {
+          targetPos = p;
+        }
+      });
+      
+      if (targetPos !== -1) {
+        currentEditor.view.dispatch(
+          currentEditor.state.tr.setNodeMarkup(targetPos, undefined, {
+            ...currentEditor.state.doc.nodeAt(targetPos)?.attrs,
+            src: finalSrc,
+            isLoading: false
+          })
+        );
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const editor = createTiptapEditor(() => ({
     element: container() as HTMLElement,
     extensions: [
@@ -377,23 +432,7 @@ export default function Editor(props: EditorProps) {
             event.preventDefault();
             const file = item.getAsFile();
             if (!file) return true;
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-              const base64 = e.target?.result as string;
-              try {
-                const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
-                view.dispatch(view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.selectableImage.create({ src: avifData })
-                ));
-              } catch (err) {
-                console.warn('AVIF conversion failed for paste, using original:', err);
-                view.dispatch(view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.selectableImage.create({ src: base64 })
-                ));
-              }
-            };
-            reader.readAsDataURL(file);
+            processImageFile(file);
             return true;
           }
         }
@@ -408,23 +447,7 @@ export default function Editor(props: EditorProps) {
 
         event.preventDefault();
         const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const base64 = e.target?.result as string;
-          try {
-            const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
-            const node = view.state.schema.nodes.selectableImage.create({ src: avifData });
-            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
-            view.dispatch(tr);
-          } catch (err) {
-            console.warn('AVIF conversion failed for drop, using original:', err);
-            const node = view.state.schema.nodes.selectableImage.create({ src: base64 });
-            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
-            view.dispatch(tr);
-          }
-        };
-        reader.readAsDataURL(imageFile);
+        processImageFile(imageFile, coords?.pos ?? view.state.selection.from);
         return true;
       },
     },
@@ -651,8 +674,12 @@ export default function Editor(props: EditorProps) {
     setShowImageModal(true);
   };
 
-  const handleImageConfirm = (url: string) => {
-    editor()?.chain().focus().setImage({ src: url }).run();
+  const handleImageConfirm = (url: string, file?: File) => {
+    if (file) {
+      processImageFile(file);
+    } else {
+      editor()?.chain().focus().setImage({ src: url }).run();
+    }
   };
 
   const addVideo = () => {
