@@ -1,5 +1,7 @@
-import { createSignal, onCleanup, createEffect, Show, JSX } from "solid-js";
+import { createSignal, onCleanup, createEffect, Show, JSX, createContext, useContext } from "solid-js";
 import { Portal } from "solid-js/web";
+
+const PopoverContext = createContext<{ id: string } | null>(null);
 
 interface PopoverProps {
   show: boolean;
@@ -11,6 +13,8 @@ interface PopoverProps {
 }
 
 export default function Popover(props: PopoverProps) {
+  const id = "pop-" + Math.random().toString(36).substring(2, 9);
+  const parentContext = useContext(PopoverContext);
   const [position, setPosition] = createSignal({ top: 0, left: 0 });
   const [isPositioned, setIsPositioned] = createSignal(false);
   let contentRef: HTMLDivElement | undefined;
@@ -113,15 +117,29 @@ export default function Popover(props: PopoverProps) {
   });
 
   const handleClickOutside = (e: MouseEvent) => {
-    if (
-        props.show && 
-        props.anchor && 
-        contentRef &&
-        !props.anchor.contains(e.target as Node) && 
-        !contentRef.contains(e.target as Node)
-    ) {
-      props.onClose();
+    if (!props.show || !props.anchor || !contentRef) return;
+    
+    const target = e.target as HTMLElement;
+    
+    // 1. Check if click is in anchor
+    if (props.anchor.contains(target)) return;
+    
+    // 2. Check hierarchy (Self and nested Portals)
+    let current: HTMLElement | null = target.closest('[data-popover-id]');
+    while (current) {
+      if (current.dataset.popoverId === id) return; // Inside us or our descendant
+      
+      const parentId = current.dataset.popoverParent;
+      if (!parentId) break;
+      
+      // Look for the parent popover node
+      current = document.querySelector(`[data-popover-id="${parentId}"]`);
     }
+    
+    // 3. Absolute fallback check for DOM child
+    if (contentRef.contains(target)) return;
+
+    props.onClose();
   };
 
   createEffect(() => {
@@ -140,7 +158,9 @@ export default function Popover(props: PopoverProps) {
     <Portal>
       <Show when={props.show}>
         <div 
-          ref={contentRef}
+          ref={contentRef!}
+          data-popover-id={id}
+          data-popover-parent={parentContext?.id || ''}
           class={`
             fixed z-[1000]
             bg-[var(--color-surface-container)] rounded-[16px] overflow-hidden shadow-elevation-2
@@ -156,7 +176,9 @@ export default function Popover(props: PopoverProps) {
             "transform-origin": 'top left',
           }}
         >
-          {props.children}
+          <PopoverContext.Provider value={{ id }}>
+            {props.children}
+          </PopoverContext.Provider>
         </div>
       </Show>
     </Portal>
