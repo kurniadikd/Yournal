@@ -1015,8 +1015,16 @@ export default function Editor(props: EditorProps) {
           
           {/* Row 1: Action Buttons (Top) */}
           <div class="flex items-center justify-between px-4 py-2 border-b border-[var(--color-outline-variant)]/10">
-            <div class="text-sm font-medium text-[var(--color-on-surface-variant)] opacity-70 ml-2">
-               {/* Optional: Status or Title placeholder */}
+            <div class="flex items-center gap-2">
+              <Button 
+                variant="tonal" 
+                onClick={handleClose}
+                class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-full shrink-0"
+                title="Kembali"
+              >
+                <span class="material-symbols-rounded !text-[20px] font-normal">arrow_back</span>
+                <span class="hidden sm:inline sm:ml-2">Kembali</span>
+              </Button>
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2">
               <Show when={props.onDelete}>
@@ -1041,15 +1049,7 @@ export default function Editor(props: EditorProps) {
                   <span class="material-symbols-rounded !text-[20px] font-normal">ios_share</span>
                   <span class="hidden sm:inline sm:ml-2">Ekspor</span>
                 </Button>
-              <Button 
-                variant="tonal" 
-                onClick={handleClose}
-                class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
-                title="Batal"
-              >
-                <span class="material-symbols-rounded !text-[20px] font-normal">close</span>
-                <span class="hidden sm:inline sm:ml-2">Batal</span>
-              </Button>
+
               <Show when={isDirty()}>
                 <Button 
                   variant="filled" 
@@ -1145,7 +1145,12 @@ export default function Editor(props: EditorProps) {
 
                 <button
                   ref={setTableBtnRef}
-                  onMouseDown={(e) => { e.preventDefault(); setTableMenuOpen(!tableMenuOpen()); }}
+                  onMouseDown={(e) => { 
+                    e.preventDefault(); 
+                    const newState = !tableMenuOpen();
+                    setTableMenuOpen(newState); 
+                    setInsertTableOpen(false); // Always start with child dropdown hidden
+                  }}
                   class={`
                     flex items-center gap-1 h-9 px-3 rounded-lg transition-all duration-200 shrink-0
                     ${tableMenuOpen() || isActive('table') 
@@ -1160,7 +1165,7 @@ export default function Editor(props: EditorProps) {
 
                 <Popover
                   show={tableMenuOpen()}
-                  onClose={() => setTableMenuOpen(false)}
+                  onClose={() => { setTableMenuOpen(false); setInsertTableOpen(false); }}
                   anchor={tableBtnRef()}
                   class="menu p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box w-64 z-50 flex flex-col gap-1"
                 >

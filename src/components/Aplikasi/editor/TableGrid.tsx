@@ -65,10 +65,9 @@ export default function TableGrid(props: TableGridProps) {
                 e.stopPropagation();
                 props.onConfirm(selectedRow(), selectedCol(), withHeader());
             }}
-            class="w-full mt-1 bg-[var(--color-primary)] text-[var(--color-on-primary)] py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            class="w-full mt-1 bg-[var(--color-primary)] text-[var(--color-on-primary)] py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-[0.98] transition-all flex items-center justify-center"
         >
-            <span class="material-symbols-rounded text-[20px]">add_table</span>
-            Sisipkan Tabel
+            Sisipkan
         </button>
     </div>
   );
