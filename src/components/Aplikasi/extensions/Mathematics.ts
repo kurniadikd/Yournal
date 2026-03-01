@@ -1,7 +1,6 @@
 import { Mathematics as TiptapMathematics, BlockMath as TiptapBlockMath, InlineMath as TiptapInlineMath } from "@tiptap/extension-mathematics";
 import { createSolidNodeView } from "../../../utils/SolidNodeView";
-import MathBlockComponent from "./MathBlockComponent";
-import MathInlineComponent from "./MathInlineComponent";
+import MathComponent from "./MathComponent";
 
 /**
  * Localized Mathematics extension using official Tiptap Mathematics nodes
@@ -9,13 +8,13 @@ import MathInlineComponent from "./MathInlineComponent";
  */
 const BlockMath = TiptapBlockMath.extend({
   addNodeView() {
-    return createSolidNodeView(MathBlockComponent);
+    return createSolidNodeView(MathComponent);
   },
 });
 
 const InlineMath = TiptapInlineMath.extend({
   addNodeView() {
-    return createSolidNodeView(MathInlineComponent);
+    return createSolidNodeView(MathComponent);
   },
 });
 
