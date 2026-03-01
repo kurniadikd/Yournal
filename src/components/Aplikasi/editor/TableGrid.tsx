@@ -19,7 +19,7 @@ export default function TableGrid(props: TableGridProps) {
   const cols = Array.from({ length: MAX_COLS }, (_, i) => i + 1);
 
   return (
-    <div class="flex flex-col">
+    <div class="flex flex-col" onMouseDown={(e) => e.stopPropagation()}>
         <div class="mb-2 px-1" onClick={(e) => e.stopPropagation()}>
             <Checkbox 
                 checked={withHeader()} 
