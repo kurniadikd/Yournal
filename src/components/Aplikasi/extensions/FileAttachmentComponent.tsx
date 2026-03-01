@@ -83,7 +83,7 @@ const FileAttachmentComponent: Component<{
         group relative my-4 p-4 rounded-2xl border transition-all select-none w-full flex items-center gap-4
         bg-[var(--color-surface-container)] 
         ${props.selected 
-          ? 'ProseMirror-selectednode shadow-[0_0_0_2px_var(--color-primary)] border-[var(--color-primary)] ring-2 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-surface)] cursor-default' 
+          ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-secondary)] border-[var(--color-secondary)] cursor-default' 
           : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-primary)] cursor-pointer'
         }
         ${props.node.attrs.isLoading ? 'opacity-70 pointer-events-none' : ''}
@@ -118,19 +118,16 @@ const FileAttachmentComponent: Component<{
       </div>
 
       {/* Delete Button */}
-      <Show when={props.selected && !props.node.attrs.isLoading}>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            props.deleteNode();
-          }}
-          title="Hapus Lampiran"
-          class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-[var(--color-on-surface)] flex items-center justify-center transition-colors z-10"
-        >
-          <span class="material-symbols-rounded text-lg">close</span>
-        </button>
-      </Show>
+      <button 
+        class="image-delete-btn"
+        style={{ 
+            display: props.selected && !props.node.attrs.isLoading ? 'flex' : 'none',
+            "z-index": "40" 
+        }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); props.deleteNode(); }}
+      >
+        <span class="material-symbols-rounded">close</span>
+      </button>
     </div>
   );
 };
