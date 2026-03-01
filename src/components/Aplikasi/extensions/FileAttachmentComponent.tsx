@@ -83,7 +83,7 @@ const FileAttachmentComponent: Component<{
         selectable-image-wrapper my-4 p-4 rounded-xl border transition-all select-none w-full flex items-center gap-4
         bg-[var(--color-surface-container)] 
         ${props.selected 
-          ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-secondary)] border-[var(--color-secondary)] cursor-default' 
+          ? 'ProseMirror-selectednode border-[var(--color-secondary)] cursor-default' 
           : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-outline)] cursor-pointer'
         }
         ${props.node.attrs.isLoading ? 'opacity-70 pointer-events-none' : ''}

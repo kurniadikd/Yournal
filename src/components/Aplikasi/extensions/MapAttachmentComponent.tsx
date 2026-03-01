@@ -158,7 +158,7 @@ export default function MapAttachmentComponent(props: {
         selectable-image-wrapper my-4 rounded-xl border overflow-hidden transition-all select-none w-full
         bg-[var(--color-surface-container)] 
         ${props.selected 
-          ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-secondary)] border-[var(--color-secondary)]' 
+          ? 'ProseMirror-selectednode border-[var(--color-secondary)]' 
           : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-outline)] cursor-pointer'
         }
       `}

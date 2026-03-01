@@ -474,6 +474,11 @@ ul[data-type="taskList"] li > div > p {
   margin: 1.5rem 0;
   max-width: 100%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 0 0 var(--color-secondary);
+}
+
+.selectable-image-wrapper.ProseMirror-selectednode {
+  box-shadow: 0 0 0 3px var(--color-secondary) !important;
 }
 
 /* Specific overrides for inline math to prevent spacing issues */
@@ -550,9 +555,8 @@ ul[data-type="taskList"] li > div > p {
   animation: preview-zoom-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-.selectable-image-wrapper.ProseMirror-selectednode img:not(.no-ring) {
-  box-shadow: 0 0 0 3px var(--color-secondary, #006a6a);
-}
+/* Selection logic handled on wrapper */
+
 
 
 /* --- Placeholder Styles --- */

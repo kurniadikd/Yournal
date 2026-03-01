@@ -33,7 +33,9 @@ export const SelectableImage = Image.extend({
       container.style.position = 'relative'
       container.style.display = 'inline-block'
       container.style.overflow = 'hidden'
-      container.style.borderRadius = '8px' // Match standard image border radius typically used
+      container.style.borderRadius = '12px' // Match standard rounded-xl
+      container.style.border = '1px solid color-mix(in srgb, var(--color-outline-variant), transparent 50%)'
+      container.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
       
       const img = document.createElement('img')
       img.src = node.attrs.src
