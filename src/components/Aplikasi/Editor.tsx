@@ -1168,7 +1168,7 @@ export default function Editor(props: EditorProps) {
                         {/* 1. Insert Grid Trigger */}
                         <button 
                           ref={setInsertTableBtnRef}
-                          onMouseEnter={() => setInsertTableOpen(true)}
+                          onClick={() => setInsertTableOpen(!insertTableOpen())}
                           class={`
                             w-full text-left px-3 py-2.5 flex items-center justify-between rounded-lg transition-colors
                             ${insertTableOpen() ? 'bg-[var(--color-surface-container-highest)]' : 'hover:bg-[var(--color-on-surface-variant)]/[0.08]'}
@@ -1178,7 +1178,7 @@ export default function Editor(props: EditorProps) {
                              <span class="material-symbols-rounded text-[20px]">grid_view</span>
                              <span class="text-sm font-medium text-[var(--color-on-surface)]">Sisipkan Tabel</span>
                            </div>
-                           <span class="material-symbols-rounded text-[20px] text-[var(--color-on-surface-variant)]">chevron_right</span>
+                           <span class={`material-symbols-rounded text-[20px] text-[var(--color-on-surface-variant)] transition-transform duration-200 ${insertTableOpen() ? 'rotate-90' : ''}`}>chevron_right</span>
                         </button>
 
                         {/* Nested Popover for Grid */}
@@ -1189,9 +1189,7 @@ export default function Editor(props: EditorProps) {
                           placement="right-start"
                           class="p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box z-[60]"
                         >
-                           <div 
-                              onMouseLeave={() => setInsertTableOpen(false)}
-                           >
+                           <div>
                               <TableGrid onConfirm={(rows, cols, withHeader) => {
                                   editor()?.chain().focus().insertTable({ rows, cols, withHeaderRow: withHeader }).run();
                                   setTableMenuOpen(false);
