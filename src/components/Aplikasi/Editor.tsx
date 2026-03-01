@@ -690,10 +690,46 @@ export default function Editor(props: EditorProps) {
   const handleFileConfirm = async (filePath: string) => {
     try {
       const fileInfo = await processFileAttachment(filePath);
-      editor()?.chain().focus().insertContent({
-        type: 'fileAttachment',
-        attrs: fileInfo
-      }).run();
+      const editorInstance = editor();
+      if (!editorInstance) return;
+
+      const uploadId = `upload-file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      const node = editorInstance.schema.nodes.fileAttachment.create({ 
+        name: fileInfo.name,
+        size: fileInfo.size,
+        mimeType: fileInfo.mimeType,
+        src: null,
+        isLoading: true,
+        uploadId: uploadId 
+      });
+      
+      const tr = editorInstance.state.tr.replaceSelectionWith(node);
+      editorInstance.view.dispatch(tr);
+
+      // Fetch base64 data asynchronously
+      const base64Str = await invoke<string>('read_file_base64', { path: filePath });
+      const finalSrc = `data:${fileInfo.mimeType};base64,${base64Str}`;
+      
+      const currentEditor = editor();
+      if (!currentEditor) return;
+      
+      let targetPos = -1;
+      currentEditor.state.doc.descendants((node, p) => {
+        if (node.type.name === 'fileAttachment' && node.attrs.uploadId === uploadId) {
+          targetPos = p;
+        }
+      });
+      
+      if (targetPos !== -1) {
+        currentEditor.view.dispatch(
+          currentEditor.state.tr.setNodeMarkup(targetPos, undefined, {
+            ...currentEditor.state.doc.nodeAt(targetPos)?.attrs,
+            src: finalSrc,
+            isLoading: false
+          })
+        );
+      }
     } catch (err) {
       console.error("Failed to attach file:", err);
     }

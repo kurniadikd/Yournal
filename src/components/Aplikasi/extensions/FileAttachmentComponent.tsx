@@ -1,4 +1,6 @@
 import { openPath } from '@tauri-apps/plugin-opener';
+import { tempDir, join } from '@tauri-apps/api/path';
+import { writeFile, mkdir, exists } from '@tauri-apps/plugin-fs';
 import { Show } from 'solid-js';
 import { formatFileSize } from '../../../utils/file';
 
@@ -6,7 +8,9 @@ export interface FileAttachmentAttributes {
   name: string;
   size: number;
   mimeType: string;
-  path: string;
+  src: string;
+  uploadId: string;
+  isLoading: boolean;
 }
 
 export default function FileAttachmentComponent(props: {
@@ -15,14 +19,38 @@ export default function FileAttachmentComponent(props: {
   selected: boolean,
   deleteNode: () => void
 }) {
-  const { name, size, mimeType, path } = props.node.attrs;
+  const { name, size, mimeType, src, isLoading } = props.node.attrs;
 
   const handleOpenFile = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (path) {
+    
+    if (isLoading) return; // Don't try to open if it's still loading
+    
+    if (src && src.startsWith('data:')) {
       try {
-        await openPath(path);
+        const base64Data = src.split(',')[1];
+        if (!base64Data) return;
+        
+        // Convert base64 to Uint8Array
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const tempDirPath = await tempDir();
+        const appTempDir = await join(tempDirPath, 'yournal_attachments');
+        
+        if (!(await exists(appTempDir))) {
+            await mkdir(appTempDir, { recursive: true });
+        }
+        
+        const safeName = name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const tempFilePath = await join(appTempDir, safeName);
+        
+        await writeFile(tempFilePath, bytes);
+        await openPath(tempFilePath);
       } catch (err) {
         console.error("Failed to open file:", err);
       }
@@ -45,20 +73,30 @@ export default function FileAttachmentComponent(props: {
   return (
     <div 
       class={`
-        group relative my-4 p-4 rounded-2xl border transition-all select-none w-full flex items-center gap-4 cursor-pointer
+        group relative my-4 p-4 rounded-2xl border transition-all select-none w-full flex items-center gap-4
         bg-[var(--color-surface-container)] 
         ${props.selected 
-          ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-primary)] border-[var(--color-primary)]' 
-          : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-primary)]'
+          ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-primary)] border-[var(--color-primary)] cursor-default' 
+          : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-primary)] cursor-pointer'
         }
+        ${isLoading ? 'opacity-70 pointer-events-none' : ''}
       `}
       onClick={handleOpenFile}
     >
-      {/* File Icon */}
-      <div class="w-12 h-12 rounded-xl bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] flex items-center justify-center shrink-0">
-        <span class="material-symbols-rounded text-2xl">
-          {getFileIcon(mimeType)}
-        </span>
+      {/* File Icon with Spinner Overlay */}
+      <div class="relative w-12 h-12 rounded-xl bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] flex items-center justify-center shrink-0 overflow-hidden">
+        <Show when={isLoading} fallback={
+          <span class="material-symbols-rounded text-2xl">
+            {getFileIcon(mimeType)}
+          </span>
+        }>
+          <div class="absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+             <span class="loading loading-spinner loading-sm text-[var(--color-primary)]"></span>
+          </div>
+          <span class="material-symbols-rounded text-2xl opacity-30">
+            {getFileIcon(mimeType)}
+          </span>
+        </Show>
       </div>
 
       {/* File Info */}
@@ -67,12 +105,12 @@ export default function FileAttachmentComponent(props: {
           {name}
         </h3>
         <p class="text-xs text-[var(--color-on-surface-variant)] mt-0.5">
-          {formatFileSize(size)} • {mimeType.split('/').pop()?.toUpperCase() || 'FILE'}
+          {isLoading ? 'Melampirkan...' : `${formatFileSize(size)} • ${mimeType.split('/').pop()?.toUpperCase() || 'FILE'}`}
         </p>
       </div>
 
       {/* Delete Button */}
-      <Show when={props.selected}>
+      <Show when={props.selected && !isLoading}>
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -80,7 +118,7 @@ export default function FileAttachmentComponent(props: {
             props.deleteNode();
           }}
           title="Hapus Lampiran"
-          class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-[var(--color-on-surface)] flex items-center justify-center transition-colors"
+          class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-[var(--color-on-surface)] flex items-center justify-center transition-colors z-10"
         >
           <span class="material-symbols-rounded text-lg">close</span>
         </button>

@@ -22,8 +22,19 @@ export const FileAttachment = Node.create({
       mimeType: {
         default: 'application/octet-stream',
       },
-      path: {
+      src: {
         default: null,
+      },
+      uploadId: {
+        default: null,
+      },
+      isLoading: {
+        default: false,
+        parseHTML: element => element.getAttribute('data-is-loading') === 'true',
+        renderHTML: attributes => {
+          if (!attributes.isLoading) return {};
+          return { 'data-is-loading': 'true' };
+        },
       },
     };
   },

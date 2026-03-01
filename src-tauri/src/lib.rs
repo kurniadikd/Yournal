@@ -4,6 +4,12 @@ use serde::Serialize;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::{path::BaseDirectory, Manager};
+use tauri_plugin_sql::{Migration, MigrationKind};
+use viuer::{print_from_file, Config};
+use image::{imageops::FilterType, io::Reader as ImageReader, ImageFormat};
+use reqwest::Client;
+use std::io::Cursor;
+use uuid::Uuid;
 
 mod drive_api;
 mod oauth;
@@ -137,6 +143,16 @@ async fn get_file_info(path: String) -> Result<FileInfo, String> {
     })
 }
 
+#[tauri::command]
+async fn read_file_base64(path: String) -> Result<String, String> {
+    let p = Path::new(&path);
+    if !p.exists() {
+        return Err("File not found".to_string());
+    }
+
+    let buf = std::fs::read(p).map_err(|e| e.to_string())?;
+    Ok(general_purpose::STANDARD.encode(buf))
+}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations: Vec<tauri_plugin_sql::Migration> = vec![];
@@ -185,7 +201,8 @@ pub fn run() {
             connect_google_drive,
             exchange_google_token,
             upload_database_to_drive,
-            get_file_info
+            get_file_info,
+            read_file_base64
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
