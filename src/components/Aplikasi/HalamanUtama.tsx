@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, onCleanup, Show, createEffect } from "solid-js";
+import { Component, createSignal, onMount, onCleanup, Show } from "solid-js";
 import { formatDate, formatTime } from "../../utils/date";
 import FAB from "../ui/m3e/FAB";
 import Editor from "./Editor";
@@ -21,35 +21,18 @@ const HalamanUtama: Component = () => {
   const [isLoading, setIsLoading] = createSignal(true);
 
   const fetchNotes = async () => {
-    let attempts = 0;
-    const maxAttempts = 3;
-
-    const performFetch = async () => {
-      setIsLoading(true);
-      try {
-        console.log(`App: Fetching notes (attempt ${attempts + 1})...`);
-        const data = await getNotes();
-        
-        if (data.length > 0) {
-          console.log(`App: fetchNotes success, found ${data.length} notes`);
-          setNotes(data);
-          setIsLoading(false);
-          return true;
-        } else {
-          console.log("App: fetchNotes returned 0 notes.");
-          return false;
-        }
-      } catch (err) {
-        console.error("App: fetchNotes failed:", err);
-        return false;
-      }
-    };
-
-    const success = await performFetch();
-    setIsLoading(false);
-    
-    if (!success && attempts < maxAttempts) {
-       // Only retry on actual errors, not on 0 notes
+    // Only show loading spinner on first load (when notes list is empty)
+    const isFirstLoad = notes().length === 0;
+    if (isFirstLoad) setIsLoading(true);
+    try {
+      console.log("App: Fetching notes...");
+      const data = await getNotes();
+      console.log(`App: fetchNotes returned ${data.length} notes`);
+      setNotes(data);
+    } catch (err) {
+      console.error("App: fetchNotes failed:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -111,81 +94,58 @@ const HalamanUtama: Component = () => {
     setIsEditorOpen(true);
   };
 
-  const [showBackground, setShowBackground] = createSignal(true);
-  const [showContent, setShowContent] = createSignal(true);
-  
-  // Coordinate background visibility for smooth transitions
-  createEffect(() => {
-    if (isEditorOpen() || isTemplatePickerOpen()) {
-      // Unmount content instantly to free RAM
-      setShowContent(false);
-      // Delay background shell unmount to let Editor animation finish (300ms)
-      const timer = setTimeout(() => setShowBackground(false), 300);
-      onCleanup(() => clearTimeout(timer));
-    } else {
-      // Instantly remount background shell so the fade-out has a floor
-      setShowBackground(true);
-      // Delay heavy content by 50ms so CSS animations start on GPU first
-      const timer = setTimeout(() => setShowContent(true), 50);
-      onCleanup(() => clearTimeout(timer));
-    }
-  });
+  // Keep content always mounted — the editor renders on top as an overlay
+  // so there's no need to unmount/remount the notes list
 
   return (
     <>
-      <Show when={showBackground()}>
-        <div class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
-             style={{ 
-               "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",
-               "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))"
-             }}>
-          {/* Clock (scrollable on mobile, fixed on desktop) */}
-          <div class="w-full flex justify-start md:fixed md:top-20 md:left-8 md:z-30 md:pointer-events-none p-4 pb-0 md:p-0">
-            <div class="flex flex-col">
-              <span class="text-xl text-[var(--color-secondary)] mb-1">
-                {formatDate(time())}
-              </span>
-              <span class="text-3xl md:text-5xl  text-[var(--color-on-surface)] leading-none tracking-tighter">
-                {formatTime(time())}
-              </span>
-            </div>
+      <div class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
+           style={{ 
+             "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",
+             "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))"
+           }}>
+        {/* Clock (scrollable on mobile, fixed on desktop) */}
+        <div class="w-full flex justify-start md:fixed md:top-20 md:left-8 md:z-30 md:pointer-events-none p-4 pb-0 md:p-0">
+          <div class="flex flex-col">
+            <span class="text-xl text-[var(--color-secondary)] mb-1">
+              {formatDate(time())}
+            </span>
+            <span class="text-3xl md:text-5xl  text-[var(--color-on-surface)] leading-none tracking-tighter">
+              {formatTime(time())}
+            </span>
           </div>
-
-          <Show when={showContent()}>
-            <div class="w-full p-4 md:p-0 animate-in fade-in duration-300">
-              <DaftarCatatan 
-                notes={notes()} 
-                isLoading={isLoading()}
-                onOpenNote={handleOpenNote}
-                onRefresh={fetchNotes}
-              />
-            </div>
-          </Show>
         </div>
 
-        <Show when={showContent()}>
-          {/* Calendar (Bottom-Left) */}
-          <div class="hidden md:block fixed bottom-10 left-8 z-30 animate-in fade-in duration-300">
-            <Kalender notes={notes()} />
-          </div>
+        <div class="w-full p-4 md:p-0">
+          <DaftarCatatan 
+            notes={notes()} 
+            isLoading={isLoading()}
+            onOpenNote={handleOpenNote}
+            onRefresh={fetchNotes}
+          />
+        </div>
+      </div>
 
-          {/* World Map Heatmap — TEMPORARILY DISABLED to isolate tile error */}
-          {/* <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10 animate-in fade-in duration-300">
-            <PetaDunia notes={notes()} />
-          </div> */}
+      {/* Calendar (Bottom-Left) */}
+      <div class="hidden md:block fixed bottom-10 left-8 z-30">
+        <Kalender notes={notes()} />
+      </div>
 
-          {/* Floating Action Button */}
-          <div class="fixed right-6 z-40 animate-in fade-in zoom-in duration-300" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">
-            <FAB 
-              icon="add" 
-              onClick={handleCreateNew} 
-              variant="tertiary"
-              size="large"
-              class="shadow-xl shadow-black/20"
-            />
-          </div>
-        </Show>
-      </Show>
+      {/* World Map Heatmap — TEMPORARILY DISABLED to isolate tile error */}
+      {/* <div class="hidden md:block fixed top-[200px] bottom-[360px] left-8 w-[280px] z-10">
+        <PetaDunia notes={notes()} />
+      </div> */}
+
+      {/* Floating Action Button */}
+      <div class="fixed right-6 z-40" style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px))">
+        <FAB 
+          icon="add" 
+          onClick={handleCreateNew} 
+          variant="tertiary"
+          size="large"
+          class="shadow-xl shadow-black/20"
+        />
+      </div>
 
       <CatatanBaru
         show={isTemplatePickerOpen()}
@@ -198,6 +158,7 @@ const HalamanUtama: Component = () => {
         onClose={() => setIsEditorOpen(false)} 
         onSave={handleSaveNote}
         onDelete={selectedNote() ? handleDeleteNote : undefined}
+        isNewNote={!selectedNote()}
         initialTitle={selectedNote()?.title ?? templateTitle()}
         initialContent={selectedNote()?.content ?? templateContent()}
         initialMood={selectedNote()?.mood}

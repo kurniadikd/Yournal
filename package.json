@@ -14,7 +14,7 @@
   "dependencies": {
     "@fontsource/noto-color-emoji": "^5.2.12",
     "@fontsource/noto-sans": "^5.2.10",
-    "@fontsource/noto-sans-mono": "^5.2.10",
+    "@fontsource/cascadia-mono": "^5.2.0",
     "@fontsource/noto-serif": "^5.2.9",
     "@fontsource/outfit": "^5.2.8",
     "@material/material-color-utilities": "^0.4.0",

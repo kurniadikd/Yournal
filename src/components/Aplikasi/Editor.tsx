@@ -80,6 +80,7 @@ interface EditorProps {
   initialLocation?: string; // JSON String
   initialWeather?: string; // JSON String
   initialTags?: string[];
+  isNewNote?: boolean;
 }
 
 export default function Editor(props: EditorProps) {
@@ -522,14 +523,17 @@ export default function Editor(props: EditorProps) {
         catch (e) { setWeather(null); }
       } else { setWeather(null); }
       
-      // Use setTimeout to ensure TiapTap is ready and outside Solid's synchronous batch
+      // Use setTimeout to ensure TipTap is ready and outside Solid's synchronous batch
       setTimeout(() => {
         const e = editor();
         if (e) {
           e.commands.setContent(initialContent, { emitUpdate: false }); // Disable update event to prevent feedback loop
           migrateMathStrings(e);
           setBaseHTML(e.getHTML());
-          e.commands.focus('start'); 
+          // Only auto-focus cursor for new notes, not when viewing existing ones
+          if (props.isNewNote) {
+            e.commands.focus('start');
+          }
           if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
         }
       }, 0);
