@@ -80,7 +80,7 @@ const FileAttachmentComponent: Component<{
   return (
     <div 
       class={`
-        group relative my-4 p-4 rounded-xl border transition-all select-none w-full flex items-center gap-4
+        selectable-image-wrapper my-4 p-4 rounded-xl border transition-all select-none w-full flex items-center gap-4
         bg-[var(--color-surface-container)] 
         ${props.selected 
           ? 'ProseMirror-selectednode shadow-[0_0_0_3px_var(--color-secondary)] border-[var(--color-secondary)] cursor-default' 
@@ -118,16 +118,15 @@ const FileAttachmentComponent: Component<{
       </div>
 
       {/* Delete Button */}
-      <button 
-        class="image-delete-btn"
-        style={{ 
-            display: props.selected && !props.node.attrs.isLoading ? 'flex' : 'none',
-            "z-index": "40" 
-        }}
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); props.deleteNode(); }}
-      >
-        <span class="material-symbols-rounded">close</span>
-      </button>
+      <Show when={props.selected && !props.node.attrs.isLoading}>
+        <button 
+          class="image-delete-btn"
+          style={{ display: 'flex', "z-index": "40" }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); props.deleteNode(); }}
+        >
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </Show>
     </div>
   );
 };
