@@ -6,10 +6,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { appStore } from "../../stores/appStore";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-// import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
-// import Dropcursor from "@tiptap/extension-dropcursor";
 import { SelectableImage } from "./extensions/SelectableImage";
 import Highlight from "@tiptap/extension-highlight";
 import Bold from "@tiptap/extension-bold";
@@ -39,9 +37,6 @@ import { formatTime, formatDate } from "../../utils/date";
 
 import ImageModal from "../ui/m3e/ImageModal";
 import { MapAttachment } from "./extensions/MapAttachment";
-import { FileAttachment } from "./extensions/FileAttachment";
-import FileModal from "../ui/m3e/FileModal";
-import { processFileAttachment } from "../../utils/file";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
@@ -83,7 +78,6 @@ interface EditorProps {
   initialLocation?: string; // JSON String
   initialWeather?: string; // JSON String
   initialTags?: string[];
-  isNewNote?: boolean;
 }
 
 export default function Editor(props: EditorProps) {
@@ -102,6 +96,7 @@ export default function Editor(props: EditorProps) {
   const [weather, setWeather] = createSignal<{ temp: number; code: number; desc: string } | null>(null);
   const [tags, setTags] = createSignal<string[]>(props.initialTags || []);
   const [tagInput, setTagInput] = createSignal("");
+  const [selectionRange, setSelectionRange] = createSignal<{ from: number, to: number } | null>(null);
 
   // States for viewport fixes
   const [viewportTop, setViewportTop] = createSignal(0);
@@ -118,7 +113,6 @@ export default function Editor(props: EditorProps) {
   const [showVideoModal, setShowVideoModal] = createSignal(false);
   const [showExportModal, setShowExportModal] = createSignal(false);
   const [showMapAttachmentModal, setShowMapAttachmentModal] = createSignal(false);
-  const [showFileModal, setShowFileModal] = createSignal(false);
   
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
@@ -170,11 +164,8 @@ export default function Editor(props: EditorProps) {
         tags: tags().length > 0 ? tags() : undefined
       });
     }
-    // Update base HTML so isDirty() reflects that changes are saved
-    setBaseHTML(html);
+    props.onClose();
   };
-
-  // ... (Tiptap initialization omitted)
 
   const fetchWeather = async (lat: number, lng: number, date: Date) => {
     try {
@@ -184,7 +175,6 @@ export default function Editor(props: EditorProps) {
       const dateStr = `${yyyy}-${mm}-${dd}`;
       const hour = date.getHours();
 
-      // Check if date is historical (older than 7 days)
       const now = new Date();
       const isHistorical = (now.getTime() - date.getTime()) > 7 * 24 * 60 * 60 * 1000;
       
@@ -238,12 +228,6 @@ export default function Editor(props: EditorProps) {
        }
   };
 
-  // First effect removed — consolidated into the second createEffect below (after editor initialization)
-
-  // ... (Toolbar buttons etc)
-
-
-
   const [mathModalOpen, setMathModalOpen] = createSignal(false);
   const [mathModalLatex, setMathModalLatex] = createSignal('');
   const [mathModalPos, setMathModalPos] = createSignal<number | null>(null);
@@ -256,61 +240,6 @@ export default function Editor(props: EditorProps) {
     setMathModalIsEdit(isEdit);
     setMathModalType(type);
     setMathModalOpen(true);
-  };
-
-  const processImageFile = async (file: File, pos?: number) => {
-    const editorInstance = editor();
-    if (!editorInstance) return;
-
-    const uploadId = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const objectUrl = URL.createObjectURL(file);
-    
-    const node = editorInstance.schema.nodes.selectableImage.create({ 
-      src: objectUrl,
-      isLoading: true,
-      uploadId: uploadId 
-    });
-    
-    let tr = editorInstance.state.tr;
-    if (pos !== undefined) {
-       tr = tr.insert(pos, node);
-    } else {
-       tr = tr.replaceSelectionWith(node);
-    }
-    editorInstance.view.dispatch(tr);
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target?.result as string;
-      let finalSrc = base64;
-      
-      try {
-        finalSrc = await invoke<string>('convert_to_avif', { base64Data: base64 });
-      } catch (err) {
-        console.warn('AVIF conversion failed, using original:', err);
-      }
-      
-      const currentEditor = editor();
-      if (!currentEditor) return;
-      
-      let targetPos = -1;
-      currentEditor.state.doc.descendants((node, p) => {
-        if (node.type.name === 'selectableImage' && node.attrs.uploadId === uploadId) {
-          targetPos = p;
-        }
-      });
-      
-      if (targetPos !== -1) {
-        currentEditor.view.dispatch(
-          currentEditor.state.tr.setNodeMarkup(targetPos, undefined, {
-            ...currentEditor.state.doc.nodeAt(targetPos)?.attrs,
-            src: finalSrc,
-            isLoading: false
-          })
-        );
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const editor = createTiptapEditor(() => ({
@@ -334,7 +263,6 @@ export default function Editor(props: EditorProps) {
       }),
       VideoPlayer,
       MapAttachment,
-      FileAttachment,
       SelectableImage.configure({
         inline: true,
         allowBase64: true,
@@ -409,7 +337,6 @@ export default function Editor(props: EditorProps) {
       
       setUpdateTrigger(v => v + 1);
       
-      // Prevent keyboard from showing when a non-text node is selected (mobile)
       try {
         const proseMirrorEl = ed.view?.dom as HTMLElement;
         if (!proseMirrorEl) return;
@@ -421,14 +348,13 @@ export default function Editor(props: EditorProps) {
           proseMirrorEl.removeAttribute('inputmode');
         }
       } catch (e) {
-        // Safe fallback if view is still inaccessible
       }
     },
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
+        class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
       },
-      handlePaste: (_view, event) => {
+      handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
 
@@ -437,7 +363,23 @@ export default function Editor(props: EditorProps) {
             event.preventDefault();
             const file = item.getAsFile();
             if (!file) return true;
-            processImageFile(file);
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              const base64 = e.target?.result as string;
+              try {
+                const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
+                view.dispatch(view.state.tr.replaceSelectionWith(
+                  view.state.schema.nodes.selectableImage.create({ src: avifData })
+                ));
+              } catch (err) {
+                console.warn('AVIF conversion failed for paste, using original:', err);
+                view.dispatch(view.state.tr.replaceSelectionWith(
+                  view.state.schema.nodes.selectableImage.create({ src: base64 })
+                ));
+              }
+            };
+            reader.readAsDataURL(file);
             return true;
           }
         }
@@ -452,14 +394,30 @@ export default function Editor(props: EditorProps) {
 
         event.preventDefault();
         const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
-        processImageFile(imageFile, coords?.pos ?? view.state.selection.from);
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target?.result as string;
+          try {
+            const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
+            const node = view.state.schema.nodes.selectableImage.create({ src: avifData });
+            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
+            view.dispatch(tr);
+          } catch (err) {
+            console.warn('AVIF conversion failed for drop, using original:', err);
+            const node = view.state.schema.nodes.selectableImage.create({ src: base64 });
+            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
+            view.dispatch(tr);
+          }
+        };
+        reader.readAsDataURL(imageFile);
         return true;
       },
     },
   }));
 
   const isActive = (nameOrAttrs: string | Record<string, any>, attrs?: any) => {
-    updateTrigger(); // Dependency
+    updateTrigger(); 
     const ed = editor();
     if (!ed) return false;
     if (typeof nameOrAttrs === 'string') {
@@ -479,35 +437,21 @@ export default function Editor(props: EditorProps) {
   }
 
   const isDirty = () => {
-    updateTrigger(); // Reactive dependency for content changes
-
-    // 1. Check content changes
+    updateTrigger(); 
     const currentContent = editor()?.getHTML();
     const initialCont = baseHTML() || "";
     const contentChanged = currentContent !== initialCont 
       && !(initialCont === "" && currentContent === "<p></p>");
-
-    // 2. Check title changes
     const titleChanged = title() !== (props.initialTitle || "");
-
-    // 3. Check mood changes
     const moodChanged = mood() !== (props.initialMood || "");
-
-    // 4. Check date changes
     const initialDate = props.initialDate || null;
     const dateChanged = initialDate 
       ? entryDate().getTime() !== initialDate.getTime()
-      : false; // New notes don't track date changes
-
-    // 5. Check location changes
+      : false; 
     const currentLoc = location() ? JSON.stringify(location()) : undefined;
     const locationChanged = currentLoc !== (props.initialLocation || undefined);
-
-    // 6. Check weather changes  
     const currentWeather = weather() ? JSON.stringify(weather()) : undefined;
     const weatherChanged = currentWeather !== (props.initialWeather || undefined);
-    
-    // 7. Check tags changes
     const currentTags = [...tags()].sort();
     const initialTags = [...(props.initialTags || [])].sort();
     const tagsChanged = JSON.stringify(currentTags) !== JSON.stringify(initialTags);
@@ -522,10 +466,8 @@ export default function Editor(props: EditorProps) {
     }
   };
 
-  // Sync editor state ONLY when it opens
   createEffect(() => {
     if (props.show) {
-      // Untrack props to prevent re-triggering if parent state updates while editor is open
       const initialTitle = props.initialTitle || "";
       const initialMood = props.initialMood || "";
       const initialDate = props.initialDate || new Date();
@@ -551,17 +493,13 @@ export default function Editor(props: EditorProps) {
         catch (e) { setWeather(null); }
       } else { setWeather(null); }
       
-      // Use setTimeout to ensure TipTap is ready and outside Solid's synchronous batch
       setTimeout(() => {
         const e = editor();
         if (e) {
-          e.commands.setContent(initialContent, { emitUpdate: false }); // Disable update event to prevent feedback loop
+          e.commands.setContent(initialContent, { emitUpdate: false }); 
           migrateMathStrings(e);
           setBaseHTML(e.getHTML());
-          // Only auto-focus cursor for new notes, not when viewing existing ones
-          if (props.isNewNote) {
-            e.commands.focus('start');
-          }
+          e.commands.focus('start'); 
           if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
         }
       }, 0);
@@ -571,23 +509,19 @@ export default function Editor(props: EditorProps) {
   // Focus Management & Viewport Tracking
   createEffect(() => {
     if (editor() && shouldRenderEditor() && isEditorVisible()) {
-      
       const vfix = () => {
         if (!window.visualViewport) {
           setDynamicHeight(`${window.innerHeight}px`);
           return;
         }
         
-        // Update top offset for Safari panning
-        setViewportTop(window.visualViewport.offsetTop);
-        
-        // Update dynamic height to exactly match visible viewport
-        setDynamicHeight(`${window.visualViewport.height}px`);
-        
-        // Detect keyboard open (height is significantly smaller than usual)
-        // A typical keyboard takes up > 25% of screen height
+        // Deteksi apakah ukuran jauh berkurang karena keyboard
         const isKeyboard = window.visualViewport.height < window.innerHeight * 0.75;
         setIsKeyboardOpen(isKeyboard);
+
+        // Langsung perbarui Tinggi dan Translasi visual secara real-time
+        setDynamicHeight(`${window.visualViewport.height}px`);
+        setViewportTop(window.visualViewport.offsetTop);
       };
 
       if (window.visualViewport) {
@@ -605,7 +539,6 @@ export default function Editor(props: EditorProps) {
     }
   });
 
-  // Handle custom preview-image event from SelectableImage extension
   createEffect(() => {
     const el = container();
     if (el) {
@@ -650,8 +583,6 @@ export default function Editor(props: EditorProps) {
 
   const Divider = () => <div class="w-[1px] h-5 bg-[var(--color-outline-variant)] mx-1 self-center shrink-0 opacity-50" />;
 
-
-
   const setLink = () => {
     const previousUrl = editor()?.getAttributes('link').href || '';
     setLinkUrl(previousUrl);
@@ -679,60 +610,8 @@ export default function Editor(props: EditorProps) {
     setShowImageModal(true);
   };
 
-  const handleImageConfirm = (url: string, file?: File) => {
-    if (file) {
-      processImageFile(file);
-    } else {
-      editor()?.chain().focus().setImage({ src: url }).run();
-    }
-  };
-
-  const handleFileConfirm = async (filePath: string) => {
-    try {
-      const fileInfo = await processFileAttachment(filePath);
-      const editorInstance = editor();
-      if (!editorInstance) return;
-
-      const uploadId = `upload-file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      
-      const node = editorInstance.schema.nodes.fileAttachment.create({ 
-        name: fileInfo.name,
-        size: fileInfo.size,
-        mimeType: fileInfo.mimeType,
-        src: null,
-        isLoading: true,
-        uploadId: uploadId 
-      });
-      
-      const tr = editorInstance.state.tr.replaceSelectionWith(node);
-      editorInstance.view.dispatch(tr);
-
-      // Fetch base64 data asynchronously
-      const base64Str = await invoke<string>('read_file_base64', { path: filePath });
-      const finalSrc = `data:${fileInfo.mimeType};base64,${base64Str}`;
-      
-      const currentEditor = editor();
-      if (!currentEditor) return;
-      
-      let targetPos = -1;
-      currentEditor.state.doc.descendants((node, p) => {
-        if (node.type.name === 'fileAttachment' && node.attrs.uploadId === uploadId) {
-          targetPos = p;
-        }
-      });
-      
-      if (targetPos !== -1) {
-        currentEditor.view.dispatch(
-          currentEditor.state.tr.setNodeMarkup(targetPos, undefined, {
-            ...currentEditor.state.doc.nodeAt(targetPos)?.attrs,
-            src: finalSrc,
-            isLoading: false
-          })
-        );
-      }
-    } catch (err) {
-      console.error("Failed to attach file:", err);
-    }
+  const handleImageConfirm = (url: string) => {
+    editor()?.chain().focus().setImage({ src: url }).run();
   };
 
   const addVideo = () => {
@@ -907,24 +786,15 @@ export default function Editor(props: EditorProps) {
     }
   };
 
-  // Unified editor lifecycle effect.
-  // Uses `on()` to ONLY track `props.show` — no other reactive deps.
-  // When props.show becomes true: animate in + load content.
-  // When props.show becomes false: animate out + reset state.
   createEffect(on(() => props.show, (show) => {
     if (show) {
-      // --- OPEN ---
       if (editorTransitionTimer) clearTimeout(editorTransitionTimer);
       setShouldRenderEditor(true);
       requestAnimationFrame(() => requestAnimationFrame(() => setIsEditorVisible(true)));
 
-      // Load data into editor after a short delay to ensure Tiptap is mounted.
-      // Props are read imperatively here (not tracked) — intentional.
       setTimeout(() => {
         const ed = editor();
         if (!ed || ed.isDestroyed) {
-          console.warn("Editor: Tiptap not ready after open, retrying...");
-          // Retry once more after another tick
           setTimeout(() => {
             const ed2 = editor();
             if (!ed2 || ed2.isDestroyed) return;
@@ -935,7 +805,6 @@ export default function Editor(props: EditorProps) {
         loadPropsIntoEditor(ed);
       }, 30);
 
-      // Android Back Button Handler
       const handler = () => {
         handleClose();
         return true;
@@ -943,25 +812,13 @@ export default function Editor(props: EditorProps) {
       appStore.pushBackHandler(handler);
       onCleanup(() => appStore.popBackHandler(handler));
     } else {
-      // --- CLOSE ---
       setIsEditorVisible(false);
-      
-      // Delay state reset until after the fade-out animation (300ms)
-      editorTransitionTimer = setTimeout(() => {
-        resetEditorState();
-        setShouldRenderEditor(false);
-      }, 300);
+      resetEditorState();
+      editorTransitionTimer = setTimeout(() => setShouldRenderEditor(false), 300);
     }
   }));
 
-  // Helper: Load all props into the editor imperatively (no reactivity).
   const loadPropsIntoEditor = (ed: any) => {
-    console.log("Editor: Loading props →", {
-      title: props.initialTitle,
-      hasContent: !!props.initialContent,
-      mood: props.initialMood,
-    });
-
     setTitle(props.initialTitle || "");
 
     if (props.initialContent) {
@@ -985,9 +842,6 @@ export default function Editor(props: EditorProps) {
     }
     setWeather(w);
 
-    setTags(props.initialTags || []);
-    setBaseHTML(props.initialContent || "");
-
     // Focus the editor
     setTimeout(() => {
       if (!ed.isDestroyed) ed.commands.focus('start');
@@ -996,16 +850,23 @@ export default function Editor(props: EditorProps) {
 
   return (
     <Show when={shouldRenderEditor()}>
+      {/* 1. LAPISAN LUAR (Statik Penuh 100% Layar)
+          Berfungsi sebagai pelindung agar halaman di belakang tidak terlihat. */}
       <div class={`
-        fixed left-0 w-full z-50 bg-[var(--color-background)] flex flex-col overflow-hidden
+        fixed inset-0 z-50 bg-[var(--color-background)] overflow-hidden
         transition-[opacity,transform] duration-300 ease-out
         ${isEditorVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
-      `}
-      style={{ 
-        height: dynamicHeight(),
-        top: `${viewportTop()}px`
-      }}
-      >
+      `}>
+        
+        {/* 2. LAPISAN DALAM (Dinamis mengikuti Keyboard)
+            Ini yang berubah tingginya & menggunakan translateY (Akselerasi GPU). */}
+        <div 
+          class="flex flex-col w-full h-full bg-[var(--color-background)]"
+          style={{ 
+            height: dynamicHeight(),
+            transform: `translateY(${viewportTop()}px)`
+          }}
+        >
         
         {/* --- 1. STICKY HEADER & TOOLBAR --- */}
         <div 
@@ -1013,435 +874,434 @@ export default function Editor(props: EditorProps) {
           style={{ "padding-top": "env(safe-area-inset-top, 0px)" }}
         >
           
-          {/* Row 1: Action Buttons (Top) */}
-          <div class="flex items-center justify-between px-4 py-2 border-b border-[var(--color-outline-variant)]/10">
-            <div class="flex items-center gap-2">
-              <Button 
-                variant="tonal" 
-                onClick={handleClose}
-                class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-full shrink-0"
-                title="Kembali"
-              >
-                <span class="material-symbols-rounded !text-[20px] font-normal">arrow_back</span>
-                <span class="hidden sm:inline sm:ml-2">Kembali</span>
-              </Button>
-            </div>
-            <div class="flex items-center gap-1.5 sm:gap-2">
-              <Show when={props.onDelete}>
-                <Button 
-                  variant="text" 
-                  onClick={props.onDelete}
-                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-error)] hover:bg-[var(--color-error-container)] mr-2"
-                  title="Hapus"
-                >
-                  <span class="material-symbols-rounded !text-[20px] font-normal">delete</span>
-                  <span class="hidden sm:inline sm:ml-2">Hapus</span>
-                </Button>
-              </Show>
-              
-              <Button 
-                  type="button"
-                  variant="text" 
-                  onClick={() => setShowExportModal(true)}
-                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] mr-2"
-                  title="Ekspor"
-                >
-                  <span class="material-symbols-rounded !text-[20px] font-normal">ios_share</span>
-                  <span class="hidden sm:inline sm:ml-2">Ekspor</span>
-                </Button>
-
-              <Show when={isDirty()}>
-                <Button 
-                  variant="filled" 
-                  onClick={handleSave}
-                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
-                  title="Simpan"
-                >
-                  <span class="material-symbols-rounded !text-[20px] font-normal">save</span>
-                  <span class="hidden sm:inline sm:ml-2">Simpan</span>
-                </Button>
-              </Show>
-            </div>
-          </div>
-        </div>
-
-        {/* Row 2: Formatting Toolbar (Flex Ordered: Bottom on Mobile, Top on Desktop) */}
-        <div class={`shrink-0 px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
-                    order-last sm:order-none
-                    border-t sm:border-y border-[var(--color-outline-variant)]/10
-                    shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:shadow-none
-                    ${isKeyboardOpen() ? 'pb-2' : 'pb-[max(8px,env(safe-area-inset-bottom))]'} sm:pb-2
-                    z-40`}>
-             <div class="flex items-center gap-1 min-w-max">
-                <ToolbarButton icon="undo" action={() => editor()?.chain().focus().undo().run()} title="Undo" disabled={!canUndo()} />
-                <ToolbarButton icon="redo" action={() => editor()?.chain().focus().redo().run()} title="Redo" disabled={!canRedo()} />
-                
-                <Divider />
-                
-                <ToolbarButton icon="format_bold" action={() => editor()?.chain().focus().toggleBold().run()} active={isActive('bold')} title="Bold" />
-                <ToolbarButton icon="format_italic" action={() => editor()?.chain().focus().toggleItalic().run()} active={isActive('italic')} title="Italic" />
-                <ToolbarButton icon="format_underlined" action={() => editor()?.chain().focus().toggleUnderline().run()} active={isActive('underline')} title="Underline" />
-                <ToolbarButton icon="format_strikethrough" action={() => editor()?.chain().focus().toggleStrike().run()} active={isActive('strike')} title="Strike" />
-                
-                <Divider />
-
-                <ToolbarButton icon="subscript" action={() => editor()?.chain().focus().toggleSubscript().run()} active={isActive('subscript')} title="Subscript" />
-                <ToolbarButton icon="superscript" action={() => editor()?.chain().focus().toggleSuperscript().run()} active={isActive('superscript')} title="Superscript" />
-                <ToolbarButton icon="border_color" action={() => editor()?.chain().focus().toggleHighlight({ color: 'var(--color-tertiary)' }).run()} active={isActive('highlight')} title="Highlight" />
-                
-                <Divider />
-
-                <div class="flex items-center gap-0.5 px-0.5">
-                  <ToolbarButton 
-                    icon="format_h1" 
-                    action={() => editor()?.chain().focus().toggleHeading({ level: 1 }).run()} 
-                    active={isActive('heading', { level: 1 })} 
-                    title="Heading 1" 
-                  />
-                  <ToolbarButton 
-                    icon="format_h2" 
-                    action={() => editor()?.chain().focus().toggleHeading({ level: 2 }).run()} 
-                    active={isActive('heading', { level: 2 })} 
-                    title="Heading 2" 
-                  />
-                  <ToolbarButton 
-                    icon="format_h3" 
-                    action={() => editor()?.chain().focus().toggleHeading({ level: 3 }).run()} 
-                    active={isActive('heading', { level: 3 })} 
-                    title="Heading 3" 
-                  />
-                </div>
-                
-                <Divider />
-
-                <ToolbarButton 
-                  icon="format_align_left" 
-                  action={() => (editor()?.chain().focus() as any).setTextAlign('left').run()} 
-                  active={isActive({ textAlign: 'left' }) || (!isActive({ textAlign: 'center' }) && !isActive({ textAlign: 'right' }) && !isActive({ textAlign: 'justify' }))} 
-                  title="Rata Kiri" 
-                />
-                <ToolbarButton icon="format_align_center" action={() => (editor()?.chain().focus() as any).setTextAlign('center').run()} active={isActive({ textAlign: 'center' })} title="Rata Tengah" />
-                <ToolbarButton icon="format_align_right" action={() => (editor()?.chain().focus() as any).setTextAlign('right').run()} active={isActive({ textAlign: 'right' })} title="Rata Kanan" />
-                <ToolbarButton icon="format_align_justify" action={() => (editor()?.chain().focus() as any).setTextAlign('justify').run()} active={isActive({ textAlign: 'justify' })} title="Rata Kiri-Kanan" />
-
-                <ToolbarButton icon="format_list_bulleted" action={() => editor()?.chain().focus().toggleBulletList().run()} active={isActive('bulletList')} title="Bullet List" />
-                <ToolbarButton icon="format_list_numbered" action={() => editor()?.chain().focus().toggleOrderedList().run()} active={isActive('orderedList')} title="Numbered List" />
-                <ToolbarButton icon="checklist" action={() => editor()?.chain().focus().toggleTaskList().run()} active={isActive('taskList')} title="Task List" />
-                
-                <Divider />
-
-                <ToolbarButton icon="format_quote" action={() => editor()?.chain().focus().toggleBlockquote().run()} active={isActive('blockquote')} title="Blockquote" />
-                <ToolbarButton icon="horizontal_rule" action={() => editor()?.chain().focus().setHorizontalRule().run()} title="Garis Mendatar" />
-                <ToolbarButton icon="attach_file" action={() => setShowFileModal(true)} title="Lampirkan File" />
-                <ToolbarButton icon="image" action={addImage} title="Sisipkan Gambar" />
-                <ToolbarButton icon="movie" action={addVideo} title="Sisipkan Video" />
-                <ToolbarButton icon="add_location_alt" action={addMapAttachment} title="Sisipkan Peta Lokasi" />
-                <ToolbarButton icon="mic" action={() => setShowAudioRecorder(true)} title="Rekam Suara" />
-                <ToolbarButton icon="link" action={setLink} active={isActive('link')} title="Tambah Link" />
-                <ToolbarButton icon="link_off" action={() => editor()?.chain().focus().unsetLink().run()} disabled={!isActive('link')} title="Hapus Link" />
-                <ToolbarButton icon="function" action={() => openMathModal('E=mc^2', null, false)} title="Sisipkan Rumus Matematika" />
-
-                <Divider />
-
-                <button
-                  ref={setTableBtnRef}
-                  onMouseDown={(e) => { 
-                    e.preventDefault(); 
-                    const newState = !tableMenuOpen();
-                    setTableMenuOpen(newState); 
-                    setInsertTableOpen(false); // Always start with child dropdown hidden
-                  }}
-                  class={`
-                    flex items-center gap-1 h-9 px-3 rounded-lg transition-all duration-200 shrink-0
-                    ${tableMenuOpen() || isActive('table') 
-                      ? 'bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)]' 
-                      : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]'}
-                  `}
-                >
-                  <span class="material-symbols-rounded text-[20px]">table_chart</span>
-                  <span class="text-sm font-medium">Tabel</span>
-                  <span class="material-symbols-rounded text-[16px]">expand_more</span>
-                </button>
-
-                <Popover
-                  show={tableMenuOpen()}
-                  onClose={() => { setTableMenuOpen(false); setInsertTableOpen(false); }}
-                  anchor={tableBtnRef()}
-                  class="menu p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box w-64 z-50 flex flex-col gap-1"
-                >
-                    <div class="flex flex-col gap-1">
-                        {/* 1. Insert Grid Trigger */}
-                        <button 
-                          ref={setInsertTableBtnRef}
-                          onClick={() => setInsertTableOpen(!insertTableOpen())}
-                          class={`
-                            w-full text-left px-3 py-2.5 flex items-center justify-between rounded-lg transition-colors
-                            ${insertTableOpen() ? 'bg-[var(--color-surface-container-highest)]' : 'hover:bg-[var(--color-on-surface-variant)]/[0.08]'}
-                          `}
-                        >
-                           <div class="flex items-center gap-3">
-                             <span class="material-symbols-rounded text-[20px]">grid_view</span>
-                             <span class="text-sm font-medium text-[var(--color-on-surface)]">Sisipkan Tabel</span>
-                           </div>
-                           <span class={`material-symbols-rounded text-[20px] text-[var(--color-on-surface-variant)] transition-transform duration-200 ${insertTableOpen() ? 'rotate-90' : ''}`}>chevron_right</span>
-                        </button>
-
-                        {/* Nested Popover for Grid */}
-                        <Popover
-                          show={insertTableOpen()}
-                          onClose={() => setInsertTableOpen(false)}
-                          anchor={insertTableBtnRef()}
-                          placement="right-start"
-                          class="p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box z-[60]"
-                        >
-                           <div onMouseDown={(e) => e.stopPropagation()}>
-                              <TableGrid onConfirm={(rows, cols, withHeader) => {
-                                  editor()?.chain().focus().insertTable({ rows, cols, withHeaderRow: withHeader }).run();
-                                  setTableMenuOpen(false);
-                                  setInsertTableOpen(false);
-                              }} />
-                           </div>
-                        </Popover>
-
-                        <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
-
-                        {/* 2. Context Actions */}
-                        <div class="flex flex-col gap-1">
-                            <button 
-                              disabled={!editor()?.can().addColumnBefore()}
-                              onClick={() => { editor()?.chain().focus().addColumnBefore().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">view_column</span> Tambah Kolom (Kiri)
-                            </button>
-                            <button 
-                              disabled={!editor()?.can().addColumnAfter()}
-                              onClick={() => { editor()?.chain().focus().addColumnAfter().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">view_column</span> Tambah Kolom (Kanan)
-                            </button>
-                            <button 
-                              disabled={!editor()?.can().deleteColumn()}
-                              onClick={() => { editor()?.chain().focus().deleteColumn().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-error)] hover:bg-[var(--color-error-container)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">delete_sweep</span> Hapus Kolom
-                            </button>
-                            
-                            <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
-
-                            <button 
-                              disabled={!editor()?.can().addRowBefore()}
-                              onClick={() => { editor()?.chain().focus().addRowBefore().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">table_rows</span> Tambah Baris (Atas)
-                            </button>
-                            <button 
-                              disabled={!editor()?.can().addRowAfter()}
-                              onClick={() => { editor()?.chain().focus().addRowAfter().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">table_rows</span> Tambah Baris (Bawah)
-                            </button>
-                            <button
-                              disabled={!editor()?.can().deleteRow()}
-                              onClick={() => { editor()?.chain().focus().deleteRow().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-error)] hover:bg-[var(--color-error-container)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">delete_sweep</span> Hapus Baris
-                            </button>
-
-                            <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
-
-                            <button
-                              disabled={!editor()?.can().mergeCells()}
-                              onClick={() => { editor()?.chain().focus().mergeCells().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">merge</span> Merge / Split
-                            </button>
-                            <button 
-                              disabled={!editor()?.can().deleteTable()}
-                              onClick={() => { editor()?.chain().focus().deleteTable().run(); setTableMenuOpen(false); }}
-                              class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-error)] hover:bg-[var(--color-error-container)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
-                            >
-                               <span class="material-symbols-rounded text-[18px]">delete_forever</span> Hapus Tabel
-                            </button>
-                        </div>
-                    </div>
-                </Popover>
-           </div>
-        </div>
-
-        {/* --- 2. MAIN SCROLLABLE AREA --- */}
-        <div 
-          ref={scrollContainerRef}
-          class="flex-1 overflow-y-auto bg-[var(--color-background)] cursor-text"
-          onClick={() => editor()?.commands.focus()}
-        >
+          {/* --- STICKY HEADER & TOOLBAR --- */}
           <div 
-            class="max-w-4xl mx-auto px-6 py-12 min-h-full flex flex-col"
-            onClick={(e) => e.stopPropagation()} 
+            class="shrink-0 sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10"
+            style={{ "padding-top": "env(safe-area-inset-top, 0px)" }}
           >
-            
-            <textarea
-              ref={titleRef}
-              rows="1"
-              placeholder="Tulis Judul..."
-              value={title()}
-              onInput={(e) => {
-                setTitle(e.currentTarget.value);
-                resizeTitle();
-              }}
-              class="w-full bg-transparent text-4xl font-extrabold text-[var(--color-on-surface)] placeholder:text-[var(--color-on-surface-variant)]/50 border-none outline-none resize-none overflow-hidden p-0 m-0 mb-4 leading-[1.2]"
-            />
-
-            <div class="flex flex-wrap items-center gap-2 mb-6 animate-in slide-in-from-bottom-2 duration-500">
-               {/* Date Badge */}
-               <button 
-                 onClick={() => setShowDatePicker(true)}
-                 class="group flex items-center gap-2 h-9 px-3 rounded-full bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-base font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)] transition-all duration-200"
-               >
-                 <span class="material-symbols-rounded text-base">calendar_today</span>
-                 <span>{formatDate(entryDate())}</span>
-               </button>
-               
-               {/* Time Badge */}
-               <button 
-                 onClick={() => setShowTimePicker(true)}
-                 class="group flex items-center gap-2 h-9 px-3 rounded-full bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-base font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)] transition-all duration-200"
-               >
-                 <span class="material-symbols-rounded text-base">schedule</span>
-                 <span>{formatTime(entryDate())}</span>
-               </button>
-
-               {/* Location Badge */}
-               <button 
-                 onClick={() => setShowLocationModal(true)}
-                 class={`
-                   group flex items-center gap-2 h-9 px-3 rounded-full transition-all duration-200
-                   ${location() 
-                     ? 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)]' 
-                     : 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)]'}
-                 `}
-                 title={location() ? location()?.name : "Tambah Lokasi"}
-               >
-                 <span class="material-symbols-rounded text-base">
-                   {location() ? 'location_on' : 'add_location_alt'}
-                 </span>
-                 <Show when={location()} fallback={<span>Lokasi</span>}>
-                    <span class="max-w-[250px] truncate md:max-w-none md:whitespace-normal text-left leading-tight py-1">{location()?.name}</span>
-                 </Show>
-               </button>
-
-               {/* Weather Badge */}
-               <Show when={weather()}>
-                   <div 
-                     class="flex items-center gap-2 h-9 px-3 rounded-full bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] select-none animate-in fade-in zoom-in duration-300"
-                     title={weather()?.desc}
-                   >
-                     <span class="material-symbols-rounded text-base">
-                        {getWeatherDescription(weather()!.code).icon}
-                     </span>
-                     <span class="text-base font-medium">{weather()?.temp}°C</span>
-                   </div>
-               </Show>
-
-               <div class="w-[1px] h-4 bg-[var(--color-outline-variant)] opacity-50 mx-1" />
-
-               {/* Emoji Button */}
-               <button 
-                 ref={setEmojiBtnRef}
-                 title="Pilih Perasaan"
-                 onClick={() => setShowMoodPicker(!showMoodPicker())}
-                 class={`
-                   group flex items-center justify-center h-9 min-w-[36px] px-1 rounded-full transition-all duration-200 shrink-0 font-emoji
-                   ${mood() 
-                     ? 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-xl select-none leading-none pb-[2px]' 
-                     : 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)]'}
-                 `}
-               >
-                 <Show when={!mood()} fallback={mood()}>
-                    <span class="material-symbols-rounded text-xl">add_reaction</span>
-                 </Show>
-               </button>
+            {/* Row 1: Action Buttons (Top) */}
+            <div class="flex items-center justify-between px-4 py-2 border-b border-[var(--color-outline-variant)]/10">
+              <div class="text-sm font-medium text-[var(--color-on-surface-variant)] opacity-70 ml-2">
+                 {/* Optional: Status or Title placeholder */}
+              </div>
+              <div class="flex items-center gap-1.5 sm:gap-2">
+                <Show when={props.onDelete}>
+                  <Button 
+                    variant="text" 
+                    onClick={props.onDelete}
+                    class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-error)] hover:bg-[var(--color-error-container)] mr-2"
+                    title="Hapus"
+                  >
+                    <span class="material-symbols-rounded !text-[20px] font-normal">delete</span>
+                    <span class="hidden sm:inline sm:ml-2">Hapus</span>
+                  </Button>
+                </Show>
+                
+                <Button 
+                    type="button"
+                    variant="text" 
+                    onClick={() => setShowExportModal(true)}
+                    class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] mr-2"
+                    title="Ekspor"
+                  >
+                    <span class="material-symbols-rounded !text-[20px] font-normal">ios_share</span>
+                    <span class="hidden sm:inline sm:ml-2">Ekspor</span>
+                  </Button>
+                <Button 
+                  variant="tonal" 
+                  onClick={handleClose}
+                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
+                  title="Batal"
+                >
+                  <span class="material-symbols-rounded !text-[20px] font-normal">close</span>
+                  <span class="hidden sm:inline sm:ml-2">Batal</span>
+                </Button>
+                <Show when={isDirty()}>
+                  <Button 
+                    variant="filled" 
+                    onClick={handleSave}
+                    class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
+                    title="Simpan"
+                  >
+                    <span class="material-symbols-rounded !text-[20px] font-normal">save</span>
+                    <span class="hidden sm:inline sm:ml-2">Simpan</span>
+                  </Button>
+                </Show>
+              </div>
             </div>
-
-            <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-20 mb-8" />
-
-            <div 
-               ref={setContainer}
-               class="flex-1 [&_.ProseMirror]:min-h-[500px] [&_.ProseMirror]:outline-none text-xl leading-relaxed text-[var(--color-on-surface)]/90 font-normal"
-               style={{ "font-family": "inherit" }}
-               onClick={() => editor()?.commands.focus()}
-            />
-
-            {/* TAGS SECTION */}
-            <div class="mt-8 pt-6 border-t border-[var(--color-outline-variant)]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div class="flex flex-wrap items-center gap-2">
-                </div>
-               
-               <div class="flex flex-wrap items-center gap-2">
-                  <For each={tags()}>
-                     {(tag) => (
-                        <div class="flex items-center gap-1 pl-3 pr-2 py-1 bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] rounded-lg text-lg font-normal transition-all hover:shadow-sm">
-                           <span>#{tag}</span>
-                           <button 
-                             onClick={() => setTags(tags().filter(t => t !== tag))}
-                             class="w-5 h-5 flex items-center justify-center rounded-full hover:bg-[var(--color-on-secondary-container)]/10"
-                           >
-                              <span class="material-symbols-rounded text-[14px]">close</span>
-                           </button>
-                        </div>
-                     )}
-                  </For>
-                  
-                  <div class="flex items-center bg-[var(--color-surface-container)] rounded-lg border border-transparent focus-within:border-[var(--color-primary)] transition-all overflow-hidden group/input">
-                     <span class="pl-3 text-[var(--color-on-surface)] text-md shrink-0">#</span>
-                     <input
-                        type="text"
-                        value={tagInput()}
-                        onInput={(e) => {
-                           const value = e.currentTarget.value;
-                           // Sanitasi real-time: Izinkan hanya alfanumerik & underscore
-                           // Langsung ubah spasi menjadi underscore
-                           const sanitized = value.replace(/[^a-zA-Z0-9\s_]/g, '').replace(/\s+/g, '_');
-                           setTagInput(sanitized);
-                        }}
-                        onKeyDown={(e) => {
-                           // Block specific invalid symbols from the keyboard
-                           if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !/^[a-zA-Z0-9\s_]$/.test(e.key)) {
-                               e.preventDefault();
-                               return;
-                           }
-                           
-                           if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleAddTag();
-                           } else if (e.key === 'Backspace' && !tagInput() && tags().length > 0) {
-                              setTags(tags().slice(0, -1));
-                           }
-                        }}
-                        placeholder="Tambah tag..."
-                        class="h-10 pl-1 pr-2 bg-transparent text-lg text-[var(--color-on-surface)]/90 placeholder:text-[var(--color-on-surface-variant)]/50 border-none outline-none transition-all font-normal"
-                        style={{ width: `${Math.max(tagInput().length || 10, 8) + 1}ch` }}
-                     />
-                     <Show when={tagInput().trim()}>
-                        <button 
-                           onClick={handleAddTag}
-                           class="flex items-center justify-center w-10 h-10 hover:bg-[var(--color-on-surface)]/5 text-[var(--color-primary)] transition-all animate-in fade-in zoom-in duration-200"
-                        >
-                           <span class="material-symbols-rounded text-xl">check</span>
-                        </button>
-                     </Show>
-                  </div>
-               </div>
-            </div>
-
           </div>
-        </div>
+
+          {/* Row 2: Formatting Toolbar (Flex Ordered: Bottom on Mobile, Top on Desktop) */}
+          <div class={`shrink-0 px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
+                      order-last sm:order-none
+                      border-t sm:border-y border-[var(--color-outline-variant)]/10
+                      shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:shadow-none
+                      ${isKeyboardOpen() ? 'pb-2' : 'pb-[max(8px,env(safe-area-inset-bottom))]'} sm:pb-2
+                      z-40`}>
+               <div class="flex items-center gap-1 min-w-max">
+                  <ToolbarButton icon="undo" action={() => editor()?.chain().focus().undo().run()} title="Undo" disabled={!canUndo()} />
+                  <ToolbarButton icon="redo" action={() => editor()?.chain().focus().redo().run()} title="Redo" disabled={!canRedo()} />
+                  
+                  <Divider />
+                  
+                  <ToolbarButton icon="format_bold" action={() => editor()?.chain().focus().toggleBold().run()} active={isActive('bold')} title="Bold" />
+                  <ToolbarButton icon="format_italic" action={() => editor()?.chain().focus().toggleItalic().run()} active={isActive('italic')} title="Italic" />
+                  <ToolbarButton icon="format_underlined" action={() => editor()?.chain().focus().toggleUnderline().run()} active={isActive('underline')} title="Underline" />
+                  <ToolbarButton icon="format_strikethrough" action={() => editor()?.chain().focus().toggleStrike().run()} active={isActive('strike')} title="Strike" />
+                  
+                  <Divider />
+
+                  <ToolbarButton icon="subscript" action={() => editor()?.chain().focus().toggleSubscript().run()} active={isActive('subscript')} title="Subscript" />
+                  <ToolbarButton icon="superscript" action={() => editor()?.chain().focus().toggleSuperscript().run()} active={isActive('superscript')} title="Superscript" />
+                  <ToolbarButton icon="border_color" action={() => editor()?.chain().focus().toggleHighlight({ color: 'var(--color-tertiary)' }).run()} active={isActive('highlight')} title="Highlight" />
+                  
+                  <Divider />
+
+                  <div class="flex items-center gap-0.5 px-0.5">
+                    <ToolbarButton 
+                      icon="format_h1" 
+                      action={() => editor()?.chain().focus().toggleHeading({ level: 1 }).run()} 
+                      active={isActive('heading', { level: 1 })} 
+                      title="Heading 1" 
+                    />
+                    <ToolbarButton 
+                      icon="format_h2" 
+                      action={() => editor()?.chain().focus().toggleHeading({ level: 2 }).run()} 
+                      active={isActive('heading', { level: 2 })} 
+                      title="Heading 2" 
+                    />
+                    <ToolbarButton 
+                      icon="format_h3" 
+                      action={() => editor()?.chain().focus().toggleHeading({ level: 3 }).run()} 
+                      active={isActive('heading', { level: 3 })} 
+                      title="Heading 3" 
+                    />
+                  </div>
+                  
+                  <Divider />
+
+                  <ToolbarButton 
+                    icon="format_align_left" 
+                    action={() => (editor()?.chain().focus() as any).setTextAlign('left').run()} 
+                    active={isActive({ textAlign: 'left' }) || (!isActive({ textAlign: 'center' }) && !isActive({ textAlign: 'right' }) && !isActive({ textAlign: 'justify' }))} 
+                    title="Rata Kiri" 
+                  />
+                  <ToolbarButton icon="format_align_center" action={() => (editor()?.chain().focus() as any).setTextAlign('center').run()} active={isActive({ textAlign: 'center' })} title="Rata Tengah" />
+                  <ToolbarButton icon="format_align_right" action={() => (editor()?.chain().focus() as any).setTextAlign('right').run()} active={isActive({ textAlign: 'right' })} title="Rata Kanan" />
+                  <ToolbarButton icon="format_align_justify" action={() => (editor()?.chain().focus() as any).setTextAlign('justify').run()} active={isActive({ textAlign: 'justify' })} title="Rata Kiri-Kanan" />
+
+                  <ToolbarButton icon="format_list_bulleted" action={() => editor()?.chain().focus().toggleBulletList().run()} active={isActive('bulletList')} title="Bullet List" />
+                  <ToolbarButton icon="format_list_numbered" action={() => editor()?.chain().focus().toggleOrderedList().run()} active={isActive('orderedList')} title="Numbered List" />
+                  <ToolbarButton icon="checklist" action={() => editor()?.chain().focus().toggleTaskList().run()} active={isActive('taskList')} title="Task List" />
+                  
+                  <Divider />
+
+                  <ToolbarButton icon="format_quote" action={() => editor()?.chain().focus().toggleBlockquote().run()} active={isActive('blockquote')} title="Blockquote" />
+                  <ToolbarButton icon="horizontal_rule" action={() => editor()?.chain().focus().setHorizontalRule().run()} title="Garis Mendatar" />
+                  <ToolbarButton icon="image" action={addImage} title="Sisipkan Gambar" />
+                  <ToolbarButton icon="movie" action={addVideo} title="Sisipkan Video" />
+                  <ToolbarButton icon="add_location_alt" action={addMapAttachment} title="Sisipkan Peta Lokasi" />
+                  <ToolbarButton icon="mic" action={() => setShowAudioRecorder(true)} title="Rekam Suara" />
+                  <ToolbarButton icon="link" action={setLink} active={isActive('link')} title="Tambah Link" />
+                  <ToolbarButton icon="link_off" action={() => editor()?.chain().focus().unsetLink().run()} disabled={!isActive('link')} title="Hapus Link" />
+                  <ToolbarButton icon="function" action={() => openMathModal('E=mc^2', null, false)} title="Sisipkan Rumus Matematika" />
+
+                  <Divider />
+
+                  <button
+                    ref={setTableBtnRef}
+                    onMouseDown={(e) => { e.preventDefault(); setTableMenuOpen(!tableMenuOpen()); }}
+                    class={`
+                      flex items-center gap-1 h-9 px-3 rounded-lg transition-all duration-200 shrink-0
+                      ${tableMenuOpen() || isActive('table') 
+                        ? 'bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)]' 
+                        : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]'}
+                    `}
+                  >
+                    <span class="material-symbols-rounded text-[20px]">table_chart</span>
+                    <span class="text-sm font-medium">Tabel</span>
+                    <span class="material-symbols-rounded text-[16px]">expand_more</span>
+                  </button>
+
+                  <Popover
+                    show={tableMenuOpen()}
+                    onClose={() => setTableMenuOpen(false)}
+                    anchor={tableBtnRef()}
+                    class="menu p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box w-64 z-50 flex flex-col gap-1"
+                  >
+                      <div class="flex flex-col gap-1">
+                          {/* 1. Insert Grid Trigger */}
+                          <button 
+                            ref={setInsertTableBtnRef}
+                            onMouseEnter={() => setInsertTableOpen(true)}
+                            class={`
+                              w-full text-left px-3 py-2.5 flex items-center justify-between rounded-lg transition-colors
+                              ${insertTableOpen() ? 'bg-[var(--color-surface-container-highest)]' : 'hover:bg-[var(--color-on-surface-variant)]/[0.08]'}
+                            `}
+                          >
+                             <div class="flex items-center gap-3">
+                               <span class="material-symbols-rounded text-[20px]">grid_view</span>
+                               <span class="text-sm font-medium text-[var(--color-on-surface)]">Sisipkan Tabel</span>
+                             </div>
+                             <span class="material-symbols-rounded text-[20px] text-[var(--color-on-surface-variant)]">chevron_right</span>
+                          </button>
+
+                          {/* Nested Popover for Grid */}
+                          <Popover
+                            show={insertTableOpen()}
+                            onClose={() => setInsertTableOpen(false)}
+                            anchor={insertTableBtnRef()}
+                            placement="right-start"
+                            class="p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box z-[60]"
+                          >
+                             <div 
+                                onMouseLeave={() => setInsertTableOpen(false)}
+                             >
+                                <TableGrid onConfirm={(rows, cols, withHeader) => {
+                                    editor()?.chain().focus().insertTable({ rows, cols, withHeaderRow: withHeader }).run();
+                                    setTableMenuOpen(false);
+                                    setInsertTableOpen(false);
+                                }} />
+                             </div>
+                          </Popover>
+
+                          <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
+
+                          {/* 2. Context Actions */}
+                          <div class="flex flex-col gap-1">
+                              <button 
+                                disabled={!editor()?.can().addColumnBefore()}
+                                onClick={() => { editor()?.chain().focus().addColumnBefore().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">view_column</span> Tambah Kolom (Kiri)
+                              </button>
+                              <button 
+                                disabled={!editor()?.can().addColumnAfter()}
+                                onClick={() => { editor()?.chain().focus().addColumnAfter().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">view_column</span> Tambah Kolom (Kanan)
+                              </button>
+                              <button 
+                                disabled={!editor()?.can().deleteColumn()}
+                                onClick={() => { editor()?.chain().focus().deleteColumn().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-error)] hover:bg-[var(--color-error-container)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">delete_sweep</span> Hapus Kolom
+                              </button>
+                              
+                              <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
+
+                              <button 
+                                disabled={!editor()?.can().addRowBefore()}
+                                onClick={() => { editor()?.chain().focus().addRowBefore().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">table_rows</span> Tambah Baris (Atas)
+                              </button>
+                              <button 
+                                disabled={!editor()?.can().addRowAfter()}
+                                onClick={() => { editor()?.chain().focus().addRowAfter().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">table_rows</span> Tambah Baris (Bawah)
+                              </button>
+                              <button
+                                disabled={!editor()?.can().deleteRow()}
+                                onClick={() => { editor()?.chain().focus().deleteRow().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-error)] hover:bg-[var(--color-error-container)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">delete_sweep</span> Hapus Baris
+                              </button>
+
+                              <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
+
+                              <button
+                                disabled={!editor()?.can().mergeCells()}
+                                onClick={() => { editor()?.chain().focus().mergeCells().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">merge</span> Merge / Split
+                              </button>
+                              <button 
+                                disabled={!editor()?.can().deleteTable()}
+                                onClick={() => { editor()?.chain().focus().deleteTable().run(); setTableMenuOpen(false); }}
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-[var(--color-error)] hover:bg-[var(--color-error-container)] disabled:opacity-30 disabled:pointer-events-none text-left rounded-lg"
+                              >
+                                 <span class="material-symbols-rounded text-[18px]">delete_forever</span> Hapus Tabel
+                              </button>
+                          </div>
+                      </div>
+                  </Popover>
+             </div>
+          </div>
+
+          {/* --- 2. MAIN SCROLLABLE AREA --- */}
+          <div 
+            ref={scrollContainerRef}
+            class="flex-1 overflow-y-auto bg-[var(--color-background)] cursor-text"
+            onClick={() => editor()?.commands.focus()}
+          >
+            <div 
+              class="max-w-4xl mx-auto px-6 py-12 min-h-full flex flex-col"
+              onClick={(e) => e.stopPropagation()} 
+            >
+              
+              <textarea
+                ref={titleRef}
+                rows="1"
+                placeholder="Tulis Judul..."
+                value={title()}
+                onInput={(e) => {
+                  setTitle(e.currentTarget.value);
+                  resizeTitle();
+                }}
+                class="w-full bg-transparent text-4xl font-extrabold text-[var(--color-on-surface)] placeholder:text-[var(--color-on-surface-variant)]/50 border-none outline-none resize-none overflow-hidden p-0 m-0 mb-4 leading-[1.2]"
+              />
+
+              <div class="flex flex-wrap items-center gap-2 mb-6 animate-in slide-in-from-bottom-2 duration-500">
+                 {/* Date Badge */}
+                 <button 
+                   onClick={() => setShowDatePicker(true)}
+                   class="group flex items-center gap-2 h-9 px-3 rounded-full bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-base font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)] transition-all duration-200"
+                 >
+                   <span class="material-symbols-rounded text-base">calendar_today</span>
+                   <span>{formatDate(entryDate())}</span>
+                 </button>
+                 
+                 {/* Time Badge */}
+                 <button 
+                   onClick={() => setShowTimePicker(true)}
+                   class="group flex items-center gap-2 h-9 px-3 rounded-full bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-base font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)] transition-all duration-200"
+                 >
+                   <span class="material-symbols-rounded text-base">schedule</span>
+                   <span>{formatTime(entryDate())}</span>
+                 </button>
+
+                 {/* Location Badge */}
+                 <button 
+                   onClick={() => setShowLocationModal(true)}
+                   class={`
+                     group flex items-center gap-2 h-9 px-3 rounded-full transition-all duration-200
+                     ${location() 
+                       ? 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)]' 
+                       : 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)]'}
+                   `}
+                   title={location() ? location()?.name : "Tambah Lokasi"}
+                 >
+                   <span class="material-symbols-rounded text-base">
+                     {location() ? 'location_on' : 'add_location_alt'}
+                   </span>
+                   <Show when={location()} fallback={<span>Lokasi</span>}>
+                      <span class="max-w-[250px] truncate md:max-w-none md:whitespace-normal text-left leading-tight py-1">{location()?.name}</span>
+                   </Show>
+                 </button>
+
+                 {/* Weather Badge */}
+                 <Show when={weather()}>
+                     <div 
+                       class="flex items-center gap-2 h-9 px-3 rounded-full bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] select-none animate-in fade-in zoom-in duration-300"
+                       title={weather()?.desc}
+                     >
+                       <span class="material-symbols-rounded text-base">
+                          {getWeatherDescription(weather()!.code).icon}
+                       </span>
+                       <span class="text-base font-medium">{weather()?.temp}°C</span>
+                     </div>
+                 </Show>
+
+                 <div class="w-[1px] h-4 bg-[var(--color-outline-variant)] opacity-50 mx-1" />
+
+                 {/* Emoji Button */}
+                 <button 
+                   ref={setEmojiBtnRef}
+                   title="Pilih Perasaan"
+                   onClick={() => setShowMoodPicker(!showMoodPicker())}
+                   class={`
+                     group flex items-center justify-center h-9 min-w-[36px] px-1 rounded-full transition-all duration-200 shrink-0 font-emoji
+                     ${mood() 
+                       ? 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-xl select-none leading-none pb-[2px]' 
+                       : 'bg-[var(--color-surface-container-high)] hover:bg-[var(--color-secondary-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-secondary-container)]'}
+                   `}
+                 >
+                   <Show when={!mood()} fallback={mood()}>
+                      <span class="material-symbols-rounded text-xl">add_reaction</span>
+                   </Show>
+                 </button>
+              </div>
+
+              <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-20 mb-8" />
+
+              <div 
+                 ref={setContainer}
+                 class="flex-1 [&_.ProseMirror]:min-h-[500px] [&_.ProseMirror]:outline-none text-xl leading-relaxed text-[var(--color-on-surface)]/90 font-normal"
+                 style={{ "font-family": "inherit" }}
+                 onClick={() => editor()?.commands.focus()}
+              />
+
+              {/* TAGS SECTION */}
+              <div class="mt-8 pt-6 border-t border-[var(--color-outline-variant)]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                 <div class="flex flex-wrap items-center gap-2">
+                  </div>
+                 
+                 <div class="flex flex-wrap items-center gap-2">
+                    <For each={tags()}>
+                       {(tag) => (
+                          <div class="flex items-center gap-1 pl-3 pr-2 py-1 bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] rounded-lg text-lg font-normal transition-all hover:shadow-sm">
+                             <span>#{tag}</span>
+                             <button 
+                               onClick={() => setTags(tags().filter(t => t !== tag))}
+                               class="w-5 h-5 flex items-center justify-center rounded-full hover:bg-[var(--color-on-secondary-container)]/10"
+                             >
+                                <span class="material-symbols-rounded text-[14px]">close</span>
+                             </button>
+                          </div>
+                       )}
+                    </For>
+                    
+                    <div class="flex items-center bg-[var(--color-surface-container)] rounded-lg border border-transparent focus-within:border-[var(--color-primary)] transition-all overflow-hidden group/input">
+                       <span class="pl-3 text-[var(--color-on-surface)] text-md shrink-0">#</span>
+                       <input
+                          type="text"
+                          value={tagInput()}
+                          onInput={(e) => {
+                             const value = e.currentTarget.value;
+                             const sanitized = value.replace(/[^a-zA-Z0-9\s_]/g, '').replace(/\s+/g, '_');
+                             setTagInput(sanitized);
+                          }}
+                          onKeyDown={(e) => {
+                             if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !/^[a-zA-Z0-9\s_]$/.test(e.key)) {
+                                 e.preventDefault();
+                                 return;
+                             }
+                             
+                             if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddTag();
+                             } else if (e.key === 'Backspace' && !tagInput() && tags().length > 0) {
+                                setTags(tags().slice(0, -1));
+                             }
+                          }}
+                          placeholder="Tambah tag..."
+                          class="h-10 pl-1 pr-2 bg-transparent text-lg text-[var(--color-on-surface)]/90 placeholder:text-[var(--color-on-surface-variant)]/50 border-none outline-none transition-all font-normal"
+                          style={{ width: `${Math.max(tagInput().length || 10, 8) + 1}ch` }}
+                       />
+                       <Show when={tagInput().trim()}>
+                          <button 
+                             onClick={handleAddTag}
+                             class="flex items-center justify-center w-10 h-10 hover:bg-[var(--color-on-surface)]/5 text-[var(--color-primary)] transition-all animate-in fade-in zoom-in duration-200"
+                          >
+                             <span class="material-symbols-rounded text-xl">check</span>
+                          </button>
+                       </Show>
+                    </div>
+                 </div>
+              </div>
+
+            </div>
+          </div>
+        </div> {/* END INNER WRAPPER */}
 
 
         {/* --- 3. MODALS (Date/Time/Mood) --- */}
@@ -1486,16 +1346,10 @@ export default function Editor(props: EditorProps) {
             onConfirm={handleImageConfirm}
         />
 
-        <VideoModal
+        <VideoModal // Added VideoModal rendering
             show={showVideoModal()}
             onClose={() => setShowVideoModal(false)}
             onConfirm={handleVideoConfirm}
-        />
-
-        <FileModal
-          show={showFileModal()}
-          onClose={() => setShowFileModal(false)}
-          onConfirm={handleFileConfirm}
         />
 
         <ExportModal
@@ -1552,7 +1406,6 @@ export default function Editor(props: EditorProps) {
         >
             <Show when={showAudioRecorder()}>
                 <InsertAudio onRecordingComplete={(blob, duration, waveform) => {
-                    // Convert to Base64 for persistence
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
                     reader.onloadend = () => {
@@ -1656,7 +1509,9 @@ export default function Editor(props: EditorProps) {
           setMathModalOpen(false);
         }}
       />
-      </div>
+      
+      </div> {/* END LAPISAN DALAM */}
+      </div> {/* END LAPISAN LUAR */}
     </Show>
   );
 }

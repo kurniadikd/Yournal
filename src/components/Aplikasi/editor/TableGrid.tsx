@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For } from "solid-js";
 import Checkbox from "../../ui/m3e/Checkbox";
 
 interface TableGridProps {
