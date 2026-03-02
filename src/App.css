@@ -558,11 +558,47 @@ ul[data-type="taskList"] li > div > p {
 /* Selection logic handled on wrapper */
 
 
+/* --- Editor List Spacing --- */
+.ProseMirror ol,
+.ProseMirror ul {
+  padding-left: 1.5em !important;
+  margin-top: 0.5em !important;
+  margin-bottom: 0.5em !important;
+}
+
+.ProseMirror li {
+  position: relative;
+  padding-top: 0.25em !important;
+  padding-bottom: 0.25em !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  display: list-item;
+}
+
+.ProseMirror li > p {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  min-height: 1.6em; 
+  line-height: 1.6em;
+}
+
+
+/* Nested lists */
+.ProseMirror li > ol,
+.ProseMirror li > ul {
+  margin-top: 0.25em !important;
+  margin-bottom: 0 !important;
+}
 
 /* --- Placeholder Styles --- */
 .ProseMirror p.is-empty {
   position: relative;
   min-height: 1.6em;
+}
+
+/* Collapse the <br> so it doesn't add extra height (caret still visible via font-size) */
+.ProseMirror p.is-empty > br {
+  line-height: 0;
 }
 
 /* 1. Visible ghost text overlay (absolute so cursor ignores it) */
@@ -581,7 +617,7 @@ ul[data-type="taskList"] li > div > p {
   line-height: 1.6em;
 }
 
-/* 2. Invisible stretcher (block so it expands container, negative margin to cancel <br> height) */
+/* 2. Invisible stretcher — expands container to match placeholder height, NO negative margin */
 .ProseMirror p.is-empty::after {
   content: attr(data-placeholder);
   display: block;
@@ -590,7 +626,6 @@ ul[data-type="taskList"] li > div > p {
   word-wrap: break-word;
   pointer-events: none;
   user-select: none;
-  margin-top: -1.6em;
   line-height: 1.6em;
 }
 
@@ -618,7 +653,6 @@ ul[data-type="taskList"] li > div > p {
   word-wrap: break-word;
   pointer-events: none;
   user-select: none;
-  margin-top: -1.6em;
   line-height: 1.6em;
 }
 
