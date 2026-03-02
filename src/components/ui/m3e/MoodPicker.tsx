@@ -29,7 +29,7 @@ export default function MoodPicker(props: MoodPickerProps) {
       onClose={props.onClose}
       anchor={props.anchor}
       placement="bottom-start"
-      class="p-2 shadow-elevation-3 bg-[var(--color-surface-container)] rounded-2xl z-[60] flex flex-col min-w-[200px]"
+      class="p-2 shadow-elevation-3 bg-[var(--color-surface-container)] rounded-2xl z-[10005] flex flex-col min-w-[200px]"
     >
       <div class="flex flex-col gap-1">
         <For each={MOODS}>

@@ -55,7 +55,7 @@ export default function TableGrid(props: TableGridProps) {
             </For>
         </div>
         
-        <div class="text-center my-3 text-sm font-bold text-[var(--color-primary)] bg-[var(--color-primary-container)] py-1 rounded-lg">
+        <div class="text-center my-3 text-sm font-bold text-[var(--color-primary)] py-1">
             {selectedRow()} Kolom x {selectedCol()} Baris
         </div>
 

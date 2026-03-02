@@ -129,9 +129,9 @@ async fn download_database_from_drive(
 
 #[derive(Serialize)]
 pub struct FileInfo {
-    name: String,
-    size: u64,
-    mime_type: String,
+    pub name: String,
+    pub size: u64,
+    pub mime_type: String,
 }
 
 #[tauri::command]

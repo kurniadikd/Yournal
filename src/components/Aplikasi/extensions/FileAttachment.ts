@@ -15,12 +15,18 @@ export const FileAttachment = Node.create({
     return {
       name: {
         default: 'Unnamed File',
+        parseHTML: element => element.getAttribute('data-name'),
+        renderHTML: attributes => ({ 'data-name': attributes.name }),
       },
       size: {
         default: 0,
+        parseHTML: element => parseInt(element.getAttribute('data-size') || '0'),
+        renderHTML: attributes => ({ 'data-size': attributes.size }),
       },
       mimeType: {
         default: 'application/octet-stream',
+        parseHTML: element => element.getAttribute('data-mime-type'),
+        renderHTML: attributes => ({ 'data-mime-type': attributes.mimeType }),
       },
       src: {
         default: null,

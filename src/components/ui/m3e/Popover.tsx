@@ -162,7 +162,7 @@ export default function Popover(props: PopoverProps) {
           data-popover-id={id}
           data-popover-parent={parentContext?.id || ''}
           class={`
-            fixed z-[1000]
+            fixed z-[10005]
             bg-[var(--color-surface-container)] rounded-[16px] overflow-hidden shadow-elevation-2
             transition-opacity duration-200
             ${isPositioned() ? 'opacity-100 animate-in fade-in zoom-in-95' : 'opacity-0'}

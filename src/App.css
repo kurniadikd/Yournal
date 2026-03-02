@@ -562,18 +562,64 @@ ul[data-type="taskList"] li > div > p {
 /* --- Placeholder Styles --- */
 .ProseMirror p.is-empty {
   position: relative;
+  min-height: 1.6em;
 }
 
+/* 1. Visible ghost text overlay (absolute so cursor ignores it) */
 .ProseMirror p.is-empty::before {
-  color: var(--color-on-surface-variant);
   content: attr(data-placeholder);
   position: absolute;
-  left: 0;
   top: 0;
-  right: 0; /* Ensures text wraps within container */
+  left: 0;
+  right: 0;
+  color: var(--color-on-surface-variant);
   pointer-events: none;
   opacity: 0.5;
-  /* Removed float: left and height: 0 to handle multi-line text better */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  user-select: none;
+  line-height: 1.6em;
+}
+
+/* 2. Invisible stretcher (block so it expands container, negative margin to cancel <br> height) */
+.ProseMirror p.is-empty::after {
+  content: attr(data-placeholder);
+  display: block;
+  visibility: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  pointer-events: none;
+  user-select: none;
+  margin-top: -1.6em;
+  line-height: 1.6em;
+}
+
+/* Specific case for placeholders in paragraphs with attributes */
+.ProseMirror p.is-empty[data-placeholder]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  color: var(--color-on-surface-variant);
+  pointer-events: none;
+  opacity: 0.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  user-select: none;
+  line-height: 1.6em;
+}
+
+.ProseMirror p.is-empty[data-placeholder]::after {
+  content: attr(data-placeholder);
+  display: block;
+  visibility: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  pointer-events: none;
+  user-select: none;
+  margin-top: -1.6em;
+  line-height: 1.6em;
 }
 
 /* Map Theming handled in LocationModal.tsx via JS */

@@ -80,7 +80,7 @@ export default function Dropdown(props: DropdownProps) {
       <Show when={isOpen()}>
         <div 
           class={`
-            absolute z-50 bottom-full mb-2 w-full
+            absolute z-[10005] bottom-full mb-2 w-full
             bg-[var(--color-surface-container-highest)] 
             rounded-[28px] py-2 overflow-hidden
             animate-in fade-in slide-in-from-bottom-2 duration-200

@@ -77,7 +77,7 @@ export default function Menu(props: MenuProps) {
       <Show when={props.show}>
         <div 
           class={`
-            absolute z-[1000] min-w-[160px] max-w-[280px]
+            absolute z-[10005] min-w-[160px] max-w-[280px]
             bg-[var(--color-surface-container)] rounded-[28px] overflow-hidden
             animate-in fade-in slide-in-from-top-1 duration-200
             ${props.class || ''}

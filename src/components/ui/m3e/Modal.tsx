@@ -49,7 +49,7 @@ export default function Modal(props: ModalProps) {
   return (
     <Portal>
       <Show when={shouldRender()}>
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="fixed inset-0 z-[10005] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
             class={`fixed inset-0 bg-black/40 transition-opacity duration-300 ease-out ${isVisible() ? 'opacity-100' : 'opacity-0'}`}

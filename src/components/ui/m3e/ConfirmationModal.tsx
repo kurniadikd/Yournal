@@ -35,7 +35,7 @@ const ConfirmationModal: Component<ConfirmationModalProps> = (props) => {
   return (
     <Portal>
       <Show when={shouldRender()}>
-        <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="fixed inset-0 z-[10005] flex items-center justify-center p-4">
           
           {/* Backdrop */}
           <div 

@@ -37,7 +37,7 @@ export default function ImageModal(props: ImageModalProps) {
   };
 
   return (
-    <div class={`modal ${props.show ? 'modal-open' : ''} transition-all duration-300 z-[110]`}>
+    <div class={`modal ${props.show ? 'modal-open' : ''} transition-all duration-300 z-[10005]`}>
       
       {/* Modal Container */}
       <div 

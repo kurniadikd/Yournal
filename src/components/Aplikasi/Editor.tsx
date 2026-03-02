@@ -64,6 +64,7 @@ const CustomParagraph = Paragraph.extend({
             'data-placeholder': attributes.placeholder,
           }
         },
+        keepOnSplit: false,
       },
     }
   },

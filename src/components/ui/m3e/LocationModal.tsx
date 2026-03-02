@@ -19,8 +19,8 @@ const LocationModal: Component<LocationModalProps> = (props) => {
   const [coords, setCoords] = createSignal<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = createSignal(false);
 
-  // Default to Monas (Jakarta)
-  const defaultCenter = { lat: -6.1754, lng: 106.8272 };
+  // Default to World View
+  const defaultCenter = { lat: 0, lng: 0 };
 
   const applyMapTheme = (instance?: maplibregl.Map) => {
       const m = instance || map();
@@ -136,7 +136,7 @@ const LocationModal: Component<LocationModalProps> = (props) => {
       container: mapContainer,
       style: 'https://tiles.openfreemap.org/styles/liberty', // Vector Style
       center: [initialLng, initialLat],
-      zoom: 14,
+      zoom: hasInitial ? 14 : 2,
       attributionControl: false // Custom attribution if needed
     });
 

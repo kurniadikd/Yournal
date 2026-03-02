@@ -22,7 +22,7 @@ export default function BottomSheet(props: BottomSheetProps) {
   return (
     <Portal>
       <Show when={props.show}>
-        <div class="fixed inset-0 z-[100] flex items-end justify-center transition-all duration-300">
+        <div class="fixed inset-0 z-[10005] flex items-end justify-center transition-all duration-300">
           {/* Backdrop */}
           <div 
             class="absolute inset-0 bg-black/32 transition-opacity" 

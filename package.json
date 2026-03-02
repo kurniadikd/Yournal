@@ -12,9 +12,9 @@
   },
   "license": "GPL-3.0-only",
   "dependencies": {
+    "@fontsource/cascadia-mono": "^5.2.0",
     "@fontsource/noto-color-emoji": "^5.2.12",
     "@fontsource/noto-sans": "^5.2.10",
-    "@fontsource/cascadia-mono": "^5.2.0",
     "@fontsource/noto-serif": "^5.2.9",
     "@fontsource/outfit": "^5.2.8",
     "@material/material-color-utilities": "^0.4.0",
@@ -36,6 +36,7 @@
     "@tiptap/extension-bold": "^3.20.0",
     "@tiptap/extension-character-count": "^3.20.0",
     "@tiptap/extension-color": "^3.20.0",
+    "@tiptap/extension-focus": "^3.20.0",
     "@tiptap/extension-font-family": "^3.20.0",
     "@tiptap/extension-heading": "^3.20.0",
     "@tiptap/extension-highlight": "^3.20.0",

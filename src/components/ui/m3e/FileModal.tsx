@@ -31,7 +31,7 @@ export default function FileModal(props: FileModalProps) {
   };
 
   return (
-    <div class={`modal ${props.show ? 'modal-open' : ''} transition-all duration-300 z-[110]`}>
+    <div class={`modal ${props.show ? 'modal-open' : ''} transition-all duration-300 z-[10005]`}>
       <div 
         class={`
           modal-box relative bg-[var(--color-surface-container-high)] w-full max-w-md 

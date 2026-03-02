@@ -63,7 +63,7 @@ export default function Tooltip(props: TooltipProps) {
         <Show when={show()}>
           <div 
             class={`
-              fixed z-[300] px-2 py-1 rounded-[4px] bg-[var(--color-inverse-surface)] 
+              fixed z-[10010] px-2 py-1 rounded-[4px] bg-[var(--color-inverse-surface)] 
               text-[var(--color-inverse-on-surface)] text-[11px] font-medium pointer-events-none
               transition-opacity duration-150 transform -translate-x-1/2 -translate-y-full
               ${show() ? 'opacity-100' : 'opacity-0'}
