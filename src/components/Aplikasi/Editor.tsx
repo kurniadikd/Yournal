@@ -37,6 +37,9 @@ import { formatTime, formatDate } from "../../utils/date";
 
 import ImageModal from "../ui/m3e/ImageModal";
 import { MapAttachment } from "./extensions/MapAttachment";
+import { FileAttachment } from "./extensions/FileAttachment";
+import FileModal from "../ui/m3e/FileModal";
+import { processFileAttachment } from "../../utils/file";
 import LocationModal from "../ui/m3e/LocationModal";
 import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
@@ -78,11 +81,13 @@ interface EditorProps {
   initialLocation?: string; // JSON String
   initialWeather?: string; // JSON String
   initialTags?: string[];
+  isNewNote?: boolean;
 }
 
 export default function Editor(props: EditorProps) {
   let titleRef!: HTMLTextAreaElement;
   let scrollContainerRef!: HTMLDivElement;
+  
   const [tableBtnRef, setTableBtnRef] = createSignal<HTMLButtonElement>();
   const [insertTableBtnRef, setInsertTableBtnRef] = createSignal<HTMLButtonElement>();
   const [emojiBtnRef, setEmojiBtnRef] = createSignal<HTMLButtonElement>();
@@ -96,12 +101,10 @@ export default function Editor(props: EditorProps) {
   const [weather, setWeather] = createSignal<{ temp: number; code: number; desc: string } | null>(null);
   const [tags, setTags] = createSignal<string[]>(props.initialTags || []);
   const [tagInput, setTagInput] = createSignal("");
-  const [selectionRange, setSelectionRange] = createSignal<{ from: number, to: number } | null>(null);
 
-  // States for viewport fixes
-  const [viewportTop, setViewportTop] = createSignal(0);
+  // States untuk pengaturan CSS internal
   const [isKeyboardOpen, setIsKeyboardOpen] = createSignal(false);
-  const [dynamicHeight, setDynamicHeight] = createSignal("100dvh");
+  const [editorHeight, setEditorHeight] = createSignal("100dvh");
   
   const [showDatePicker, setShowDatePicker] = createSignal(false);
   const [showTimePicker, setShowTimePicker] = createSignal(false);
@@ -113,6 +116,7 @@ export default function Editor(props: EditorProps) {
   const [showVideoModal, setShowVideoModal] = createSignal(false);
   const [showExportModal, setShowExportModal] = createSignal(false);
   const [showMapAttachmentModal, setShowMapAttachmentModal] = createSignal(false);
+  const [showFileModal, setShowFileModal] = createSignal(false);
   
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
@@ -164,7 +168,8 @@ export default function Editor(props: EditorProps) {
         tags: tags().length > 0 ? tags() : undefined
       });
     }
-    props.onClose();
+    // Update base HTML so isDirty() reflects that changes are saved
+    setBaseHTML(html);
   };
 
   const fetchWeather = async (lat: number, lng: number, date: Date) => {
@@ -175,6 +180,7 @@ export default function Editor(props: EditorProps) {
       const dateStr = `${yyyy}-${mm}-${dd}`;
       const hour = date.getHours();
 
+      // Check if date is historical (older than 7 days)
       const now = new Date();
       const isHistorical = (now.getTime() - date.getTime()) > 7 * 24 * 60 * 60 * 1000;
       
@@ -242,6 +248,61 @@ export default function Editor(props: EditorProps) {
     setMathModalOpen(true);
   };
 
+  const processImageFile = async (file: File, pos?: number) => {
+    const editorInstance = editor();
+    if (!editorInstance) return;
+
+    const uploadId = `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const objectUrl = URL.createObjectURL(file);
+    
+    const node = editorInstance.schema.nodes.selectableImage.create({ 
+      src: objectUrl,
+      isLoading: true,
+      uploadId: uploadId 
+    });
+    
+    let tr = editorInstance.state.tr;
+    if (pos !== undefined) {
+       tr = tr.insert(pos, node);
+    } else {
+       tr = tr.replaceSelectionWith(node);
+    }
+    editorInstance.view.dispatch(tr);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target?.result as string;
+      let finalSrc = base64;
+      
+      try {
+        finalSrc = await invoke<string>('convert_to_avif', { base64Data: base64 });
+      } catch (err) {
+        console.warn('AVIF conversion failed, using original:', err);
+      }
+      
+      const currentEditor = editor();
+      if (!currentEditor) return;
+      
+      let targetPos = -1;
+      currentEditor.state.doc.descendants((node, p) => {
+        if (node.type.name === 'selectableImage' && node.attrs.uploadId === uploadId) {
+          targetPos = p;
+        }
+      });
+      
+      if (targetPos !== -1) {
+        currentEditor.view.dispatch(
+          currentEditor.state.tr.setNodeMarkup(targetPos, undefined, {
+            ...currentEditor.state.doc.nodeAt(targetPos)?.attrs,
+            src: finalSrc,
+            isLoading: false
+          })
+        );
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const editor = createTiptapEditor(() => ({
     element: container() as HTMLElement,
     extensions: [
@@ -263,6 +324,7 @@ export default function Editor(props: EditorProps) {
       }),
       VideoPlayer,
       MapAttachment,
+      FileAttachment,
       SelectableImage.configure({
         inline: true,
         allowBase64: true,
@@ -352,9 +414,9 @@ export default function Editor(props: EditorProps) {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
+        class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] pb-32 w-full h-full prose-headings:mt-0 prose-p:my-0',
       },
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
 
@@ -363,23 +425,7 @@ export default function Editor(props: EditorProps) {
             event.preventDefault();
             const file = item.getAsFile();
             if (!file) return true;
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-              const base64 = e.target?.result as string;
-              try {
-                const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
-                view.dispatch(view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.selectableImage.create({ src: avifData })
-                ));
-              } catch (err) {
-                console.warn('AVIF conversion failed for paste, using original:', err);
-                view.dispatch(view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.selectableImage.create({ src: base64 })
-                ));
-              }
-            };
-            reader.readAsDataURL(file);
+            processImageFile(file);
             return true;
           }
         }
@@ -394,23 +440,7 @@ export default function Editor(props: EditorProps) {
 
         event.preventDefault();
         const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const base64 = e.target?.result as string;
-          try {
-            const avifData = await invoke<string>('convert_to_avif', { base64Data: base64 });
-            const node = view.state.schema.nodes.selectableImage.create({ src: avifData });
-            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
-            view.dispatch(tr);
-          } catch (err) {
-            console.warn('AVIF conversion failed for drop, using original:', err);
-            const node = view.state.schema.nodes.selectableImage.create({ src: base64 });
-            const tr = view.state.tr.insert(coords?.pos ?? view.state.selection.from, node);
-            view.dispatch(tr);
-          }
-        };
-        reader.readAsDataURL(imageFile);
+        processImageFile(imageFile, coords?.pos ?? view.state.selection.from);
         return true;
       },
     },
@@ -466,74 +496,110 @@ export default function Editor(props: EditorProps) {
     }
   };
 
-  createEffect(() => {
-    if (props.show) {
-      const initialTitle = props.initialTitle || "";
-      const initialMood = props.initialMood || "";
-      const initialDate = props.initialDate || new Date();
-      const initialTags = props.initialTags || [];
-      const initialLocation = props.initialLocation;
-      const initialWeather = props.initialWeather;
-      const initialContent = props.initialContent || "";
+  createEffect(on(() => props.show, (show) => {
+    if (show) {
+      // 1. Mengunci body agar background halaman tidak ikut di-scroll
+      document.body.style.overflow = 'hidden';
 
-      if (titleRef) setTimeout(resizeTitle, 0);
-      
-      setTitle(initialTitle);
-      setMood(initialMood);
-      setEntryDate(initialDate);
-      setTags([...initialTags]);
-      
-      if (initialLocation) {
-        try { setLocation(JSON.parse(initialLocation)); } 
-        catch (e) { setLocation(null); }
-      } else { setLocation(null); }
-      
-      if (initialWeather) {
-        try { setWeather(JSON.parse(initialWeather)); } 
-        catch (e) { setWeather(null); }
-      } else { setWeather(null); }
-      
+      if (editorTransitionTimer) clearTimeout(editorTransitionTimer);
+      setShouldRenderEditor(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setIsEditorVisible(true)));
+
       setTimeout(() => {
-        const e = editor();
-        if (e) {
-          e.commands.setContent(initialContent, { emitUpdate: false }); 
-          migrateMathStrings(e);
-          setBaseHTML(e.getHTML());
-          e.commands.focus('start'); 
-          if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
+        const ed = editor();
+        if (!ed || ed.isDestroyed) {
+          setTimeout(() => {
+            const ed2 = editor();
+            if (!ed2 || ed2.isDestroyed) return;
+            loadPropsIntoEditor(ed2);
+          }, 100);
+          return;
         }
-      }, 0);
-    }
-  });
+        loadPropsIntoEditor(ed);
+      }, 30);
 
-  // Focus Management & Viewport Tracking
+      const handler = () => {
+        handleClose();
+        return true;
+      };
+      appStore.pushBackHandler(handler);
+      onCleanup(() => appStore.popBackHandler(handler));
+    } else {
+      // Lepaskan kuncian saat ditutup
+      document.body.style.overflow = '';
+      
+      setIsEditorVisible(false);
+      
+      // Delay state reset until after the fade-out animation (300ms)
+      editorTransitionTimer = setTimeout(() => {
+        resetEditorState();
+        setShouldRenderEditor(false);
+      }, 300);
+    }
+  }));
+
+  const loadPropsIntoEditor = (ed: any) => {
+    setTitle(props.initialTitle || "");
+
+    if (props.initialContent) {
+      ed.commands.setContent(props.initialContent);
+    } else {
+      ed.commands.clearContent();
+    }
+
+    setMood(props.initialMood || "");
+    setEntryDate(props.initialDate || new Date());
+
+    let loc = null;
+    if (props.initialLocation) {
+      try { loc = typeof props.initialLocation === 'string' ? JSON.parse(props.initialLocation) : props.initialLocation; } catch(e) {}
+    }
+    setLocation(loc);
+
+    let w = null;
+    if (props.initialWeather) {
+      try { w = typeof props.initialWeather === 'string' ? JSON.parse(props.initialWeather) : props.initialWeather; } catch(e) {}
+    }
+    setWeather(w);
+
+    if (titleRef) setTimeout(resizeTitle, 0);
+    setTags(props.initialTags || []);
+    setBaseHTML(props.initialContent || "");
+
+    // Focus the editor ONLY if it's a new note or explicit
+    setTimeout(() => {
+      if (!ed.isDestroyed && props.isNewNote) ed.commands.focus('start');
+      if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
+    }, 50);
+  };
+
+  // PENTING: Focus Management & Viewport Tracking (TANPA JITTER)
   createEffect(() => {
     if (editor() && shouldRenderEditor() && isEditorVisible()) {
       const vfix = () => {
         if (!window.visualViewport) {
-          setDynamicHeight(`${window.innerHeight}px`);
+          setEditorHeight(`${window.innerHeight}px`);
           return;
         }
         
-        // Deteksi apakah ukuran jauh berkurang karena keyboard
-        const isKeyboard = window.visualViewport.height < window.innerHeight * 0.75;
+        const vv = window.visualViewport;
+        const isKeyboard = vv.height < window.innerHeight * 0.75;
         setIsKeyboardOpen(isKeyboard);
 
-        // Langsung perbarui Tinggi dan Translasi visual secara real-time
-        setDynamicHeight(`${window.visualViewport.height}px`);
-        setViewportTop(window.visualViewport.offsetTop);
+        // HANYA update tinggi. Kita hapus update transform dan scroll paksa 
+        // untuk membiarkan mesin native browser mengatur offset panner secara alami.
+        setEditorHeight(`${vv.height}px`);
       };
 
       if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", vfix);
-        window.visualViewport.addEventListener("scroll", vfix);
+        // Event "scroll" dihapus agar tidak bentrok (jitter) saat iOS Safari sedang memantul
         vfix(); // Init
       }
       
       onCleanup(() => {
         if (window.visualViewport) {
           window.visualViewport.removeEventListener("resize", vfix);
-          window.visualViewport.removeEventListener("scroll", vfix);
         }
       });
     }
@@ -610,8 +676,60 @@ export default function Editor(props: EditorProps) {
     setShowImageModal(true);
   };
 
-  const handleImageConfirm = (url: string) => {
-    editor()?.chain().focus().setImage({ src: url }).run();
+  const handleImageConfirm = (url: string, file?: File) => {
+    if (file) {
+      processImageFile(file);
+    } else {
+      editor()?.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  const handleFileConfirm = async (filePath: string) => {
+    try {
+      const fileInfo = await processFileAttachment(filePath);
+      const editorInstance = editor();
+      if (!editorInstance) return;
+
+      const uploadId = `upload-file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      const node = editorInstance.schema.nodes.fileAttachment.create({ 
+        name: fileInfo.name,
+        size: fileInfo.size,
+        mimeType: fileInfo.mimeType,
+        src: null,
+        isLoading: true,
+        uploadId: uploadId 
+      });
+      
+      const tr = editorInstance.state.tr.replaceSelectionWith(node);
+      editorInstance.view.dispatch(tr);
+
+      // Fetch base64 data asynchronously
+      const base64Str = await invoke<string>('read_file_base64', { path: filePath });
+      const finalSrc = `data:${fileInfo.mimeType};base64,${base64Str}`;
+      
+      const currentEditor = editor();
+      if (!currentEditor) return;
+      
+      let targetPos = -1;
+      currentEditor.state.doc.descendants((node, p) => {
+        if (node.type.name === 'fileAttachment' && node.attrs.uploadId === uploadId) {
+          targetPos = p;
+        }
+      });
+      
+      if (targetPos !== -1) {
+        currentEditor.view.dispatch(
+          currentEditor.state.tr.setNodeMarkup(targetPos, undefined, {
+            ...currentEditor.state.doc.nodeAt(targetPos)?.attrs,
+            src: finalSrc,
+            isLoading: false
+          })
+        );
+      }
+    } catch (err) {
+      console.error("Failed to attach file:", err);
+    }
   };
 
   const addVideo = () => {
@@ -771,7 +889,6 @@ export default function Editor(props: EditorProps) {
         document.body.removeChild(iframe);
       }
     } else {
-      // HTML Export: Direct Download
       const blob = new Blob([printHtml], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -786,103 +903,47 @@ export default function Editor(props: EditorProps) {
     }
   };
 
-  createEffect(on(() => props.show, (show) => {
-    if (show) {
-      if (editorTransitionTimer) clearTimeout(editorTransitionTimer);
-      setShouldRenderEditor(true);
-      requestAnimationFrame(() => requestAnimationFrame(() => setIsEditorVisible(true)));
-
-      setTimeout(() => {
-        const ed = editor();
-        if (!ed || ed.isDestroyed) {
-          setTimeout(() => {
-            const ed2 = editor();
-            if (!ed2 || ed2.isDestroyed) return;
-            loadPropsIntoEditor(ed2);
-          }, 100);
-          return;
-        }
-        loadPropsIntoEditor(ed);
-      }, 30);
-
-      const handler = () => {
-        handleClose();
-        return true;
-      };
-      appStore.pushBackHandler(handler);
-      onCleanup(() => appStore.popBackHandler(handler));
-    } else {
-      setIsEditorVisible(false);
-      resetEditorState();
-      editorTransitionTimer = setTimeout(() => setShouldRenderEditor(false), 300);
-    }
-  }));
-
-  const loadPropsIntoEditor = (ed: any) => {
-    setTitle(props.initialTitle || "");
-
-    if (props.initialContent) {
-      ed.commands.setContent(props.initialContent);
-    } else {
-      ed.commands.clearContent();
-    }
-
-    setMood(props.initialMood || "");
-    setEntryDate(props.initialDate || new Date());
-
-    let loc = null;
-    if (props.initialLocation) {
-      try { loc = typeof props.initialLocation === 'string' ? JSON.parse(props.initialLocation) : props.initialLocation; } catch(e) {}
-    }
-    setLocation(loc);
-
-    let w = null;
-    if (props.initialWeather) {
-      try { w = typeof props.initialWeather === 'string' ? JSON.parse(props.initialWeather) : props.initialWeather; } catch(e) {}
-    }
-    setWeather(w);
-
-    // Focus the editor
-    setTimeout(() => {
-      if (!ed.isDestroyed) ed.commands.focus('start');
-    }, 50);
-  };
-
   return (
     <Show when={shouldRenderEditor()}>
-      {/* 1. LAPISAN LUAR (Statik Penuh 100% Layar)
-          Berfungsi sebagai pelindung agar halaman di belakang tidak terlihat. */}
-      <div class={`
-        fixed inset-0 z-50 bg-[var(--color-background)] overflow-hidden
-        transition-[opacity,transform] duration-300 ease-out
-        ${isEditorVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
-      `}>
-        
-        {/* 2. LAPISAN DALAM (Dinamis mengikuti Keyboard)
-            Ini yang berubah tingginya & menggunakan translateY (Akselerasi GPU). */}
+      <Portal>
+        {/* LAPISAN 1: PELINDUNG BACKGROUND RAKSASA
+            Diberi tinggi raksasa h-[150vh] dan diletakkan agak di atas (-25vh).
+            Ini berfungsi sebagai Tembok Mutlak agar halaman utama aplikasi 
+            tidak akan pernah bocor meskipun browser sedang "memantul" / jitter. */}
+        <div class={`
+          fixed top-[-25vh] left-0 w-full h-[150vh] z-[9998] bg-[var(--color-background)] pointer-events-none
+          transition-opacity duration-300 ease-out
+          ${isEditorVisible() ? 'opacity-100' : 'opacity-0'}
+        `} />
+
+        {/* LAPISAN 2: EDITOR AKTIF
+            Tidak menggunakan transform dan direct DOM lagi yang melawan browser. 
+            Cukup sesuaikan ukurannya secara elegan melalui Reactivity state biasa. */}
         <div 
-          class="flex flex-col w-full h-full bg-[var(--color-background)]"
-          style={{ 
-            height: dynamicHeight(),
-            transform: `translateY(${viewportTop()}px)`
-          }}
-        >
-        
-        {/* --- 1. STICKY HEADER & TOOLBAR --- */}
-        <div 
-          class="shrink-0 sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10"
-          style={{ "padding-top": "env(safe-area-inset-top, 0px)" }}
+          class={`
+            fixed top-0 left-0 w-full z-[9999] flex flex-col bg-transparent
+            transition-[opacity,transform] duration-300 ease-out
+            ${isEditorVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
+          `}
+          style={{ height: editorHeight() }}
         >
           
-          {/* --- STICKY HEADER & TOOLBAR --- */}
+          {/* --- STICKY HEADER --- */}
           <div 
             class="shrink-0 sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/10"
             style={{ "padding-top": "env(safe-area-inset-top, 0px)" }}
           >
-            {/* Row 1: Action Buttons (Top) */}
             <div class="flex items-center justify-between px-4 py-2 border-b border-[var(--color-outline-variant)]/10">
-              <div class="text-sm font-medium text-[var(--color-on-surface-variant)] opacity-70 ml-2">
-                 {/* Optional: Status or Title placeholder */}
+              <div class="flex items-center gap-2">
+                <Button 
+                  variant="tonal" 
+                  onClick={handleClose}
+                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-full shrink-0"
+                  title="Kembali"
+                >
+                  <span class="material-symbols-rounded !text-[20px] font-normal">arrow_back</span>
+                  <span class="hidden sm:inline sm:ml-2">Kembali</span>
+                </Button>
               </div>
               <div class="flex items-center gap-1.5 sm:gap-2">
                 <Show when={props.onDelete}>
@@ -907,15 +968,7 @@ export default function Editor(props: EditorProps) {
                     <span class="material-symbols-rounded !text-[20px] font-normal">ios_share</span>
                     <span class="hidden sm:inline sm:ml-2">Ekspor</span>
                   </Button>
-                <Button 
-                  variant="tonal" 
-                  onClick={handleClose}
-                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0"
-                  title="Batal"
-                >
-                  <span class="material-symbols-rounded !text-[20px] font-normal">close</span>
-                  <span class="hidden sm:inline sm:ml-2">Batal</span>
-                </Button>
+
                 <Show when={isDirty()}>
                   <Button 
                     variant="filled" 
@@ -931,7 +984,7 @@ export default function Editor(props: EditorProps) {
             </div>
           </div>
 
-          {/* Row 2: Formatting Toolbar (Flex Ordered: Bottom on Mobile, Top on Desktop) */}
+          {/* --- FORMATTING TOOLBAR (Top on Desktop, Bottom on Mobile) --- */}
           <div class={`shrink-0 px-4 py-2 overflow-x-auto no-scrollbar bg-[var(--color-surface)] 
                       order-last sm:order-none
                       border-t sm:border-y border-[var(--color-outline-variant)]/10
@@ -998,6 +1051,7 @@ export default function Editor(props: EditorProps) {
 
                   <ToolbarButton icon="format_quote" action={() => editor()?.chain().focus().toggleBlockquote().run()} active={isActive('blockquote')} title="Blockquote" />
                   <ToolbarButton icon="horizontal_rule" action={() => editor()?.chain().focus().setHorizontalRule().run()} title="Garis Mendatar" />
+                  <ToolbarButton icon="attach_file" action={() => setShowFileModal(true)} title="Lampirkan File" />
                   <ToolbarButton icon="image" action={addImage} title="Sisipkan Gambar" />
                   <ToolbarButton icon="movie" action={addVideo} title="Sisipkan Video" />
                   <ToolbarButton icon="add_location_alt" action={addMapAttachment} title="Sisipkan Peta Lokasi" />
@@ -1010,7 +1064,12 @@ export default function Editor(props: EditorProps) {
 
                   <button
                     ref={setTableBtnRef}
-                    onMouseDown={(e) => { e.preventDefault(); setTableMenuOpen(!tableMenuOpen()); }}
+                    onMouseDown={(e) => { 
+                      e.preventDefault(); 
+                      const newState = !tableMenuOpen();
+                      setTableMenuOpen(newState); 
+                      setInsertTableOpen(false); 
+                    }}
                     class={`
                       flex items-center gap-1 h-9 px-3 rounded-lg transition-all duration-200 shrink-0
                       ${tableMenuOpen() || isActive('table') 
@@ -1025,15 +1084,14 @@ export default function Editor(props: EditorProps) {
 
                   <Popover
                     show={tableMenuOpen()}
-                    onClose={() => setTableMenuOpen(false)}
+                    onClose={() => { setTableMenuOpen(false); setInsertTableOpen(false); }}
                     anchor={tableBtnRef()}
                     class="menu p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box w-64 z-50 flex flex-col gap-1"
                   >
                       <div class="flex flex-col gap-1">
-                          {/* 1. Insert Grid Trigger */}
                           <button 
                             ref={setInsertTableBtnRef}
-                            onMouseEnter={() => setInsertTableOpen(true)}
+                            onClick={() => setInsertTableOpen(!insertTableOpen())}
                             class={`
                               w-full text-left px-3 py-2.5 flex items-center justify-between rounded-lg transition-colors
                               ${insertTableOpen() ? 'bg-[var(--color-surface-container-highest)]' : 'hover:bg-[var(--color-on-surface-variant)]/[0.08]'}
@@ -1043,10 +1101,9 @@ export default function Editor(props: EditorProps) {
                                <span class="material-symbols-rounded text-[20px]">grid_view</span>
                                <span class="text-sm font-medium text-[var(--color-on-surface)]">Sisipkan Tabel</span>
                              </div>
-                             <span class="material-symbols-rounded text-[20px] text-[var(--color-on-surface-variant)]">chevron_right</span>
+                             <span class={`material-symbols-rounded text-[20px] text-[var(--color-on-surface-variant)] transition-transform duration-200 ${insertTableOpen() ? 'rotate-90' : ''}`}>chevron_right</span>
                           </button>
 
-                          {/* Nested Popover for Grid */}
                           <Popover
                             show={insertTableOpen()}
                             onClose={() => setInsertTableOpen(false)}
@@ -1054,9 +1111,7 @@ export default function Editor(props: EditorProps) {
                             placement="right-start"
                             class="p-2 shadow-elevation-2 bg-[var(--color-surface-container)] rounded-box z-[60]"
                           >
-                             <div 
-                                onMouseLeave={() => setInsertTableOpen(false)}
-                             >
+                             <div onMouseDown={(e) => e.stopPropagation()}>
                                 <TableGrid onConfirm={(rows, cols, withHeader) => {
                                     editor()?.chain().focus().insertTable({ rows, cols, withHeaderRow: withHeader }).run();
                                     setTableMenuOpen(false);
@@ -1067,7 +1122,6 @@ export default function Editor(props: EditorProps) {
 
                           <div class="h-[1px] bg-[var(--color-outline-variant)] opacity-50 mx-2 my-1" />
 
-                          {/* 2. Context Actions */}
                           <div class="flex flex-col gap-1">
                               <button 
                                 disabled={!editor()?.can().addColumnBefore()}
@@ -1137,7 +1191,7 @@ export default function Editor(props: EditorProps) {
              </div>
           </div>
 
-          {/* --- 2. MAIN SCROLLABLE AREA --- */}
+          {/* --- MAIN SCROLLABLE AREA --- */}
           <div 
             ref={scrollContainerRef}
             class="flex-1 overflow-y-auto bg-[var(--color-background)] cursor-text"
@@ -1301,8 +1355,8 @@ export default function Editor(props: EditorProps) {
 
             </div>
           </div>
-        </div> {/* END INNER WRAPPER */}
-
+          
+        </div> {/* END LAPISAN DALAM */}
 
         {/* --- 3. MODALS (Date/Time/Mood) --- */}
         <DatePicker 
@@ -1346,10 +1400,16 @@ export default function Editor(props: EditorProps) {
             onConfirm={handleImageConfirm}
         />
 
-        <VideoModal // Added VideoModal rendering
+        <VideoModal
             show={showVideoModal()}
             onClose={() => setShowVideoModal(false)}
             onConfirm={handleVideoConfirm}
+        />
+
+        <FileModal
+          show={showFileModal()}
+          onClose={() => setShowFileModal(false)}
+          onConfirm={handleFileConfirm}
         />
 
         <ExportModal
@@ -1424,12 +1484,9 @@ export default function Editor(props: EditorProps) {
             </Show>
         </Modal>
 
-
-        {/* Custom Zoomable Full-size Image Preview Overlay */}
         <Show when={previewImageUrl()}>
-          <Portal>
             <div 
-              class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center cursor-zoom-out animate-preview-overlay"
+              class="fixed inset-0 z-[10000] bg-black/90 flex items-center justify-center cursor-zoom-out animate-preview-overlay"
               onClick={() => { setPreviewImageUrl(null); setIsPreviewZoomed(false); }}
             >
               <div class="relative w-full h-full flex items-center justify-center overflow-auto p-4 md:p-8 no-scrollbar">
@@ -1445,8 +1502,6 @@ export default function Editor(props: EditorProps) {
                   }}
                   alt="Full preview"
                 />
-                
-                {/* Close button for convenience */}
                 <button 
                   onClick={() => { setPreviewImageUrl(null); setIsPreviewZoomed(false); }}
                   class="fixed top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-colors"
@@ -1455,7 +1510,6 @@ export default function Editor(props: EditorProps) {
                 </button>
               </div>
             </div>
-          </Portal>
         </Show>
 
         <ConfirmationModal
@@ -1482,16 +1536,14 @@ export default function Editor(props: EditorProps) {
               const currentType = currentNode?.type.name === 'inlineMath' ? 'inline' : 'block';
 
               if (currentType === type) {
-                // Just update attributes
                 if (type === 'inline') {
                   (editor() as any).chain().setNodeSelection(pos).updateInlineMath({ latex }).focus().run();
                 } else {
                   (editor() as any).chain().setNodeSelection(pos).updateBlockMath({ latex }).focus().run();
                 }
               } else {
-                // Type changed: delete old, insert new
                 (editor() as any).chain()
-                  .deleteSelection() // Since pos is selected/focused or we should use deleteInlineMath/deleteBlockMath
+                  .deleteSelection()
                   .setNodeSelection(pos)
                   .deleteSelection()
                   .insertContentAt(pos, { type: type === 'inline' ? 'inlineMath' : 'blockMath', attrs: { latex } })
@@ -1509,9 +1561,7 @@ export default function Editor(props: EditorProps) {
           setMathModalOpen(false);
         }}
       />
-      
-      </div> {/* END LAPISAN DALAM */}
-      </div> {/* END LAPISAN LUAR */}
+      </Portal>
     </Show>
   );
 }
