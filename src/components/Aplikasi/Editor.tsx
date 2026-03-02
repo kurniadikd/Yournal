@@ -106,6 +106,7 @@ export default function Editor(props: EditorProps) {
   // States untuk pengaturan CSS internal
   const [isKeyboardOpen, setIsKeyboardOpen] = createSignal(false);
   const [editorHeight, setEditorHeight] = createSignal("100dvh");
+  const [editorTop, setEditorTop] = createSignal("0px");
   
   const [showDatePicker, setShowDatePicker] = createSignal(false);
   const [showTimePicker, setShowTimePicker] = createSignal(false);
@@ -580,6 +581,7 @@ export default function Editor(props: EditorProps) {
       const vfix = () => {
         if (!window.visualViewport) {
           setEditorHeight(`${window.innerHeight}px`);
+          setEditorTop("0px");
           return;
         }
         
@@ -587,20 +589,22 @@ export default function Editor(props: EditorProps) {
         const isKeyboard = vv.height < window.innerHeight * 0.75;
         setIsKeyboardOpen(isKeyboard);
 
-        // HANYA update tinggi. Kita hapus update transform dan scroll paksa 
-        // untuk membiarkan mesin native browser mengatur offset panner secara alami.
+        // Update tinggi DAN posisi top agar toolbar menempel tepat di atas keyboard.
+        // offsetTop mengkompensasi geseran viewport saat keyboard mendorong tampilan.
         setEditorHeight(`${vv.height}px`);
+        setEditorTop(`${vv.offsetTop}px`);
       };
 
       if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", vfix);
-        // Event "scroll" dihapus agar tidak bentrok (jitter) saat iOS Safari sedang memantul
+        window.visualViewport.addEventListener("scroll", vfix);
         vfix(); // Init
       }
       
       onCleanup(() => {
         if (window.visualViewport) {
           window.visualViewport.removeEventListener("resize", vfix);
+          window.visualViewport.removeEventListener("scroll", vfix);
         }
       });
     }
@@ -922,11 +926,11 @@ export default function Editor(props: EditorProps) {
             Cukup sesuaikan ukurannya secara elegan melalui Reactivity state biasa. */}
         <div 
           class={`
-            fixed top-0 left-0 w-full z-[9999] flex flex-col bg-transparent
+            fixed left-0 w-full z-[9999] flex flex-col bg-transparent
             transition-[opacity,transform] duration-300 ease-out
             ${isEditorVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}
           `}
-          style={{ height: editorHeight() }}
+          style={{ height: editorHeight(), top: editorTop() }}
         >
           
           {/* --- STICKY HEADER --- */}
