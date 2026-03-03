@@ -106,16 +106,12 @@ const AudioPlayerComponent: Component<{
   const progress = () => currentTime() / (displayDuration() || 1);
 
   return (
-    <div class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} audio-player-wrapper my-6 relative rounded-[32px] transition-all duration-300 w-full ${
-      props.selected 
-        ? 'shadow-[0_0_0_3px_var(--color-secondary)]' 
-        : 'shadow-[0_0_0_0_var(--color-secondary)]'
-    }`} 
+    <div class={`selectable-image-wrapper ${props.selected ? 'ProseMirror-selectednode' : ''} audio-player-wrapper my-6 relative rounded-xl transition-all duration-300 w-full`} 
     data-audio-player
     onMouseDown={handleMouseDown}
     >
       {/* Container: M3 Expressive style */}
-      <div class="flex items-center gap-4 bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] rounded-[32px] pl-2 pr-4 py-2 w-full shadow-sm border border-[var(--color-outline-variant)]/20 h-[80px] relative transition-colors hover:bg-[var(--color-surface-container-highest)]">
+      <div class="flex items-center gap-4 bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] rounded-xl pl-2 pr-4 py-2 w-full shadow-sm border border-[var(--color-outline-variant)]/20 h-[80px] relative transition-colors hover:bg-[var(--color-surface-container-highest)]">
         
         <audio 
             ref={setAudio} 
