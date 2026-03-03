@@ -155,12 +155,9 @@ export default function MapAttachmentComponent(props: {
   return (
     <div 
       class={`
-        selectable-image-wrapper my-4 rounded-xl border overflow-hidden transition-all select-none w-full
+        selectable-image-wrapper my-4 w-full select-none
         bg-[var(--color-surface-container)] 
-        ${props.selected 
-          ? 'ProseMirror-selectednode border-[var(--color-secondary)]' 
-          : 'border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-outline)] cursor-pointer'
-        }
+        ${props.selected ? 'ProseMirror-selectednode' : 'hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-outline)] cursor-pointer'}
       `}
       onMouseDown={handleMouseDown}
       onClick={handleOpenMap}

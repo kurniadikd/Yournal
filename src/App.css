@@ -485,11 +485,14 @@ ul[data-type="taskList"] li > div > p {
   margin: 1.5rem 0;
   max-width: 100%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 0 0 var(--color-secondary);
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant), transparent 50%);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .selectable-image-wrapper.ProseMirror-selectednode {
-  box-shadow: 0 0 0 3px var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+  box-shadow: 0 0 0 2px var(--color-secondary) !important;
 }
 
 /* Specific overrides for inline math to prevent spacing issues */
