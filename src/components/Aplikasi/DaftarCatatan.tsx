@@ -1,4 +1,4 @@
-import { Component, For, Show, createSignal, createMemo, Accessor, onMount, onCleanup } from 'solid-js';
+import { Component, For, Show, createSignal, createMemo, onMount, onCleanup } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
 import LoadingSpinner from '../ui/m3e/LoadingSpinner';
@@ -8,7 +8,7 @@ interface DaftarCatatanProps {
   onOpenNote: (note: Note) => void;
   isLoading: boolean;
   onRefresh?: () => void;
-  scrollRef?: Accessor<HTMLDivElement | undefined>;
+
 }
 
 const getGroupLabel = (dateString: string) => {

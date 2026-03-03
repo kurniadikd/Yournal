@@ -109,7 +109,6 @@ const HalamanUtama: Component = () => {
   return (
     <>
       <div 
-           ref={setScrollRef}
            class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
            style={{ 
              "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",
