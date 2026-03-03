@@ -461,15 +461,11 @@ ul[data-type="taskList"] li > div > p {
   line-height: 1.6;
   font-size: 1.125rem; /* text-lg equivalent */
   min-height: 1.6em; /* Matches one line height */
-  display: grid; /* MODERN GRID APPROACH */
-  grid-template-areas: "overlay";
-  align-items: start;
-  justify-items: start;
+  display: block; /* Standard block flow */
 }
 
 .ProseMirror p > * {
-  grid-area: overlay;
-  position: static !important;
+  position: static;
 }
 
 /* Ensure consistent base size */
@@ -606,21 +602,23 @@ ul[data-type="taskList"] li > div > p {
 }
 
 /* --- Placeholder Styles --- */
-/* --- Placeholder Styles (Grid Optimized) --- */
+/* --- Placeholder Styles: Absolute Anchor Approach --- */
 .ProseMirror p.is-empty {
   position: relative;
 }
 
-/* 1. ANCHOR: Keep <br> in flow as a grid item */
+/* 1. CURSOR ANCHOR: Force cursor to stay at the top-left corner */
 .ProseMirror p.is-empty > br {
-  position: static;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-/* 2. VISUAL LAYER: Stacked placeholder text */
+/* 2. PHYSICAL PLACEHOLDER: Gives size to the paragraph */
 .ProseMirror p.is-empty::before,
 .ProseMirror p.is-empty[data-placeholder]::before {
   content: attr(data-placeholder);
-  grid-area: overlay; /* Same cell as text/<br> */
+  display: block; /* Push layout down physically */
   color: var(--color-on-surface-variant);
   pointer-events: none;
   opacity: 0.4;
@@ -631,7 +629,7 @@ ul[data-type="taskList"] li > div > p {
   z-index: 1;
 }
 
-/* Clear all previous stretcher/after hacks */
+/* Ensure no competing pseudo-elements */
 .ProseMirror p.is-empty::after {
   content: none !important;
 }
