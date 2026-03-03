@@ -224,19 +224,31 @@ const LocationModal: Component<LocationModalProps> = (props) => {
     // Fly to location smoothly
     map()?.flyTo({ center: [lng, lat], zoom: 14 });
 
-    // Reverse Geocoding via Nominatim (Still uses raster service for names, but map is vector)
+    // Reverse Geocoding via Nominatim with timeout to prevent infinite loading
     setLoading(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        { signal: controller.signal }
+      );
       const data = await response.json();
       if (data && data.display_name) {
         // Simplify address
         const parts = data.display_name.split(',').slice(0, 3).join(',');
         setLocationName(parts);
       }
-    } catch (error) {
-      console.error("Failed to fetch address", error);
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        console.warn("Reverse geocoding timed out, using coordinates as name.");
+        setLocationName(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      } else {
+        console.error("Failed to fetch address", error);
+        setLocationName(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
@@ -245,15 +257,16 @@ const LocationModal: Component<LocationModalProps> = (props) => {
     if (navigator.geolocation) {
       setLoading(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          handleLocationSelect(position.coords.latitude, position.coords.longitude);
-          setLoading(false);
+        async (position) => {
+          // Await handleLocationSelect so loading state is managed correctly
+          await handleLocationSelect(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
           console.error("Error getting location", error);
           setLoading(false);
           alert("Gagal mendeteksi lokasi.");
-        }
+        },
+        { timeout: 15000 } // 15s geolocation timeout
       );
     } else {
       alert("Browser tidak mendukung Geolocation.");

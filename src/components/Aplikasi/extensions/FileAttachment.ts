@@ -15,7 +15,7 @@ export const FileAttachment = Node.create({
     return {
       name: {
         default: 'Unnamed File',
-        parseHTML: element => element.getAttribute('data-name'),
+        parseHTML: element => element.getAttribute('data-name') || 'Unnamed File',
         renderHTML: attributes => ({ 'data-name': attributes.name }),
       },
       size: {

@@ -44,7 +44,7 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
   return (
     <div 
       onClick={props.onClick}
-      class="p-6 rounded-[24px] bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] transition-colors cursor-pointer group hover:shadow-elevation-1"
+      class="p-6 rounded-[24px] bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] will-change-transform transition-transform duration-200 cursor-pointer group hover:translate-y-[-1px] active:scale-[0.98]"
     >
       {/* Image Gallery */}
       <Show when={images().length > 0}>

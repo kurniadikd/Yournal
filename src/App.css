@@ -593,43 +593,18 @@ ul[data-type="taskList"] li > div > p {
 /* --- Placeholder Styles --- */
 .ProseMirror p.is-empty {
   position: relative;
-  min-height: 1.6em;
 }
 
-/* Collapse the <br> so it doesn't add extra height (caret still visible via font-size) */
+/* Take the Tiptap injected <br> completely out of flow so it doesn't add phantom height, 
+   while keeping it at top-left for perfect cursor docking */
 .ProseMirror p.is-empty > br {
-  line-height: 0;
-}
-
-/* 1. Visible ghost text overlay (absolute so cursor ignores it) */
-.ProseMirror p.is-empty::before {
-  content: attr(data-placeholder);
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  color: var(--color-on-surface-variant);
-  pointer-events: none;
-  opacity: 0.5;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  user-select: none;
-  line-height: 1.6em;
 }
 
-/* 2. Invisible stretcher — expands container to match placeholder height, NO negative margin */
-.ProseMirror p.is-empty::after {
-  content: attr(data-placeholder);
-  display: block;
-  visibility: hidden;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  pointer-events: none;
-  user-select: none;
-  line-height: 1.6em;
-}
-
-/* Specific case for placeholders in paragraphs with attributes */
+/* 1. LAYER VISUAL: Absolute text. Completely ignored by cursor flow. */
+.ProseMirror p.is-empty::before,
 .ProseMirror p.is-empty[data-placeholder]::before {
   content: attr(data-placeholder);
   position: absolute;
@@ -642,19 +617,73 @@ ul[data-type="taskList"] li > div > p {
   white-space: pre-wrap;
   word-wrap: break-word;
   user-select: none;
-  line-height: 1.6em;
+  line-height: inherit;
 }
 
+/* 2. STRETCHER: Block element with margin-top: -1lh to precisely cancel the strut line.
+   The `lh` unit always equals the computed line-height, so this is pixel-perfect. */
+.ProseMirror p.is-empty::after,
 .ProseMirror p.is-empty[data-placeholder]::after {
   content: attr(data-placeholder);
   display: block;
-  visibility: hidden;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  color: transparent;
   pointer-events: none;
   user-select: none;
-  line-height: 1.6em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: inherit;
+  margin-top: -1lh;
 }
 
-/* Map Theming handled in LocationModal.tsx via JS */
+
+/* Map Controls Theming — override MapLibre GL defaults */
+.maplibregl-ctrl-group {
+  background: var(--color-surface-container) !important;
+  border: 1px solid var(--color-outline-variant) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+
+.maplibregl-ctrl-group button {
+  background-color: transparent !important;
+  border-bottom-color: var(--color-outline-variant) !important;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--color-outline-variant) !important;
+}
+
+.maplibregl-ctrl-group button span {
+  filter: var(--map-ctrl-icon-filter, none);
+}
+
+/* Invert icons in dark mode */
+@media (prefers-color-scheme: dark) {
+  .maplibregl-ctrl-group button span {
+    filter: invert(1);
+  }
+}
+
+/* Also handle app-level dark mode (when not relying on prefers-color-scheme) */
+:root[data-theme="dark"] .maplibregl-ctrl-group button span,
+.dark .maplibregl-ctrl-group button span {
+  filter: invert(1);
+}
+
+.maplibregl-ctrl-attrib {
+  background: var(--color-surface-container) !important;
+  color: var(--color-on-surface-variant) !important;
+  border-radius: 8px !important;
+  font-size: 10px !important;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--color-primary) !important;
+}
+
+.maplibregl-ctrl-attrib-button {
+  background-color: var(--color-surface-container) !important;
+}
+
 

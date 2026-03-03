@@ -37,9 +37,17 @@ const HalamanUtama: Component = () => {
   };
 
   onMount(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
+    // Update clock every 60s instead of 1s — only HH:MM is displayed.
+    // Sync to the next minute boundary for accuracy.
+    const tick = () => setTime(new Date());
+    const msToNextMinute = (60 - new Date().getSeconds()) * 1000;
+    const initTimeout = setTimeout(() => {
+      tick();
+      const timer = setInterval(tick, 60000);
+      onCleanup(() => clearInterval(timer));
+    }, msToNextMinute);
     fetchNotes();
-    onCleanup(() => clearInterval(timer));
+    onCleanup(() => clearTimeout(initTimeout));
   });
 
   const handleSaveNote = async (data: { title: string; content: string; mood: string; date: Date; location?: string; weather?: string; tags?: string[] }) => {

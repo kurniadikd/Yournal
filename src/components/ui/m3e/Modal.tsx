@@ -22,7 +22,41 @@ interface ModalProps {
 export default function Modal(props: ModalProps) {
   const [shouldRender, setShouldRender] = createSignal(false);
   const [isVisible, setIsVisible] = createSignal(false);
+  
+  // Mobile keyboard visual viewport fix
+  const [vvStyle, setVvStyle] = createSignal({ 
+    top: '0px', 
+    height: '100dvh' // rely on default css, we only override if vv exists
+  });
+
   let timer: number;
+
+  createEffect(() => {
+    // Watch visual viewport to handle mobile keyboard offset shifts
+    const vfix = () => {
+      if (!window.visualViewport) {
+        setVvStyle({ top: '0px', height: '100dvh' });
+        return;
+      }
+      setVvStyle({ 
+        top: `${window.visualViewport.offsetTop}px`, 
+        height: `${window.visualViewport.height}px` 
+      });
+    };
+
+    if (props.show && window.visualViewport) {
+      window.visualViewport.addEventListener("resize", vfix);
+      window.visualViewport.addEventListener("scroll", vfix);
+      vfix(); // Init
+
+      onCleanup(() => {
+        window.visualViewport?.removeEventListener("resize", vfix);
+        window.visualViewport?.removeEventListener("scroll", vfix);
+      });
+    } else {
+      setVvStyle({ top: '0px', height: '100dvh' });
+    }
+  });
 
   createEffect(() => {
     if (props.show) {
@@ -49,22 +83,28 @@ export default function Modal(props: ModalProps) {
   return (
     <Portal>
       <Show when={shouldRender()}>
-        <div class="fixed inset-0 z-[10005] flex items-center justify-center p-4">
+        <div 
+          class="fixed left-0 w-full z-[10005] flex items-center justify-center p-4 overflow-hidden"
+          style={{ 
+            top: vvStyle().top,
+            height: vvStyle().height,
+          }}
+        >
           {/* Backdrop */}
           <div 
-            class={`fixed inset-0 bg-black/40 transition-opacity duration-300 ease-out ${isVisible() ? 'opacity-100' : 'opacity-0'}`}
+            class={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-out ${isVisible() ? 'opacity-100' : 'opacity-0'}`}
             onClick={props.onClose}
           />
 
           {/* Modal Container */}
           <div 
             class={`
-              relative w-full bg-[var(--color-surface-container-high)] 
+              relative z-10 w-full bg-[var(--color-surface-container-high)] 
               rounded-[28px] overflow-hidden flex flex-col p-0 shadow-2xl
               transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] origin-center
               ${isVisible() ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}
             `}
-            style={{ "max-width": props.maxWidth || '560px' }}
+            style={{ "max-width": props.maxWidth || '560px', "max-height": "100%" }}
           >
             {/* Header */}
             <Show when={props.title}>

@@ -57,7 +57,7 @@ const CatatanBaru: Component<CatatanBaruProps> = (props) => {
       <Portal>
         <div class={`
           fixed inset-0 z-50 bg-[var(--color-on-tertiary)] flex flex-col overflow-hidden
-          transition-all duration-300 ease-out
+          transition-[opacity,transform] duration-300 ease-out
           ${isVisible() ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
         `}>
           

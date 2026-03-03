@@ -1,7 +1,8 @@
-import { Component, For, Show, createSignal } from 'solid-js';
+import { Component, For, Show, createSignal, createMemo, onMount } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
 import LoadingSpinner from '../ui/m3e/LoadingSpinner';
+import { createWindowVirtualizer } from '@tanstack/solid-virtual';
 
 interface DaftarCatatanProps {
   notes: Note[];
@@ -33,31 +34,11 @@ const getGroupLabel = (dateString: string) => {
   }
 };
 
-const groupNotes = (notes: Note[]) => {
-  const groups: { id: string; label: string; notes: Note[] }[] = [];
-  
-  // Sort notes by date descending
-  const sortedNotes = [...notes].sort((a, b) => {
-    const dateA = new Date(`${a.date}T${a.time}`);
-    const dateB = new Date(`${b.date}T${b.time}`);
-    return dateB.getTime() - dateA.getTime();
-  });
-
-  sortedNotes.forEach(note => {
-    const label = getGroupLabel(note.date);
-    const existingGroup = groups.find(g => g.label === label);
-    if (existingGroup) {
-      existingGroup.notes.push(note);
-    } else {
-      groups.push({ id: note.date, label, notes: [note] });
-    }
-  });
-  
-  return groups;
-};
+type ListItem = 
+  | { type: 'header', id: string, label: string, count: number }
+  | { type: 'note', note: Note, groupId: string };
 
 const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
-  // Store IDs (dates) of collapsed groups
   const [collapsedGroups, setCollapsedGroups] = createSignal<Set<string>>(new Set());
 
   const toggleGroup = (id: string) => {
@@ -70,8 +51,54 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
     setCollapsedGroups(newSet);
   };
 
+  // 1. First sort and group notes mathematically
+  const flatItems = createMemo(() => {
+    const groupsMap = new Map<string, { label: string, notes: Note[] }>();
+    
+    // Sort notes by date descending
+    const sortedNotes = [...props.notes].sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    sortedNotes.forEach(note => {
+      const label = getGroupLabel(note.date);
+      if (groupsMap.has(note.date)) {
+        groupsMap.get(note.date)!.notes.push(note);
+      } else {
+        groupsMap.set(note.date, { label, notes: [note] });
+      }
+    });
+
+    // 2. Flatten into a single array for virtualization
+    const items: ListItem[] = [];
+    for (const [id, group] of groupsMap.entries()) {
+      items.push({ type: 'header', id, label: group.label, count: group.notes.length });
+      
+      // If group is NOT collapsed, push its notes
+      if (!collapsedGroups().has(id)) {
+        group.notes.forEach(note => {
+          items.push({ type: 'note', note, groupId: id });
+        });
+      }
+    }
+    return items;
+  });
+
+  // Setup window-based virtualizer
+  const virtualizer = createWindowVirtualizer({
+    count: flatItems().length,
+    estimateSize: (index) => {
+      const item = flatItems()[index];
+      // Estimate header height vs note height (notes with images might be taller, but dynamic measurement adjusts this)
+      return item.type === 'header' ? 60 : 180;
+    },
+    overscan: 5,
+  });
+
   return (
-    <div class="w-full flex flex-col gap-6 pb-24">
+    <div class="w-full flex flex-col pb-24">
       <Show when={props.notes.length === 0 && !props.isLoading}>
         <div class="flex flex-col items-center justify-center py-20 opacity-80 animate-in fade-in zoom-in duration-500">
             <div class="w-20 h-20 rounded-full bg-[var(--color-surface-container-high)] flex items-center justify-center mb-6">
@@ -99,49 +126,66 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
         </div>
       </Show>
 
-      <Show when={!props.isLoading}>
-        <For each={groupNotes(props.notes)}>
-          {(group) => {
-            const isCollapsed = () => collapsedGroups().has(group.id);
-            
-            return (
-              <div class="flex flex-col gap-3" id={`section-${group.id}`}>
-                <div 
-                  class="flex items-center justify-between cursor-pointer group/label w-full px-2 pr-4"
-                  onClick={() => toggleGroup(group.id)}
+      <Show when={!props.isLoading && flatItems().length > 0}>
+        <div 
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          <For each={virtualizer.getVirtualItems()}>
+            {(virtualItem) => {
+              const item = flatItems()[virtualItem.index];
+              return (
+                <div
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
                 >
-                  <h3 class="text-xl text-[var(--color-secondary)] group-hover/label:text-[var(--color-secondary)] transition-colors">
-                    {group.label}
-                  </h3>
-                  
-                  <div class="flex items-center justify-center gap-2 px-3.5 pr-3 py-1.5 rounded-full bg-[var(--color-secondary)] transition-all active:scale-95 min-w-[56px]">
-                    <span class="text-[13px] font-medium leading-none text-[var(--color-on-secondary)]">
-                      {group.notes.length}
-                    </span>
-                    <span 
-                      class={`material-symbols-rounded text-[13px] leading-none text-[var(--color-on-secondary)] transition-all duration-300 ${isCollapsed() ? 'rotate-180' : 'rotate-0'}`}
+                  {/* Outer container with padding logic to replace previous flex gaps */}
+                  <div class={`${item.type === 'header' ? 'pt-6 pb-3' : 'pb-3'}`}>
+                    <Show 
+                      when={item.type === 'header'} 
+                      fallback={
+                        <ItemCatatan 
+                          note={(item as Extract<ListItem, { type: 'note' }>).note} 
+                          onClick={() => props.onOpenNote((item as Extract<ListItem, { type: 'note' }>).note)} 
+                        />
+                      }
                     >
-                      expand_less
-                    </span>
+                      <div 
+                        class="flex items-center justify-between cursor-pointer group/label w-full px-2 pr-4 pt-2"
+                        onClick={() => toggleGroup((item as any).id)}
+                      >
+                        <h3 class="text-xl text-[var(--color-secondary)] group-hover/label:text-[var(--color-secondary)] transition-colors">
+                          {(item as any).label}
+                        </h3>
+                        
+                        <div class="flex items-center justify-center gap-2 px-3.5 pr-3 py-1.5 rounded-full bg-[var(--color-secondary)] transition-transform active:scale-95 min-w-[56px]">
+                          <span class="text-[13px] font-medium leading-none text-[var(--color-on-secondary)]">
+                            {(item as any).count}
+                          </span>
+                          <span 
+                            class={`material-symbols-rounded text-[13px] leading-none text-[var(--color-on-secondary)] transition-transform duration-300 ${collapsedGroups().has((item as any).id) ? 'rotate-180' : 'rotate-0'}`}
+                          >
+                            expand_less
+                          </span>
+                        </div>
+                      </div>
+                    </Show>
                   </div>
                 </div>
-                
-                <div 
-                  class={`flex flex-col gap-3 transition-all duration-300 origin-top overflow-hidden ${isCollapsed() ? 'max-h-0 opacity-0 scale-y-95 pointer-events-none' : 'max-h-[5000px] opacity-100 scale-y-100'}`}
-                >
-                  <For each={group.notes}>
-                    {(note) => (
-                      <ItemCatatan 
-                        note={note} 
-                        onClick={() => props.onOpenNote(note)} 
-                      />
-                    )}
-                  </For>
-                </div>
-              </div>
-            );
-          }}
-        </For>
+              );
+            }}
+          </For>
+        </div>
       </Show>
     </div>
   );

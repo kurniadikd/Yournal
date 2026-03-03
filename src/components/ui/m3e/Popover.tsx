@@ -107,6 +107,12 @@ export default function Popover(props: PopoverProps) {
           }
       }
 
+      // MOBILE KEYBOARD FIX: getBoundingClientRect() is relative to visual viewport top, 
+      // but 'fixed' positioning anchors to the layout viewport top.
+      // If the Android keyboard pushes the screen, `offsetTop` > 0.
+      const offsetTop = window.visualViewport ? window.visualViewport.offsetTop : 0;
+      top += offsetTop;
+
       setPosition({ top, left });
       
       // Small delay to ensure render with correct position before showing
