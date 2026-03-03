@@ -463,6 +463,8 @@ ul[data-type="taskList"] li > div > p {
   min-height: 1.6em; /* Matches one line height */
   display: grid; /* MODERN GRID APPROACH */
   grid-template-areas: "overlay";
+  align-items: start;
+  justify-items: start;
 }
 
 .ProseMirror p > * {
