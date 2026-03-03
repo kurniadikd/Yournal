@@ -1,4 +1,4 @@
-import { Component, For, Show, createSignal, createMemo, onMount, onCleanup } from 'solid-js';
+import { Component, For, Show, createSignal, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
 import LoadingSpinner from '../ui/m3e/LoadingSpinner';
@@ -8,7 +8,6 @@ interface DaftarCatatanProps {
   onOpenNote: (note: Note) => void;
   isLoading: boolean;
   onRefresh?: () => void;
-
 }
 
 const getGroupLabel = (dateString: string) => {
@@ -36,6 +35,47 @@ const getGroupLabel = (dateString: string) => {
 
 type ListGroup = { id: string, label: string, notes: Note[] };
 
+/** Inline Collapsible: max-height + opacity (GPU-friendly, measured) */
+function CollapsibleGroup(props: { open: boolean; children: any }) {
+  let el: HTMLDivElement | undefined;
+  const [maxH, setMaxH] = createSignal<string>("0px");
+
+  createEffect(() => {
+    if (!el) return;
+    if (props.open) {
+      const h = el.scrollHeight;
+      void el.offsetHeight;
+      setMaxH(`${h}px`);
+      const onEnd = () => {
+        if (el) el.style.maxHeight = "none";
+        el?.removeEventListener("transitionend", onEnd);
+      };
+      el.addEventListener("transitionend", onEnd);
+    } else {
+      const curH = el.scrollHeight;
+      el.style.maxHeight = `${curH}px`;
+      void el.offsetHeight;
+      setMaxH("0px");
+    }
+  });
+
+  return (
+    <div
+      ref={el}
+      style={{
+        overflow: "hidden",
+        transition: "max-height 300ms cubic-bezier(.16,1,.3,1), opacity 150ms ease",
+        "max-height": maxH(),
+        opacity: props.open ? 1 : 0,
+        "will-change": "max-height, opacity",
+        contain: "layout style",
+      }}
+    >
+      {props.children}
+    </div>
+  );
+}
+
 const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
   const [collapsedGroups, setCollapsedGroups] = createSignal<Set<string>>(new Set());
   const [visibleLimit, setVisibleLimit] = createSignal(10);
@@ -51,11 +91,10 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
     setCollapsedGroups(newSet);
   };
 
-  // 1. Sort and group notes mathematically
+  // Sort and group notes
   const groupedItems = createMemo(() => {
     const groupsMap = new Map<string, { label: string, notes: Note[] }>();
     
-    // Sort notes by date descending
     const sortedNotes = [...props.notes].sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.time}`);
       const dateB = new Date(`${b.date}T${b.time}`);
@@ -78,6 +117,9 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
     return list;
   });
 
+  // Memoize the visible slice to avoid creating a new array on every access
+  const visibleGroups = createMemo(() => groupedItems().slice(0, visibleLimit()));
+
   // Infinite Scroll logic
   onMount(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -87,8 +129,8 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
         }
       }
     }, {
-      root: null, // Use viewport or the closest scrollable parent
-      rootMargin: '200px', // Start loading before the user reaches the very bottom
+      root: null,
+      rootMargin: '200px',
       threshold: 0.1
     });
 
@@ -130,9 +172,9 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
 
       <Show when={!props.isLoading && groupedItems().length > 0}>
         <div class="w-full flex flex-col gap-0 relative">
-          <For each={groupedItems().slice(0, visibleLimit())}>
+          <For each={visibleGroups()}>
             {(group) => {
-              const isCollapsed = () => collapsedGroups().has(group.id);
+              const collapsed = collapsedGroups().has(group.id);
               
               return (
                 <div class="w-full flex flex-col mb-2">
@@ -150,7 +192,8 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                           {group.notes.length}
                         </span>
                         <span 
-                          class={`material-symbols-rounded text-[16px] leading-none text-[var(--color-on-surface-variant)] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isCollapsed() ? 'rotate-180' : 'rotate-0'}`}
+                          class={`material-symbols-rounded text-[16px] leading-none text-[var(--color-on-surface-variant)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed ? 'rotate-180' : 'rotate-0'}`}
+                          style={{ "will-change": "transform" }}
                         >
                           expand_less
                         </span>
@@ -158,10 +201,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                     </div>
                   </div>
 
-                  <div 
-                    class={`grid transition-all duration-300 ease-in-out ${isCollapsed() ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                    style={{ "grid-template-rows": isCollapsed() ? "0fr" : "1fr" }}
-                  >
+                  <CollapsibleGroup open={!collapsed}>
                     <div class="min-h-0 overflow-hidden flex flex-col gap-3 px-1">
                       <For each={group.notes}>
                         {(note) => (
@@ -174,7 +214,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                         )}
                       </For>
                     </div>
-                  </div>
+                  </CollapsibleGroup>
                 </div>
               );
             }}

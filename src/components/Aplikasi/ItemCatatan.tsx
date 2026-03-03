@@ -54,6 +54,7 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
               <img 
                 src={src} 
                 alt="Catatan Gambar" 
+                loading="lazy"
                 class="w-16 h-16 rounded-xl object-cover shrink-0 border border-[var(--color-outline-variant)]/50 bg-[var(--color-surface-container)]"
                 width="64"
                 height="64"
