@@ -461,11 +461,11 @@ ul[data-type="taskList"] li > div > p {
   line-height: 1.6;
   font-size: 1.125rem; /* text-lg equivalent */
   min-height: 1.6em; /* Matches one line height */
-  display: block; /* Standard block flow */
+  display: block;
 }
 
 .ProseMirror p > * {
-  position: static;
+  position: static !important;
 }
 
 /* Ensure consistent base size */
@@ -602,36 +602,40 @@ ul[data-type="taskList"] li > div > p {
 }
 
 /* --- Placeholder Styles --- */
-/* --- Placeholder Styles: Absolute Anchor Approach --- */
+/* --- Placeholder Styles: Official Float + Multi-line Stretcher --- */
 .ProseMirror p.is-empty {
   position: relative;
 }
 
-/* 1. CURSOR ANCHOR: Force cursor to stay at the top-left corner */
-.ProseMirror p.is-empty > br {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-/* 2. PHYSICAL PLACEHOLDER: Gives size to the paragraph */
+/* 1. OFFICIAL METHOD: Float + height: 0 keeps cursor at start of line 1 */
 .ProseMirror p.is-empty::before,
 .ProseMirror p.is-empty[data-placeholder]::before {
   content: attr(data-placeholder);
-  display: block; /* Push layout down physically */
-  color: var(--color-on-surface-variant);
+  float: left;
+  height: 0;
   pointer-events: none;
   opacity: 0.4;
   white-space: pre-wrap;
   word-wrap: break-word;
-  user-select: none;
+  color: var(--color-on-surface-variant);
   line-height: inherit;
-  z-index: 1;
 }
 
-/* Ensure no competing pseudo-elements */
-.ProseMirror p.is-empty::after {
-  content: none !important;
+/* 2. STRETCHER: Invisible block element that ensures paragraph grows for multi-line */
+.ProseMirror p.is-empty::after,
+.ProseMirror p.is-empty[data-placeholder]::after {
+  content: attr(data-placeholder);
+  display: block;
+  visibility: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: inherit;
+  margin-top: 0;
+}
+
+/* 3. PADDING FIX: Cancel out extra line height only if placeholder exists */
+.ProseMirror p.is-empty[data-placeholder]:not([data-placeholder=""])::after {
+  margin-top: -1.6em; /* Perfectly overlaps the <br> line */
 }
 
 
