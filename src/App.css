@@ -429,7 +429,7 @@ ul[data-type="taskList"] li > div > p {
 .ProseMirror h1 {
   font-size: 1.75em; /* ~31.5px, smaller than Title (36px) */
   font-weight: 800;
-  margin-top: 0;
+  margin-top: 1.5rem;
   margin-bottom: 0.5em;
   line-height: 1.3;
 }
@@ -437,7 +437,7 @@ ul[data-type="taskList"] li > div > p {
 .ProseMirror h2 {
   font-size: 1.4em; /* ~25px */
   font-weight: 700;
-  margin-top: 0;
+  margin-top: 1.25rem;
   margin-bottom: 0.5em;
   line-height: 1.3;
 }
@@ -445,9 +445,14 @@ ul[data-type="taskList"] li > div > p {
 .ProseMirror h3 {
   font-size: 1.2em; /* ~21.6px */
   font-weight: 600;
-  margin-top: 0;
+  margin-top: 1rem;
   margin-bottom: 0.5em;
   line-height: 1.3;
+}
+
+/* Remove top margin for the very first element in the editor */
+.ProseMirror > *:first-child {
+  margin-top: 0 !important;
 }
 
 .ProseMirror p {
@@ -455,6 +460,7 @@ ul[data-type="taskList"] li > div > p {
   margin-bottom: 0.8em;
   line-height: 1.6;
   font-size: 1.125rem; /* text-lg equivalent */
+  min-height: 1.125rem; /* Ensure empty paragraphs don't collapse */
 }
 
 /* Ensure consistent base size */
