@@ -174,7 +174,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
         <div class="w-full flex flex-col gap-0 relative">
           <For each={visibleGroups()}>
             {(group) => {
-              const collapsed = collapsedGroups().has(group.id);
+              const isCollapsed = () => collapsedGroups().has(group.id);
               
               return (
                 <div class="w-full flex flex-col mb-2">
@@ -192,7 +192,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                           {group.notes.length}
                         </span>
                         <span 
-                          class={`material-symbols-rounded text-[16px] leading-none text-[var(--color-on-surface-variant)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed ? 'rotate-180' : 'rotate-0'}`}
+                          class={`material-symbols-rounded text-[16px] leading-none text-[var(--color-on-surface-variant)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isCollapsed() ? 'rotate-180' : 'rotate-0'}`}
                           style={{ "will-change": "transform" }}
                         >
                           expand_less
@@ -201,7 +201,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                     </div>
                   </div>
 
-                  <CollapsibleGroup open={!collapsed}>
+                  <CollapsibleGroup open={!isCollapsed()}>
                     <div class="min-h-0 overflow-hidden flex flex-col gap-3 px-1">
                       <For each={group.notes}>
                         {(note) => (
