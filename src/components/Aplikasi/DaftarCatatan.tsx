@@ -1,14 +1,14 @@
-import { Component, For, Show, createSignal, createMemo, onMount } from 'solid-js';
+import { Component, For, Show, createSignal, createMemo, Accessor, onMount, onCleanup } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
 import LoadingSpinner from '../ui/m3e/LoadingSpinner';
-import { createWindowVirtualizer } from '@tanstack/solid-virtual';
 
 interface DaftarCatatanProps {
   notes: Note[];
   onOpenNote: (note: Note) => void;
   isLoading: boolean;
   onRefresh?: () => void;
+  scrollRef?: Accessor<HTMLDivElement | undefined>;
 }
 
 const getGroupLabel = (dateString: string) => {
@@ -34,12 +34,12 @@ const getGroupLabel = (dateString: string) => {
   }
 };
 
-type ListItem = 
-  | { type: 'header', id: string, label: string, count: number }
-  | { type: 'note', note: Note, groupId: string };
+type ListGroup = { id: string, label: string, notes: Note[] };
 
 const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
   const [collapsedGroups, setCollapsedGroups] = createSignal<Set<string>>(new Set());
+  const [visibleLimit, setVisibleLimit] = createSignal(10);
+  let sentinelRef: HTMLDivElement | undefined;
 
   const toggleGroup = (id: string) => {
     const newSet = new Set(collapsedGroups());
@@ -51,8 +51,8 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
     setCollapsedGroups(newSet);
   };
 
-  // 1. First sort and group notes mathematically
-  const flatItems = createMemo(() => {
+  // 1. Sort and group notes mathematically
+  const groupedItems = createMemo(() => {
     const groupsMap = new Map<string, { label: string, notes: Note[] }>();
     
     // Sort notes by date descending
@@ -71,30 +71,32 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
       }
     });
 
-    // 2. Flatten into a single array for virtualization
-    const items: ListItem[] = [];
+    const list: ListGroup[] = [];
     for (const [id, group] of groupsMap.entries()) {
-      items.push({ type: 'header', id, label: group.label, count: group.notes.length });
-      
-      // If group is NOT collapsed, push its notes
-      if (!collapsedGroups().has(id)) {
-        group.notes.forEach(note => {
-          items.push({ type: 'note', note, groupId: id });
-        });
-      }
+      list.push({ id, label: group.label, notes: group.notes });
     }
-    return items;
+    return list;
   });
 
-  // Setup window-based virtualizer
-  const virtualizer = createWindowVirtualizer({
-    count: flatItems().length,
-    estimateSize: (index) => {
-      const item = flatItems()[index];
-      // Estimate header height vs note height (notes with images might be taller, but dynamic measurement adjusts this)
-      return item.type === 'header' ? 60 : 180;
-    },
-    overscan: 5,
+  // Infinite Scroll logic
+  onMount(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        if (visibleLimit() < groupedItems().length) {
+          setVisibleLimit(prev => prev + 10);
+        }
+      }
+    }, {
+      root: null, // Use viewport or the closest scrollable parent
+      rootMargin: '200px', // Start loading before the user reaches the very bottom
+      threshold: 0.1
+    });
+
+    if (sentinelRef) {
+      observer.observe(sentinelRef);
+    }
+
+    onCleanup(() => observer.disconnect());
   });
 
   return (
@@ -126,67 +128,67 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
         </div>
       </Show>
 
-      <Show when={!props.isLoading && flatItems().length > 0}>
-        <div 
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
-        >
-          <For each={virtualizer.getVirtualItems()}>
-            {(virtualItem) => {
-              const item = flatItems()[virtualItem.index];
+      <Show when={!props.isLoading && groupedItems().length > 0}>
+        <div class="w-full flex flex-col gap-0 relative">
+          <For each={groupedItems().slice(0, visibleLimit())}>
+            {(group) => {
+              const isCollapsed = () => collapsedGroups().has(group.id);
+              
               return (
-                <div
-                  data-index={virtualItem.index}
-                  ref={virtualizer.measureElement}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  {/* Outer container with padding logic to replace previous flex gaps */}
-                  <div class={`${item.type === 'header' ? 'pt-6 pb-3' : 'pb-3'}`}>
-                    <Show 
-                      when={item.type === 'header'} 
-                      fallback={
-                        <ItemCatatan 
-                          note={(item as Extract<ListItem, { type: 'note' }>).note} 
-                          onClick={() => props.onOpenNote((item as Extract<ListItem, { type: 'note' }>).note)} 
-                        />
-                      }
+                <div class="w-full flex flex-col mb-2">
+                  <div class="pt-6 pb-3">
+                    <div 
+                      class="flex items-center justify-between cursor-pointer group/label w-full px-2"
+                      onClick={() => toggleGroup(group.id)}
                     >
-                      <div 
-                        class="flex items-center justify-between cursor-pointer group/label w-full px-2 pr-4 pt-2"
-                        onClick={() => toggleGroup((item as any).id)}
-                      >
-                        <h3 class="text-xl text-[var(--color-secondary)] group-hover/label:text-[var(--color-secondary)] transition-colors">
-                          {(item as any).label}
-                        </h3>
-                        
-                        <div class="flex items-center justify-center gap-2 px-3.5 pr-3 py-1.5 rounded-full bg-[var(--color-secondary)] transition-transform active:scale-95 min-w-[56px]">
-                          <span class="text-[13px] font-medium leading-none text-[var(--color-on-secondary)]">
-                            {(item as any).count}
-                          </span>
-                          <span 
-                            class={`material-symbols-rounded text-[13px] leading-none text-[var(--color-on-secondary)] transition-transform duration-300 ${collapsedGroups().has((item as any).id) ? 'rotate-180' : 'rotate-0'}`}
-                          >
-                            expand_less
-                          </span>
-                        </div>
+                      <h3 class="text-lg font-medium text-[var(--color-on-surface-variant)] group-hover/label:text-[var(--color-primary)] transition-colors">
+                        {group.label}
+                      </h3>
+                      
+                      <div class="flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-[var(--color-surface-container-highest)] transition-transform active:scale-95 min-w-[56px]">
+                        <span class="text-[12px] font-bold leading-none text-[var(--color-on-surface-variant)]">
+                          {group.notes.length}
+                        </span>
+                        <span 
+                          class={`material-symbols-rounded text-[16px] leading-none text-[var(--color-on-surface-variant)] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isCollapsed() ? 'rotate-180' : 'rotate-0'}`}
+                        >
+                          expand_less
+                        </span>
                       </div>
-                    </Show>
+                    </div>
+                  </div>
+
+                  <div 
+                    class={`grid transition-all duration-300 ease-in-out ${isCollapsed() ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    style={{ "grid-template-rows": isCollapsed() ? "0fr" : "1fr" }}
+                  >
+                    <div class="min-h-0 overflow-hidden flex flex-col gap-3 px-1">
+                      <For each={group.notes}>
+                        {(note) => (
+                          <div class="w-full pb-1">
+                            <ItemCatatan 
+                              note={note} 
+                              onClick={() => props.onOpenNote(note)} 
+                            />
+                          </div>
+                        )}
+                      </For>
+                    </div>
                   </div>
                 </div>
               );
             }}
           </For>
+
+          {/* Sentinel for Infinite Scroll */}
+          <div ref={sentinelRef} class="h-10 w-full flex items-center justify-center pointer-events-none opacity-50">
+            <Show when={visibleLimit() < groupedItems().length}>
+              <LoadingSpinner size="small" />
+            </Show>
+          </div>
         </div>
       </Show>
+
     </div>
   );
 };

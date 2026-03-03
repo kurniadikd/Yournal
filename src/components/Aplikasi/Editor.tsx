@@ -95,6 +95,12 @@ export default function Editor(props: EditorProps) {
   const [container, setContainer] = createSignal<HTMLDivElement>();
   const [updateTrigger, setUpdateTrigger] = createSignal(0);
   const [baseHTML, setBaseHTML] = createSignal("");
+  const [baseTitle, setBaseTitle] = createSignal("");
+  const [baseMood, setBaseMood] = createSignal("");
+  const [baseDate, setBaseDate] = createSignal<Date | null>(null);
+  const [baseLocation, setBaseLocation] = createSignal<string | undefined>(undefined);
+  const [baseWeather, setBaseWeather] = createSignal<string | undefined>(undefined);
+  const [baseTags, setBaseTags] = createSignal<string>("[]");
 
   const [title, setTitle] = createSignal(props.initialTitle || "");
   const [entryDate, setEntryDate] = createSignal(new Date());
@@ -170,8 +176,14 @@ export default function Editor(props: EditorProps) {
         tags: tags().length > 0 ? tags() : undefined
       });
     }
-    // Update base HTML so isDirty() reflects that changes are saved
+    // Update base states so isDirty() reflects that changes are saved
     setBaseHTML(html);
+    setBaseTitle(title());
+    setBaseMood(mood());
+    setBaseDate(entryDate());
+    setBaseLocation(location() ? JSON.stringify(location()) : undefined);
+    setBaseWeather(weather() ? JSON.stringify(weather()) : undefined);
+    setBaseTags(JSON.stringify([...tags()].sort()));
   };
 
   const fetchWeather = async (lat: number, lng: number, date: Date) => {
@@ -474,19 +486,23 @@ export default function Editor(props: EditorProps) {
     const initialCont = baseHTML() || "";
     const contentChanged = currentContent !== initialCont 
       && !(initialCont === "" && currentContent === "<p></p>");
-    const titleChanged = title() !== (props.initialTitle || "");
-    const moodChanged = mood() !== (props.initialMood || "");
-    const initialDate = props.initialDate || null;
-    const dateChanged = initialDate 
-      ? entryDate().getTime() !== initialDate.getTime()
+    
+    const titleChanged = title() !== baseTitle();
+    const moodChanged = mood() !== baseMood();
+    
+    const bDate = baseDate();
+    const dateChanged = bDate 
+      ? Math.floor(entryDate().getTime() / 1000) !== Math.floor(bDate.getTime() / 1000)
       : false; 
+      
     const currentLoc = location() ? JSON.stringify(location()) : undefined;
-    const locationChanged = currentLoc !== (props.initialLocation || undefined);
+    const locationChanged = currentLoc !== baseLocation();
+    
     const currentWeather = weather() ? JSON.stringify(weather()) : undefined;
-    const weatherChanged = currentWeather !== (props.initialWeather || undefined);
-    const currentTags = [...tags()].sort();
-    const initialTags = [...(props.initialTags || [])].sort();
-    const tagsChanged = JSON.stringify(currentTags) !== JSON.stringify(initialTags);
+    const weatherChanged = currentWeather !== baseWeather();
+    
+    const currentTags = JSON.stringify([...tags()].sort());
+    const tagsChanged = currentTags !== baseTags();
 
     return contentChanged || titleChanged || moodChanged || dateChanged || locationChanged || weatherChanged || tagsChanged;
   };
@@ -541,32 +557,43 @@ export default function Editor(props: EditorProps) {
   }));
 
   const loadPropsIntoEditor = (ed: any) => {
-    setTitle(props.initialTitle || "");
+    const initTitle = props.initialTitle || "";
+    setTitle(initTitle);
+    setBaseTitle(initTitle);
 
     if (props.initialContent) {
       ed.commands.setContent(props.initialContent);
     } else {
       ed.commands.clearContent();
     }
+    setBaseHTML(props.initialContent || "");
 
-    setMood(props.initialMood || "");
-    setEntryDate(props.initialDate || new Date());
+    const initMood = props.initialMood || "";
+    setMood(initMood);
+    setBaseMood(initMood);
+
+    const initDate = props.initialDate || new Date();
+    setEntryDate(initDate);
+    setBaseDate(initDate);
 
     let loc = null;
     if (props.initialLocation) {
       try { loc = typeof props.initialLocation === 'string' ? JSON.parse(props.initialLocation) : props.initialLocation; } catch(e) {}
     }
     setLocation(loc);
+    setBaseLocation(loc ? JSON.stringify(loc) : undefined);
 
     let w = null;
     if (props.initialWeather) {
       try { w = typeof props.initialWeather === 'string' ? JSON.parse(props.initialWeather) : props.initialWeather; } catch(e) {}
     }
     setWeather(w);
+    setBaseWeather(w ? JSON.stringify(w) : undefined);
 
     if (titleRef) setTimeout(resizeTitle, 0);
-    setTags(props.initialTags || []);
-    setBaseHTML(props.initialContent || "");
+    const initTags = props.initialTags || [];
+    setTags(initTags);
+    setBaseTags(JSON.stringify([...initTags].sort()));
 
     // Focus the editor ONLY if it's a new note or explicit
     setTimeout(() => {

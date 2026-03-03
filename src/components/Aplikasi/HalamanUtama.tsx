@@ -1,11 +1,11 @@
-import { Component, createSignal, onMount, onCleanup, Show } from "solid-js";
+import { Component, createSignal, onMount, onCleanup } from "solid-js";
 import { formatDate, formatTime } from "../../utils/date";
 import FAB from "../ui/m3e/FAB";
 import Editor from "./Editor";
 import DaftarCatatan from "./DaftarCatatan";
 import Kalender from "./Kalender";
 import CatatanBaru from "./CatatanBaru";
-import PetaDunia from "./PetaDunia";
+
 import ConfirmationModal from "../ui/m3e/ConfirmationModal";
 import { getNotes, saveNote, deleteNote, Note } from "../../services/db";
 
@@ -19,6 +19,7 @@ const HalamanUtama: Component = () => {
   const [templateTitle, setTemplateTitle] = createSignal("");
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
   const [isLoading, setIsLoading] = createSignal(true);
+
 
   const fetchNotes = async () => {
     // Only show loading spinner on first load (when notes list is empty)
@@ -107,7 +108,9 @@ const HalamanUtama: Component = () => {
 
   return (
     <>
-      <div class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
+      <div 
+           ref={setScrollRef}
+           class="flex-1 flex flex-col items-center overflow-y-auto w-full mx-auto md:fixed md:top-24 md:right-8 md:w-1/2 md:h-[calc(100vh-120px)] md:items-end md:justify-start md:z-30 scrollbar-hide"
            style={{ 
              "padding-top": "calc(4.5rem + env(safe-area-inset-top, 0px))",
              "padding-bottom": "calc(2rem + env(safe-area-inset-bottom, 0px))"
