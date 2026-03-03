@@ -460,7 +460,7 @@ ul[data-type="taskList"] li > div > p {
   margin-bottom: 0.8em;
   line-height: 1.6;
   font-size: 1.125rem; /* text-lg equivalent */
-  min-height: 1.6em; /* Ensure empty paragraphs match line-height exactly */
+  min-height: 1.6em; /* Matches line-height * font-size */
 }
 
 /* Ensure consistent base size */
@@ -603,12 +603,14 @@ ul[data-type="taskList"] li > div > p {
 
 /* Take the Tiptap injected <br> completely out of flow so it doesn't add phantom height, 
    while keeping it at top-left for perfect cursor docking */
-/* Simplify placeholder: Let the <br> handle the natural height */
+/* 1. ANCHOR: Keep <br> at top-left for cursor docking in empty lines */
 .ProseMirror p.is-empty > br {
-  position: static;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-/* 1. LAYER VISUAL: Absolute text positioned OVER the <br>. */
+/* 2. VISUAL LAYER: Absolute placeholder text */
 .ProseMirror p.is-empty::before,
 .ProseMirror p.is-empty[data-placeholder]::before {
   content: attr(data-placeholder);
@@ -618,10 +620,24 @@ ul[data-type="taskList"] li > div > p {
   right: 0;
   color: var(--color-on-surface-variant);
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.4;
   white-space: pre-wrap;
   word-wrap: break-word;
   user-select: none;
+  line-height: inherit;
+  z-index: 1;
+}
+
+/* 3. STRETCHER LAYER: Invisible document-flow element that pushes layout down */
+.ProseMirror p.is-empty::after,
+.ProseMirror p.is-empty[data-placeholder]::after {
+  content: attr(data-placeholder);
+  display: block;
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
   line-height: inherit;
 }
 
