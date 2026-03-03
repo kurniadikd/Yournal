@@ -1,4 +1,4 @@
-import { Component, For, Show, createSignal, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
+import { Component, For, Show, createSignal, createMemo, onMount, onCleanup } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
 import LoadingSpinner from '../ui/m3e/LoadingSpinner';
@@ -34,61 +34,6 @@ const getGroupLabel = (dateString: string) => {
 };
 
 type ListGroup = { id: string, label: string, notes: Note[] };
-
-/** Inline Collapsible: max-height + opacity (GPU-friendly, measured) */
-function CollapsibleGroup(props: { open: boolean; children: any }) {
-  let el: HTMLDivElement | undefined;
-  let isFirstRun = true;
-
-  // Initialize max-height based on initial open state
-  const [maxH, setMaxH] = createSignal<string>(props.open ? "none" : "0px");
-
-  createEffect(() => {
-    const open = props.open;
-    if (!el) return;
-
-    // Skip animation on first render — just set the correct state
-    if (isFirstRun) {
-      isFirstRun = false;
-      return;
-    }
-
-    if (open) {
-      // Expanding: measure scrollHeight, animate to it, then release to 'none'
-      const h = el.scrollHeight;
-      setMaxH(`${h}px`);
-      const onEnd = (e: TransitionEvent) => {
-        if (e.propertyName !== "max-height") return;
-        if (el) el.style.maxHeight = "none";
-        el?.removeEventListener("transitionend", onEnd);
-      };
-      el.addEventListener("transitionend", onEnd);
-    } else {
-      // Collapsing: snapshot current height, force layout, then animate to 0
-      const curH = el.scrollHeight;
-      // Remove 'none' and set explicit height first
-      el.style.maxHeight = `${curH}px`;
-      // Force layout reflow so browser sees the explicit height before animating
-      void el.offsetHeight;
-      setMaxH("0px");
-    }
-  });
-
-  return (
-    <div
-      ref={el}
-      style={{
-        overflow: "hidden",
-        transition: "max-height 300ms cubic-bezier(.16,1,.3,1), opacity 200ms ease",
-        "max-height": maxH(),
-        opacity: props.open ? 1 : 0,
-        "will-change": "max-height, opacity",
-      }}
-    >
-      {props.children}
-    </div>
-  );
-}
 
 const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
   const [collapsedGroups, setCollapsedGroups] = createSignal<Set<string>>(new Set());
@@ -215,7 +160,10 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                     </div>
                   </div>
 
-                  <CollapsibleGroup open={!isCollapsed()}>
+                  <div 
+                    class={`grid transition-all duration-300 ease-in-out ${isCollapsed() ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    style={{ "grid-template-rows": isCollapsed() ? "0fr" : "1fr" }}
+                  >
                     <div class="min-h-0 overflow-hidden flex flex-col gap-3 px-1">
                       <For each={group.notes}>
                         {(note) => (
@@ -228,7 +176,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                         )}
                       </For>
                     </div>
-                  </CollapsibleGroup>
+                  </div>
                 </div>
               );
             }}
