@@ -27,6 +27,7 @@ export const SelectableImage = Image.extend({
 
   addNodeView() {
     return ({ node, getPos, editor }) => {
+      let currentInternalNode = node;
       const container = document.createElement('span')
       container.classList.add('selectable-image-wrapper')
       // Ensure the container clips the blurred image so edges remain sharp
@@ -34,9 +35,9 @@ export const SelectableImage = Image.extend({
       container.style.display = 'inline-block'
       
       const img = document.createElement('img')
-      img.src = node.attrs.src
-      img.alt = node.attrs.alt || ''
-      img.title = node.attrs.title || ''
+      img.src = currentInternalNode.attrs.src
+      img.alt = currentInternalNode.attrs.alt || ''
+      img.title = currentInternalNode.attrs.title || ''
       // Add standard transform to fix blurring bleeding at the extreme edges by scaling it up slightly
       img.style.transition = 'all 0.4s ease-in-out'
       img.style.display = 'block'
@@ -77,7 +78,7 @@ export const SelectableImage = Image.extend({
         }
       };
 
-      applyLoadingState(node.attrs.isLoading);
+      applyLoadingState(currentInternalNode.attrs.isLoading);
       
       let wasSelectedOnMousedown = false;
 
@@ -91,7 +92,7 @@ export const SelectableImage = Image.extend({
           e.preventDefault()
           e.stopPropagation()
           const event = new CustomEvent('preview-image', { 
-            detail: { src: node.attrs.src },
+            detail: { src: currentInternalNode.attrs.src },
             bubbles: true 
           })
           container.dispatchEvent(event)
@@ -125,8 +126,8 @@ export const SelectableImage = Image.extend({
         
         const { selection } = editor.state
         // Check if node is directly selected or inside a range selection (block cursor)
-        const isNodeSelected = (selection as any).node === node
-        const isInsideRange = selection.from <= pos && selection.to >= pos + node.nodeSize
+        const isNodeSelected = (selection as any).node === currentInternalNode
+        const isInsideRange = selection.from <= pos && selection.to >= pos + currentInternalNode.nodeSize
         
         if (isNodeSelected || isInsideRange) {
           container.classList.add('ProseMirror-selectednode')
@@ -148,9 +149,12 @@ export const SelectableImage = Image.extend({
         },
         update: (updatedNode) => {
             if (updatedNode.type !== this.type) return false
+            currentInternalNode = updatedNode;
+            
             if (updatedNode.attrs.src !== img.src) img.src = updatedNode.attrs.src
             
             applyLoadingState(updatedNode.attrs.isLoading);
+            onSelectionUpdate();
             
             return true
         },
