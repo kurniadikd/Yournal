@@ -632,7 +632,7 @@ ul[data-type="taskList"] li > div > p {
 .ProseMirror p.is-empty::after,
 .ProseMirror p.is-empty[data-placeholder]::after {
   content: attr(data-placeholder);
-  display: block;
+  display: inline;
   color: transparent;
   pointer-events: none;
   user-select: none;
