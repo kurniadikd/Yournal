@@ -131,8 +131,10 @@ export const SelectableImage = Image.extend({
         
         if (isNodeSelected || isInsideRange) {
           container.classList.add('ProseMirror-selectednode')
+          btn.style.display = 'flex'
         } else {
           container.classList.remove('ProseMirror-selectednode')
+          btn.style.display = 'none'
         }
       }
 
@@ -142,6 +144,7 @@ export const SelectableImage = Image.extend({
         dom: container,
         selectNode: () => {
              container.classList.add('ProseMirror-selectednode')
+             btn.style.display = 'flex'
         },
         deselectNode: () => {
              // Only remove if it's not actually inside a range selection

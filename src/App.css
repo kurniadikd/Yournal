@@ -464,7 +464,7 @@ ul[data-type="taskList"] li > div > p {
   display: block;
 }
 
-.ProseMirror p > * {
+.ProseMirror p > *:not(.selectable-image-wrapper) {
   position: static !important;
 }
 
