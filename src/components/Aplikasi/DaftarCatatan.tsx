@@ -1,4 +1,4 @@
-import { Component, For, Show, createSignal, createMemo, onMount, onCleanup } from 'solid-js';
+import { Component, For, Show, createSignal, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
 import { Note } from '../../services/db';
 import ItemCatatan from './ItemCatatan';
 import LoadingSpinner from '../ui/m3e/LoadingSpinner';
@@ -34,6 +34,32 @@ const getGroupLabel = (dateString: string) => {
 };
 
 type ListGroup = { id: string, label: string, notes: Note[] };
+
+function LazyCollapse(props: { open: boolean; children: any }) {
+  const [shouldRender, setShouldRender] = createSignal(props.open);
+
+  createEffect(() => {
+    if (props.open) {
+      setShouldRender(true);
+    } else {
+      const timer = setTimeout(() => setShouldRender(false), 300); // Wait for transition to finish
+      onCleanup(() => clearTimeout(timer));
+    }
+  });
+
+  return (
+    <div 
+      class={`grid transition-all duration-300 ease-in-out ${props.open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      style={{ "grid-template-rows": props.open ? "1fr" : "0fr" }}
+    >
+      <div class="min-h-0 overflow-hidden flex flex-col gap-3 px-1">
+        <Show when={shouldRender()}>
+          {props.children}
+        </Show>
+      </div>
+    </div>
+  );
+}
 
 const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
   const [collapsedGroups, setCollapsedGroups] = createSignal<Set<string>>(new Set());
@@ -160,11 +186,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                     </div>
                   </div>
 
-                  <div 
-                    class={`grid transition-all duration-300 ease-in-out ${isCollapsed() ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                    style={{ "grid-template-rows": isCollapsed() ? "0fr" : "1fr" }}
-                  >
-                    <div class="min-h-0 overflow-hidden flex flex-col gap-3 px-1">
+                  <LazyCollapse open={!isCollapsed()}>
                       <For each={group.notes}>
                         {(note) => (
                           <div class="w-full pb-1">
@@ -175,8 +197,7 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
                           </div>
                         )}
                       </For>
-                    </div>
-                  </div>
+                  </LazyCollapse>
                 </div>
               );
             }}
