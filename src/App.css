@@ -682,65 +682,29 @@ ul[data-type="taskList"] li > div > p {
 .maplibregl-ctrl-attrib {
   background: var(--color-surface-container) !important;
   color: var(--color-on-surface-variant) !important;
-  border-radius: 12px !important;
-  padding: 0 4px 0 10px !important; 
-  height: 22px !important;
-  display: flex !important;
-  align-items: center !important;
-  border: 1px solid var(--color-outline-variant) !important;
-  box-shadow: none !important;
-  white-space: nowrap !important;
+  border-radius: 8px !important;
+  font-size: 10px !important;
 }
 
-/* Ensure inner links don't have weird backgrounds or borders */
-.maplibregl-ctrl-attrib a,
-.maplibregl-ctrl-attrib-inner,
-.maplibregl-ctrl-attrib-inner a {
-  background: transparent !important;
-  border: none !important;
+.maplibregl-ctrl-attrib a {
   color: var(--color-primary) !important;
-  font-family: var(--font-main) !important;
-  font-weight: 500 !important;
-  font-size: 9px !important; /* Slightly smaller to fit slim container */
-}
-
-.maplibregl-ctrl-attrib-inner {
-  display: flex !important;
-  align-items: center !important;
-  color: var(--color-on-surface-variant) !important;
-}
-
-.maplibregl-ctrl-attrib-inner a {
-  text-decoration: none !important;
-  padding: 0 2px !important;
-}
-
-.maplibregl-ctrl-attrib-inner a:hover {
-  text-decoration: underline !important;
 }
 
 .maplibregl-ctrl-attrib-button {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
   background-color: var(--color-primary) !important;
-  width: 18px !important;
-  height: 18px !important;
-  margin-left: 2px !important;
-  padding: 0 !important;
-  border: none !important;
+  width: 24px !important;
+  height: 24px !important;
   mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4,10 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M9,7 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0 M9,10 a1,1 0 1,1 2,0 v3 a1,1 0 1,1 -2,0 z"></path></svg>');
   -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4,10 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M9,7 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0 M9,10 a1,1 0 1,1 2,0 v3 a1,1 0 1,1 -2,0 z"></path></svg>');
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
   mask-position: center;
   -webkit-mask-position: center;
-  mask-size: 16px;
-  -webkit-mask-size: 16px;
+  mask-size: 20px;
+  -webkit-mask-size: 20px;
   background-image: none !important;
   opacity: 0.8;
   transition: opacity 0.2s ease;
-  flex-shrink: 0 !important;
 }
 
 .maplibregl-ctrl-attrib-button:hover {
