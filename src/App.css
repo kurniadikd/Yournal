@@ -695,39 +695,21 @@ ul[data-type="taskList"] li > div > p {
   font-size: 0 !important; /* Hides raw text nodes like " Data from " */
   display: inline-flex;
   align-items: center;
-  gap: 2px;
 }
 
 .maplibregl-ctrl-attrib-inner a {
   font-size: 10px !important;
   text-decoration: none !important;
+  padding: 0 4px; /* Add slight padding for proportional spacing */
 }
 
 .maplibregl-ctrl-attrib-inner a:hover {
   text-decoration: underline !important;
 }
 
-.maplibregl-ctrl-attrib-inner a[href*="openmaptiles"] {
-  display: none !important;
-}
-
-.maplibregl-ctrl-attrib-inner a[href*="openfreemap"]::after {
-  content: " |";
-  color: var(--color-on-surface-variant);
-  pointer-events: none;
-  text-decoration: none !important;
-  display: inline-block;
-  margin-left: 4px;
-}
-
+.maplibregl-ctrl-attrib-inner a[href*="openmaptiles"],
 .maplibregl-ctrl-attrib-inner a[href*="openstreetmap"] {
-  font-size: 0 !important; /* Hides original 'OpenStreetMap' */
-}
-
-.maplibregl-ctrl-attrib-inner a[href*="openstreetmap"]::before {
-  content: "OSM";
-  font-size: 10px !important;
-  display: inline;
+  display: none !important;
 }
 
 .maplibregl-ctrl-attrib-button {
