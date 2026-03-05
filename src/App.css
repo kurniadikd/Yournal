@@ -691,7 +691,24 @@ ul[data-type="taskList"] li > div > p {
 }
 
 .maplibregl-ctrl-attrib-button {
-  background-color: var(--color-surface-container) !important;
+  background-color: var(--color-primary) !important;
+  width: 24px !important;
+  height: 24px !important;
+  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4,10 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M9,7 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0 M9,10 a1,1 0 1,1 2,0 v3 a1,1 0 1,1 -2,0 z"></path></svg>');
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4,10 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M9,7 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0 M9,10 a1,1 0 1,1 2,0 v3 a1,1 0 1,1 -2,0 z"></path></svg>');
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: 20px;
+  -webkit-mask-size: 20px;
+  background-image: none !important;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.maplibregl-ctrl-attrib-button:hover {
+  opacity: 1;
 }
 
 /* Accessibility: respect reduced-motion preferences */
