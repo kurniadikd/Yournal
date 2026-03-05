@@ -682,25 +682,37 @@ ul[data-type="taskList"] li > div > p {
 .maplibregl-ctrl-attrib {
   background: var(--color-surface-container) !important;
   color: var(--color-on-surface-variant) !important;
-  border-radius: 8px !important;
-  font-size: 10px !important;
+  border-radius: 20px !important; /* Pill shape to match Material 3 */
+  padding: 0 4px 0 12px !important; /* More space on the left text side */
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid var(--color-outline-variant) !important;
+  box-shadow: none !important;
 }
 
-.maplibregl-ctrl-attrib a {
+/* Ensure inner links don't have weird backgrounds or borders */
+.maplibregl-ctrl-attrib a,
+.maplibregl-ctrl-attrib-inner,
+.maplibregl-ctrl-attrib-inner a {
+  background: transparent !important;
+  border: none !important;
   color: var(--color-primary) !important;
+  font-family: var(--font-main) !important;
+  font-weight: 500 !important;
 }
 
-/* Shorten MapLibre Attribution Text */
 .maplibregl-ctrl-attrib-inner {
-  font-size: 0 !important; /* Hides raw text nodes like " Data from " */
-  display: inline-flex;
-  align-items: center;
+  font-size: 0 !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 .maplibregl-ctrl-attrib-inner a {
-  font-size: 10px !important;
+  font-size: 11px !important;
   text-decoration: none !important;
-  padding: 0 4px; /* Add slight padding for proportional spacing */
+  padding: 0 !important;
+  margin-right: 8px !important;
 }
 
 .maplibregl-ctrl-attrib-inner a:hover {
