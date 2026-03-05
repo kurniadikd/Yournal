@@ -720,10 +720,15 @@ ul[data-type="taskList"] li > div > p {
 }
 
 .maplibregl-ctrl-attrib-button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   background-color: var(--color-primary) !important;
   width: 18px !important;
   height: 18px !important;
   margin-left: 2px !important;
+  padding: 0 !important;
+  border: none !important;
   mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4,10 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M9,7 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0 M9,10 a1,1 0 1,1 2,0 v3 a1,1 0 1,1 -2,0 z"></path></svg>');
   -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4,10 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M9,7 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0 M9,10 a1,1 0 1,1 2,0 v3 a1,1 0 1,1 -2,0 z"></path></svg>');
   mask-repeat: no-repeat;
@@ -735,6 +740,7 @@ ul[data-type="taskList"] li > div > p {
   background-image: none !important;
   opacity: 0.8;
   transition: opacity 0.2s ease;
+  flex-shrink: 0 !important;
 }
 
 .maplibregl-ctrl-attrib-button:hover {
