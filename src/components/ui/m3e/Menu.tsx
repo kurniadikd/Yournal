@@ -54,9 +54,16 @@ export default function Menu(props: MenuProps) {
     }
   });
 
+  let menuRef: HTMLDivElement | undefined;
+
   const handleClickOutside = (e: MouseEvent) => {
-    if (props.show && props.anchor && !props.anchor.contains(e.target as Node)) {
-      props.onClose();
+    if (props.show) {
+      const isAnchor = props.anchor && props.anchor.contains(e.target as Node);
+      const isMenu = menuRef && menuRef.contains(e.target as Node);
+      
+      if (!isAnchor && !isMenu) {
+        props.onClose();
+      }
     }
   };
 
@@ -76,6 +83,7 @@ export default function Menu(props: MenuProps) {
     <Portal>
       <Show when={props.show}>
         <div 
+          ref={menuRef}
           class={`
             absolute z-[10005] min-w-[160px] max-w-[280px]
             bg-[var(--color-surface-container)] rounded-[28px] overflow-hidden

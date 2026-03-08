@@ -32,6 +32,7 @@ import "katex/dist/katex.min.css";
 import Button from "../ui/m3e/Button";
 import DatePicker from "../ui/m3e/DatePicker";
 import TimePicker from "../ui/m3e/TimePicker";
+import Menu from "../ui/m3e/Menu";
 import MathModal from "../ui/m3e/MathModal";
 import { formatTime, formatDate } from "../../utils/date";
 
@@ -45,6 +46,7 @@ import Modal from "../ui/m3e/Modal";
 import VideoModal from "../ui/m3e/VideoModal";
 import ConfirmationModal from "../ui/m3e/ConfirmationModal";
 import ExportModal from "../ui/m3e/ExportModal";
+import HtmlEditorModal from "../ui/m3e/HtmlEditorModal";
 import type { ExportSettings } from "../ui/m3e/ExportModal";
 import { getWeatherDescription } from "../../utils/weather";
 import { InsertAudio } from "./InsertAudio";
@@ -129,6 +131,9 @@ export default function Editor(props: EditorProps) {
   const [linkUrl, setLinkUrl] = createSignal('');
   const [tableMenuOpen, setTableMenuOpen] = createSignal(false);
   const [insertTableOpen, setInsertTableOpen] = createSignal(false);
+  const [showMoreMenu, setShowMoreMenu] = createSignal(false);
+  const [showHtmlEditor, setShowHtmlEditor] = createSignal(false);
+  const [moreMenuBtnRef, setMoreMenuBtnRef] = createSignal<HTMLButtonElement>();
   const [mood, setMood] = createSignal("");
 
   const handleAddTag = () => {
@@ -935,6 +940,36 @@ export default function Editor(props: EditorProps) {
     }
   };
 
+  const menuItems = () => {
+    const items = [];
+    
+    items.push({
+      id: 'export',
+      label: 'Ekspor',
+      icon: 'ios_share',
+      onClick: () => setShowExportModal(true)
+    });
+
+    items.push({
+      id: 'html-editor',
+      label: 'Edit HTML',
+      icon: 'code',
+      onClick: () => setShowHtmlEditor(true)
+    });
+
+    if (props.onDelete) {
+      items.push({
+        id: 'delete',
+        label: 'Hapus',
+        icon: 'delete',
+        onClick: props.onDelete,
+        variant: 'danger' as const
+      });
+    }
+
+    return items;
+  };
+
   return (
     <Show when={shouldRenderEditor()}>
       <Portal>
@@ -978,28 +1013,24 @@ export default function Editor(props: EditorProps) {
                 </Button>
               </div>
               <div class="flex items-center gap-1.5 sm:gap-2">
-                <Show when={props.onDelete}>
-                  <Button 
-                    variant="text" 
-                    onClick={props.onDelete}
-                    class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-error)] hover:bg-[var(--color-error-container)] mr-2"
-                    title="Hapus"
-                  >
-                    <span class="material-symbols-rounded !text-[20px] font-normal">delete</span>
-                    <span class="hidden sm:inline sm:ml-2">Hapus</span>
-                  </Button>
-                </Show>
-                
                 <Button 
-                    type="button"
-                    variant="text" 
-                    onClick={() => setShowExportModal(true)}
-                    class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] mr-2"
-                    title="Ekspor"
-                  >
-                    <span class="material-symbols-rounded !text-[20px] font-normal">ios_share</span>
-                    <span class="hidden sm:inline sm:ml-2">Ekspor</span>
-                  </Button>
+                  ref={setMoreMenuBtnRef}
+                  variant="text" 
+                  onClick={() => setShowMoreMenu(true)}
+                  class="!h-9 !w-9 !p-0 sm:!w-auto sm:!px-4 sm:!min-w-0 text-sm font-medium !rounded-lg shrink-0 !text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]"
+                  title="Menu"
+                >
+                  <span class="material-symbols-rounded !text-[20px] font-normal">more_vert</span>
+                  <span class="hidden sm:inline sm:ml-2">Menu</span>
+                </Button>
+                
+                <Menu 
+                  show={showMoreMenu()}
+                  onClose={() => setShowMoreMenu(false)}
+                  anchor={moreMenuBtnRef()}
+                  placement="bottom-end"
+                  items={menuItems()}
+                />
 
                 <Show when={isDirty()}>
                   <Button 
@@ -1452,6 +1483,16 @@ export default function Editor(props: EditorProps) {
           content={editor()?.getHTML() || ''}
           dateStr={formatDate(entryDate())}
           timeStr={formatTime(entryDate())}
+        />
+
+        <HtmlEditorModal
+          show={showHtmlEditor()}
+          onClose={() => setShowHtmlEditor(false)}
+          initialHtml={editor()?.getHTML() || ''}
+          onConfirm={(html) => {
+            editor()?.commands.setContent(html);
+            setBaseHTML(html); // Prevents unchanged HTML from marking editor as dirty
+          }}
         />
 
         <Modal
