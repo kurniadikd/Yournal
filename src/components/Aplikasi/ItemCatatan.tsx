@@ -1,4 +1,4 @@
-import { Component, createMemo, Show, For } from 'solid-js';
+import { Component, createMemo, Show, For, createSignal, createEffect, onCleanup } from 'solid-js';
 import { Note } from '../../services/db';
 import { getWeatherDescription } from '../../utils/weather';
 import { formatTime } from '../../utils/date';
@@ -27,23 +27,41 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
     } catch (e) { return []; }
   });
 
-  const images = createMemo(() => {
+  const [images, setImages] = createSignal<string[]>([]);
+
+  createEffect(() => {
     const content = props.note.content || "";
-    if (!content.includes('<img')) return [];
-    
-    // Regex to match src attribute of img tags
-    const _images: string[] = [];
-    // Only parse the first 2000 characters to keep it fast for long notes
-    const sampleContent = content.length > 2000 ? content.substring(0, 2000) : content;
-    const regex = /<img[^>]+src="([^">]+)"/g;
-    let match;
-    while ((match = regex.exec(sampleContent)) !== null) {
-      if (match[1]) {
-        _images.push(match[1]);
-        if (_images.length >= 10) break; // Don't show too many thumbnails in a list item
-      }
+    if (!content.includes('<img')) {
+      setImages([]);
+      return;
     }
-    return _images;
+
+    // Use requestIdleCallback to avoid blocking the UI thread on large notes
+    // Fallback to setTimeout if not supported (e.g. some mobile/older browsers)
+    const scheduleCallback = (window as any).requestIdleCallback || ((cb: any) => setTimeout(cb, 50));
+    
+    const idleId = scheduleCallback(() => {
+      const _images: string[] = [];
+      const regex = /<img[^>]+src="([^">]+)"/g;
+      let match;
+      
+      // Now scanning the full content as requested
+      while ((match = regex.exec(content)) !== null) {
+        if (match[1]) {
+          _images.push(match[1]);
+          if (_images.length >= 12) break; // Reasonable limit for list items
+        }
+      }
+      setImages(_images);
+    });
+
+    onCleanup(() => {
+      if ((window as any).cancelIdleCallback) {
+        (window as any).cancelIdleCallback(idleId);
+      } else {
+        clearTimeout(idleId);
+      }
+    });
   });
 
   return (
