@@ -29,13 +29,18 @@ const ItemCatatan: Component<ItemCatatanProps> = (props) => {
 
   const images = createMemo(() => {
     const content = props.note.content || "";
+    if (!content.includes('<img')) return [];
+    
     // Regex to match src attribute of img tags
     const _images: string[] = [];
+    // Only parse the first 2000 characters to keep it fast for long notes
+    const sampleContent = content.length > 2000 ? content.substring(0, 2000) : content;
     const regex = /<img[^>]+src="([^">]+)"/g;
     let match;
-    while ((match = regex.exec(content)) !== null) {
+    while ((match = regex.exec(sampleContent)) !== null) {
       if (match[1]) {
         _images.push(match[1]);
+        if (_images.length >= 10) break; // Don't show too many thumbnails in a list item
       }
     }
     return _images;

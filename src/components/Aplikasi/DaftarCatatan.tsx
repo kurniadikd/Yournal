@@ -10,26 +10,31 @@ interface DaftarCatatanProps {
   onRefresh?: () => void;
 }
 
+const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 const getGroupLabel = (dateString: string) => {
   const date = new Date(dateString);
   const today = new Date();
+  const todayString = today.toDateString();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
+  const yesterdayString = yesterday.toDateString();
 
   if (isNaN(date.getTime())) {
     return "Tanggal tidak valid";
   }
 
-  if (date.toDateString() === today.toDateString()) {
+  const dateStr = date.toDateString();
+  if (dateStr === todayString) {
     return "Hari ini";
-  } else if (date.toDateString() === yesterday.toDateString()) {
+  } else if (dateStr === yesterdayString) {
     return "Kemarin";
   } else {
-    return new Intl.DateTimeFormat("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(date);
+    return dateFormatter.format(date);
   }
 };
 
@@ -80,10 +85,13 @@ const DaftarCatatan: Component<DaftarCatatanProps> = (props) => {
   const groupedItems = createMemo(() => {
     const groupsMap = new Map<string, { label: string, notes: Note[] }>();
     
+    // Sort by combine date and time string directly (ISO-like format comparison is efficient)
     const sortedNotes = [...props.notes].sort((a, b) => {
-      const dateA = new Date(`${a.date}T${a.time}`);
-      const dateB = new Date(`${b.date}T${b.time}`);
-      return dateB.getTime() - dateA.getTime();
+      const dateTimeA = `${a.date}T${a.time}`;
+      const dateTimeB = `${b.date}T${b.time}`;
+      if (dateTimeB < dateTimeA) return -1;
+      if (dateTimeB > dateTimeA) return 1;
+      return 0;
     });
 
     sortedNotes.forEach(note => {
